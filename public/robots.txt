@@ -1,0 +1,18 @@
+# DASM Stores — robots policy
+# https://store.dasm.com.sa
+
+User-agent: *
+Allow: /
+
+# Private / seller-only areas — not for public indexing
+Disallow: /dashboard
+Disallow: /dashboard/
+Disallow: /stores/new
+Disallow: /auth/
+Disallow: /api/
+
+# Avoid duplicate content from query-string variants
+Disallow: /*?preview=
+Disallow: /*?ref=
+
+Sitemap: https://store.dasm.com.sa/sitemap.xml

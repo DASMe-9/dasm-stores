@@ -44,6 +44,7 @@ export default function LoginPage() {
     <>
       <Head>
         <title>تسجيل الدخول — متاجر داسم</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
       <div className="min-h-screen flex items-center justify-center p-6 bg-gray-50 rtl">
         <div className="w-full max-w-md rounded-2xl border border-gray-200 bg-white p-8 shadow-sm space-y-6">
