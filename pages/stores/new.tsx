@@ -86,6 +86,7 @@ export default function NewStore() {
     <>
       <Head>
         <title>متجر جديد — متاجر داسم</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
       <div className="min-h-screen bg-gray-50 rtl">
         {/* Header */}

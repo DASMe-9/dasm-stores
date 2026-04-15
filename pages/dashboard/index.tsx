@@ -28,6 +28,7 @@ export default function Dashboard() {
     <>
       <Head>
         <title>لوحتي — متاجر داسم</title>
+        <meta name="robots" content="noindex, nofollow" />
       </Head>
       <div className="min-h-screen bg-gray-50 rtl">
         {/* Header */}
