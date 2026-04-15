@@ -41,6 +41,9 @@ export default function Document() {
       >
         <Main />
         <NextScript />
+
+        {/* DASM Talk widget — unified conversations layer (talk.dasm.com.sa) */}
+        <script src="https://talk.dasm.com.sa/widget.js" async></script>
       </body>
     </Html>
   );
