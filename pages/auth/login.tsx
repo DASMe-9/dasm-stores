@@ -31,9 +31,19 @@ export default function LoginPage() {
       localStorage.setItem("stores_token", token);
       router.replace(returnUrl);
     } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { message?: string } } })?.response?.data
-          ?.message || "فشل تسجيل الدخول";
+      const resp = (err as { response?: { status?: number; data?: { message?: string; error?: string } } })?.response;
+      const backendMsg = resp?.data?.message;
+      const backendErr = resp?.data?.error;
+      const status = resp?.status;
+
+      let msg = backendMsg || "فشل تسجيل الدخول";
+      if (status === 429 || backendErr === "too_many_attempts") {
+        msg = backendMsg || "تم تجاوز الحد المسموح من محاولات الدخول. حاول بعد 30 دقيقة.";
+      } else if (backendErr === "access_denied") {
+        msg = "الوصول محجوب حالياً — تواصل مع الدعم.";
+      } else if (status === 401) {
+        msg = backendMsg || "البريد أو كلمة المرور غير صحيحة.";
+      }
       setError(msg);
     } finally {
       setBusy(false);
