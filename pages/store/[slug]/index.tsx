@@ -24,7 +24,7 @@ interface StoreData {
   meta_description: string;
   theme_config: any;
   tabs: { id: number; name: string; slug: string; icon: string }[];
-  area: { name_ar: string } | null;
+  area: { name: string } | null;
 }
 
 interface Product {
@@ -169,7 +169,7 @@ export default function StoreFront() {
               <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-400">
                 {store.area && (
                   <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" /> {store.area.name_ar}
+                    <MapPin className="w-3 h-3" /> {store.area.name}
                   </span>
                 )}
                 {store.contact_phone && (

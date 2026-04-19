@@ -12,7 +12,7 @@ interface StoreItem {
   logo_url: string;
   banner_url: string;
   owner_type: string;
-  area: { name_ar: string } | null;
+  area: { name: string } | null;
   products_count: number;
 }
 
@@ -140,7 +140,7 @@ export default function ExplorePage() {
                       </span>
                       {s.area && (
                         <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" /> {s.area.name_ar}
+                          <MapPin className="w-3 h-3" /> {s.area.name}
                         </span>
                       )}
                       <span className="flex items-center gap-1">
