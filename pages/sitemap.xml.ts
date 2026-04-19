@@ -79,12 +79,12 @@ function buildSitemap(stores: StoreEntry[]): string {
   const storeRoutes = stores.flatMap((s) => {
     const lastmod = s.updated_at ? s.updated_at.slice(0, 10) : today;
     return [
-      urlEntry(`${SITE.url}/store/${s.slug}`, {
+      urlEntry(`${SITE.url}/${s.slug}`, {
         changefreq: "daily",
         priority: 0.9,
         lastmod,
       }),
-      urlEntry(`${SITE.url}/store/${s.slug}/cart`, {
+      urlEntry(`${SITE.url}/${s.slug}/cart`, {
         changefreq: "monthly",
         priority: 0.3,
         lastmod,

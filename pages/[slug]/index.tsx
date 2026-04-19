@@ -24,7 +24,7 @@ interface StoreData {
   meta_description: string;
   theme_config: any;
   tabs: { id: number; name: string; slug: string; icon: string }[];
-  area: { name_ar: string } | null;
+  area: { name: string } | null;
 }
 
 interface Product {
@@ -169,7 +169,7 @@ export default function StoreFront() {
               <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-gray-400">
                 {store.area && (
                   <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" /> {store.area.name_ar}
+                    <MapPin className="w-3 h-3" /> {store.area.name}
                   </span>
                 )}
                 {store.contact_phone && (
@@ -182,7 +182,7 @@ export default function StoreFront() {
 
             {/* سلة التسوق */}
             <Link
-              href={`/store/${slug}/cart`}
+              href={`/${slug}/cart`}
               className="relative flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition"
             >
               <ShoppingCart className="w-4 h-4" />
@@ -256,7 +256,7 @@ export default function StoreFront() {
                   className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition group"
                 >
                   {/* صورة المنتج */}
-                  <Link href={`/store/${slug}/product/${product.id}`}>
+                  <Link href={`/${slug}/product/${product.id}`}>
                     <div className="aspect-square bg-gray-100 relative overflow-hidden">
                       {product.primary_image ? (
                         <img
@@ -283,7 +283,7 @@ export default function StoreFront() {
                   </Link>
 
                   <div className="p-3 space-y-2">
-                    <Link href={`/store/${slug}/product/${product.id}`}>
+                    <Link href={`/${slug}/product/${product.id}`}>
                       <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 hover:text-emerald-600">
                         {product.name}
                       </h3>

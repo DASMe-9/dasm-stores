@@ -96,7 +96,7 @@ export default function CartPage() {
       if (data.payment_url) {
         window.location.href = data.payment_url;
       } else {
-        router.push(`/store/${slug}/order/${data.order.order_number}`);
+        router.push(`/${slug}/order/${data.order.order_number}`);
       }
     } catch (err: any) {
       alert(err.response?.data?.message || "حدث خطأ");
@@ -117,7 +117,7 @@ export default function CartPage() {
       <div className="min-h-screen bg-gray-50 rtl">
         {/* Header */}
         <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center gap-3">
-          <Link href={`/store/${slug}`} className="p-2 rounded-xl hover:bg-gray-100 transition">
+          <Link href={`/${slug}`} className="p-2 rounded-xl hover:bg-gray-100 transition">
             <ArrowRight className="w-5 h-5 text-gray-600" />
           </Link>
           <ShoppingCart className="w-5 h-5 text-emerald-600" />
@@ -130,7 +130,7 @@ export default function CartPage() {
               <ShoppingCart className="w-16 h-16 text-gray-200 mx-auto mb-4" />
               <p className="text-gray-500 mb-4">السلة فارغة</p>
               <Link
-                href={`/store/${slug}`}
+                href={`/${slug}`}
                 className="px-6 py-2 bg-emerald-600 text-white text-sm rounded-xl hover:bg-emerald-700"
               >
                 تصفح المنتجات

@@ -1,31 +1,73 @@
 import Head from "next/head";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
-import { Store, ArrowRight, CheckCircle2 } from "lucide-react";
+import {
+  Store, ArrowRight, ArrowLeft, CheckCircle2, Upload,
+  Palette, Package, Rocket, Check,
+} from "lucide-react";
+import { sellerApi } from "@/lib/api";
 
 const CATEGORIES = [
-  { value: "fashion",      label: "أزياء وملابس" },
-  { value: "electronics",  label: "إلكترونيات" },
-  { value: "food",         label: "مأكولات ومشروبات" },
-  { value: "home",         label: "منزل وديكور" },
-  { value: "automotive",   label: "سيارات وقطع غيار" },
-  { value: "beauty",       label: "عطور ومستحضرات" },
-  { value: "sports",       label: "رياضة ولياقة" },
-  { value: "general",      label: "متنوع / أخرى" },
+  { value: "fashion",      label: "أزياء وملابس",    emoji: "👗" },
+  { value: "electronics",  label: "إلكترونيات",       emoji: "📱" },
+  { value: "food",         label: "مأكولات ومشروبات", emoji: "🍽️" },
+  { value: "home",         label: "منزل وديكور",      emoji: "🏠" },
+  { value: "automotive",   label: "سيارات وقطع غيار", emoji: "🚗" },
+  { value: "beauty",       label: "عطور ومستحضرات",   emoji: "💄" },
+  { value: "sports",       label: "رياضة ولياقة",     emoji: "⚽" },
+  { value: "general",      label: "متنوع",             emoji: "🛍️" },
 ];
+
+const PALETTES = [
+  { key: "emerald", label: "أخضر داسم", primary: "#059669", accent: "#10b981" },
+  { key: "indigo",  label: "أزرق ملكي", primary: "#4f46e5", accent: "#6366f1" },
+  { key: "rose",    label: "وردي عصري", primary: "#e11d48", accent: "#f43f5e" },
+  { key: "amber",   label: "ذهبي فاخر", primary: "#d97706", accent: "#f59e0b" },
+  { key: "slate",   label: "رمادي أنيق", primary: "#0f172a", accent: "#334155" },
+];
+
+const STEPS = [
+  { key: "basics",  title: "بيانات المتجر",   icon: Store },
+  { key: "brand",   title: "هوية المتجر",     icon: Palette },
+  { key: "product", title: "أول منتج",        icon: Package },
+  { key: "launch",  title: "الإطلاق",         icon: Rocket },
+];
+
+function slugify(s: string) {
+  return s.toLowerCase().trim()
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+// Reserved paths — must not be used as store slugs (since stores live at the root)
+const RESERVED_SLUGS = new Set([
+  "api", "auth", "dashboard", "explore", "stores", "store",
+  "_next", "favicon.ico", "sitemap.xml", "robots.txt",
+  "admin", "login", "signup", "register", "logout",
+  "about", "contact", "terms", "privacy",
+]);
 
 export default function NewStore() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
+  const [step, setStep] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [done, setDone] = useState(false);
+
   const [form, setForm] = useState({
-    name:        "",
-    name_ar:     "",
-    category:    "general",
-    description: "",
+    name_ar:       "",
+    name:          "",
+    slug:          "",
+    category:      "general",
+    description:   "",
+    logo_url:      "",
+    banner_url:    "",
+    palette:       "emerald",
+    first_product: { name: "", price: "", image_url: "" },
   });
-  const [loading, setLoading]   = useState(false);
-  const [success, setSuccess]   = useState(false);
-  const [error, setError]       = useState<string | null>(null);
 
   useEffect(() => {
     const t = localStorage.getItem("stores_token");
@@ -33,164 +75,442 @@ export default function NewStore() {
     setToken(t);
   }, [router]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!token) return;
+  const setField = (k: keyof typeof form, v: any) => {
+    setForm((f) => {
+      const next = { ...f, [k]: v };
+      if (k === "name" && !f.slug) next.slug = slugify(v as string);
+      return next;
+    });
+  };
+
+  const canNext = () => {
+    if (step === 0) {
+      return form.name_ar.trim() && form.name.trim()
+        && form.slug.trim().length >= 2
+        && !RESERVED_SLUGS.has(form.slug);
+    }
+    if (step === 1) return true;
+    if (step === 2) return true;
+    return true;
+  };
+
+  const slugError = form.slug && RESERVED_SLUGS.has(form.slug)
+    ? "هذا الرابط محجوز للنظام، اختر رابطاً آخر"
+    : form.slug && form.slug.length < 2
+      ? "الرابط قصير جداً"
+      : null;
+
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const res = await fetch("/api/stores/create", {
-        method:  "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization:  `Bearer ${token}`,
-        },
-        body: JSON.stringify(form),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message ?? "فشل الإنشاء");
-      setSuccess(true);
+      const palette = PALETTES.find((p) => p.key === form.palette)!;
+      const payload = {
+        name:         form.name,
+        name_ar:      form.name_ar,
+        slug:         form.slug,
+        category:     form.category,
+        description:  form.description || null,
+        logo_url:     form.logo_url || null,
+        banner_url:   form.banner_url || null,
+        theme_config: { palette: form.palette, primary: palette.primary, accent: palette.accent },
+      };
+      await sellerApi.createStore(payload);
+
+      if (form.first_product.name && form.first_product.price) {
+        try {
+          await sellerApi.createProduct({
+            name:  form.first_product.name,
+            price: Number(form.first_product.price),
+            image_url: form.first_product.image_url || null,
+            is_active: true,
+          });
+        } catch { /* non-fatal — الـ wizard لا يعلّق بسبب المنتج الأول */ }
+      }
+
+      setDone(true);
       setTimeout(() => router.push("/dashboard"), 2500);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (e: any) {
+      setError(e?.response?.data?.message ?? e?.message ?? "حدث خطأ");
     } finally {
       setLoading(false);
     }
   };
 
   if (!token) {
-    return (
-      <div className="min-h-screen flex items-center justify-center text-gray-400 text-sm">
-        جاري التحميل...
-      </div>
-    );
+    return <div className="min-h-screen flex items-center justify-center text-gray-400 text-sm">جاري التحميل...</div>;
   }
 
-  if (success) {
+  if (done) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 rtl">
-        <div className="bg-white rounded-2xl border border-gray-100 p-10 text-center max-w-sm w-full space-y-4">
-          <CheckCircle2 className="w-14 h-14 text-emerald-500 mx-auto" />
-          <h2 className="text-lg font-bold text-gray-900">تم إرسال طلب التفعيل</h2>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 via-white to-emerald-50 rtl">
+        <div className="bg-white rounded-2xl border border-emerald-100 p-10 text-center max-w-sm w-full space-y-4 shadow-lg">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 mx-auto flex items-center justify-center">
+            <CheckCircle2 className="w-9 h-9 text-emerald-600" />
+          </div>
+          <h2 className="text-lg font-bold text-gray-900">متجرك جاهز 🎉</h2>
           <p className="text-sm text-gray-500">
-            تم إنشاء متجرك وإرسال طلب التفعيل لفريق داسم. سيتم مراجعته قريباً.
+            أرسلنا طلب التفعيل لفريق داسم. سيتم إشعارك عند الاعتماد.
           </p>
-          <p className="text-xs text-gray-400">سيتم توجيهك للوحة التحكم...</p>
+          <p className="text-xs text-gray-400">جاري توجيهك للوحة التحكم...</p>
         </div>
       </div>
     );
   }
 
+  const active = PALETTES.find((p) => p.key === form.palette)!;
+
   return (
     <>
       <Head>
-        <title>متجر جديد — متاجر داسم</title>
+        <title>إنشاء متجر — متاجر داسم</title>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
+
       <div className="min-h-screen bg-gray-50 rtl">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center gap-3">
-          <button
-            onClick={() => router.back()}
-            className="p-2 rounded-xl hover:bg-gray-100 transition"
-          >
+        {/* Top bar */}
+        <header className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10">
+          <button onClick={() => router.back()} className="p-2 rounded-xl hover:bg-gray-100">
             <ArrowRight className="w-5 h-5 text-gray-600" />
           </button>
-          <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center">
-            <Store className="w-4 h-4 text-white" />
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center shrink-0">
+              <Store className="w-4 h-4 text-white" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-sm font-bold text-gray-900 truncate">إنشاء متجر جديد</div>
+              <div className="text-[11px] text-gray-400">متاجر داسم</div>
+            </div>
           </div>
-          <div>
-            <div className="text-sm font-bold text-gray-900">إنشاء متجر جديد</div>
-            <div className="text-xs text-gray-400">متاجر داسم</div>
+          <div className="mr-auto text-xs text-gray-400 hidden md:block">
+            الخطوة {step + 1} من {STEPS.length}
           </div>
         </header>
 
-        <main className="max-w-xl mx-auto px-6 py-8">
-          <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-100 p-6 space-y-5">
-            <h1 className="text-base font-bold text-gray-900">بيانات المتجر</h1>
+        {/* Stepper */}
+        <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4">
+          <div className="max-w-3xl mx-auto flex items-center justify-between gap-2">
+            {STEPS.map((s, i) => {
+              const done = i < step;
+              const current = i === step;
+              const Icon = s.icon;
+              return (
+                <div key={s.key} className="flex-1 flex items-center">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 transition ${
+                      done ? "bg-emerald-600 text-white" :
+                      current ? "bg-emerald-100 text-emerald-700 ring-4 ring-emerald-50" :
+                      "bg-gray-100 text-gray-400"
+                    }`}>
+                      {done ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                    </div>
+                    <span className={`text-xs md:text-sm font-medium truncate ${
+                      current ? "text-gray-900" : done ? "text-emerald-700" : "text-gray-400"
+                    }`}>{s.title}</span>
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div className={`flex-1 h-0.5 mx-2 md:mx-4 ${i < step ? "bg-emerald-500" : "bg-gray-200"}`} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
 
-            {/* اسم المتجر بالعربي */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
-                اسم المتجر بالعربي <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                maxLength={100}
-                placeholder="مثال: متجر الهلال"
-                value={form.name_ar}
-                onChange={(e) => setForm({ ...form, name_ar: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
+        <main className="max-w-3xl mx-auto px-4 md:px-8 py-6 md:py-10">
+          <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm">
+            {/* STEP 0: Basics */}
+            {step === 0 && (
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">ابدأ بالأساسيات</h2>
+                  <p className="text-sm text-gray-500 mt-1">اسم متجرك ورابطه على متاجر داسم.</p>
+                </div>
 
-            {/* اسم المتجر بالإنجليزي */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">
-                اسم المتجر بالإنجليزي <span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
-                required
-                maxLength={100}
-                placeholder="e.g. Al-Hilal Store"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left placeholder:text-right"
-                dir="ltr"
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">
+                    اسم المتجر بالعربي <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text" required maxLength={100}
+                    placeholder="مثال: متجر الهلال"
+                    value={form.name_ar}
+                    onChange={(e) => setField("name_ar", e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
 
-            {/* الفئة */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">تصنيف المتجر</label>
-              <select
-                value={form.category}
-                onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
-              >
-                {CATEGORIES.map((c) => (
-                  <option key={c.value} value={c.value}>{c.label}</option>
-                ))}
-              </select>
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">
+                    اسم المتجر بالإنجليزي <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text" required maxLength={100}
+                    placeholder="e.g. Al-Hilal Store"
+                    value={form.name}
+                    onChange={(e) => setField("name", e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left placeholder:text-right"
+                    dir="ltr"
+                  />
+                </div>
 
-            {/* وصف مختصر */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-gray-700">وصف مختصر (اختياري)</label>
-              <textarea
-                rows={3}
-                maxLength={300}
-                placeholder="ماذا يبيع متجرك؟"
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
-              />
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">
+                    رابط المتجر <span className="text-red-500">*</span>
+                  </label>
+                  <div className="flex items-center rounded-xl border border-gray-200 bg-gray-50 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent">
+                    <span className="px-3 py-2.5 text-xs text-gray-500 bg-gray-100 border-l border-gray-200" dir="ltr">
+                      store.dasm.com.sa/
+                    </span>
+                    <input
+                      type="text" required
+                      placeholder="al-hilal"
+                      value={form.slug}
+                      onChange={(e) => setField("slug", slugify(e.target.value))}
+                      className="flex-1 px-3 py-2.5 text-sm bg-transparent focus:outline-none text-left"
+                      dir="ltr"
+                    />
+                  </div>
+                  {slugError && (
+                    <p className="text-xs text-red-600 mt-1">{slugError}</p>
+                  )}
+                </div>
 
-            {/* ملاحظة */}
-            <div className="rounded-xl bg-emerald-50 border border-emerald-100 px-4 py-3 text-xs text-emerald-700">
-              بعد الإنشاء سيُرسل طلب التفعيل لفريق داسم تلقائياً، وسيتم إشعارك عند قبول متجرك.
-            </div>
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">تصنيف المتجر</label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {CATEGORIES.map((c) => (
+                      <button
+                        type="button"
+                        key={c.value}
+                        onClick={() => setField("category", c.value)}
+                        className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-xs transition ${
+                          form.category === c.value
+                            ? "border-emerald-500 bg-emerald-50 text-emerald-700 font-semibold"
+                            : "border-gray-200 bg-white text-gray-600 hover:border-gray-300"
+                        }`}
+                      >
+                        <span className="text-xl">{c.emoji}</span>
+                        <span>{c.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
 
-            {error && (
-              <div className="rounded-xl bg-red-50 border border-red-100 px-4 py-3 text-xs text-red-600">
-                {error}
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">وصف مختصر (اختياري)</label>
+                  <textarea
+                    rows={2} maxLength={300}
+                    placeholder="ماذا يبيع متجرك؟"
+                    value={form.description}
+                    onChange={(e) => setField("description", e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  />
+                </div>
               </div>
             )}
 
+            {/* STEP 1: Brand */}
+            {step === 1 && (
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">هوية متجرك</h2>
+                  <p className="text-sm text-gray-500 mt-1">الشعار، الغلاف، واللون الأساسي. يمكنك تعديلها لاحقاً.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">شعار المتجر (Logo URL)</label>
+                  <input
+                    type="url" placeholder="https://..."
+                    value={form.logo_url}
+                    onChange={(e) => setField("logo_url", e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
+                    dir="ltr"
+                  />
+                  <p className="text-[11px] text-gray-400">سنضيف رفع مباشر بعد التفعيل.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">غلاف المتجر (Banner URL)</label>
+                  <input
+                    type="url" placeholder="https://..."
+                    value={form.banner_url}
+                    onChange={(e) => setField("banner_url", e.target.value)}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">اللون الأساسي</label>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                    {PALETTES.map((p) => (
+                      <button
+                        type="button"
+                        key={p.key}
+                        onClick={() => setField("palette", p.key)}
+                        className={`p-3 rounded-xl border-2 transition ${
+                          form.palette === p.key ? "border-gray-900" : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <div className="flex gap-1 mb-2">
+                          <div className="w-5 h-5 rounded-full" style={{ background: p.primary }} />
+                          <div className="w-5 h-5 rounded-full" style={{ background: p.accent }} />
+                        </div>
+                        <div className="text-[11px] font-medium text-gray-700">{p.label}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Live preview */}
+                <div className="rounded-2xl border border-gray-200 overflow-hidden bg-gray-50">
+                  <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 pt-2">معاينة</div>
+                  <div className="p-3">
+                    <div className="rounded-xl overflow-hidden bg-white shadow-sm">
+                      <div className="h-20 relative" style={{ background: `linear-gradient(135deg, ${active.primary}, ${active.accent})` }}>
+                        {form.banner_url && <img src={form.banner_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-80" />}
+                      </div>
+                      <div className="p-3 -mt-8 relative">
+                        <div className="w-12 h-12 rounded-xl bg-white border-4 border-white shadow overflow-hidden flex items-center justify-center" style={{ background: active.primary }}>
+                          {form.logo_url ? (
+                            <img src={form.logo_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-white font-bold text-sm">{form.name_ar?.charAt(0) || "م"}</span>
+                          )}
+                        </div>
+                        <div className="mt-2 text-sm font-bold text-gray-900">{form.name_ar || "اسم متجرك"}</div>
+                        <div className="text-[11px] text-gray-400">store.dasm.com.sa/{form.slug || "your-store"}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: First product */}
+            {step === 2 && (
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">أضف أول منتج (اختياري)</h2>
+                  <p className="text-sm text-gray-500 mt-1">يمكنك تخطّي هذه الخطوة وإضافة منتجات لاحقاً من لوحة التحكم.</p>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">اسم المنتج</label>
+                  <input
+                    type="text" maxLength={120}
+                    placeholder="مثال: تيشيرت قطن"
+                    value={form.first_product.name}
+                    onChange={(e) => setField("first_product", { ...form.first_product, name: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">السعر (ر.س)</label>
+                  <input
+                    type="number" min="0" step="0.01"
+                    placeholder="0.00"
+                    value={form.first_product.price}
+                    onChange={(e) => setField("first_product", { ...form.first_product, price: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-sm font-medium text-gray-700">صورة المنتج (URL)</label>
+                  <input
+                    type="url" placeholder="https://..."
+                    value={form.first_product.image_url}
+                    onChange={(e) => setField("first_product", { ...form.first_product, image_url: e.target.value })}
+                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
+                    dir="ltr"
+                  />
+                </div>
+
+                <div className="rounded-xl bg-amber-50 border border-amber-100 p-3 flex gap-2 items-start">
+                  <Upload className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-800">رفع الصور المباشر (Cloudinary) سيُضاف في دفعة لاحقة. الآن استخدم روابط جاهزة.</p>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: Launch */}
+            {step === 3 && (
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-lg font-bold text-gray-900">راجع وأطلق متجرك</h2>
+                  <p className="text-sm text-gray-500 mt-1">بعد الإرسال، سيراجع فريق داسم متجرك ويُفعَّل عادة خلال 24 ساعة.</p>
+                </div>
+
+                <div className="rounded-2xl border border-gray-200 divide-y divide-gray-100">
+                  <Row label="الاسم بالعربي" value={form.name_ar} />
+                  <Row label="الاسم بالإنجليزي" value={form.name} />
+                  <Row label="الرابط" value={`store.dasm.com.sa/${form.slug}`} />
+                  <Row label="التصنيف" value={CATEGORIES.find((c) => c.value === form.category)?.label} />
+                  <Row label="اللون الأساسي" value={active.label} swatch={active.primary} />
+                  {form.first_product.name && (
+                    <Row label="أول منتج" value={`${form.first_product.name} — ${form.first_product.price || 0} ر.س`} />
+                  )}
+                </div>
+
+                <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3 text-xs text-emerald-700">
+                  ✓ بعد اعتماد المتجر ستظهر المبيعات في ليدجر حسابك التلقائي على منصة داسم.
+                </div>
+
+                {error && (
+                  <div className="rounded-xl bg-red-50 border border-red-100 p-3 text-xs text-red-600">{error}</div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Nav buttons */}
+          <div className="flex items-center justify-between mt-6 gap-3">
             <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-xl hover:bg-emerald-700 transition disabled:opacity-60 text-sm"
+              onClick={() => setStep((s) => Math.max(0, s - 1))}
+              disabled={step === 0}
+              className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-white disabled:opacity-40"
             >
-              {loading ? "جاري الإرسال..." : "إنشاء المتجر وإرسال طلب التفعيل"}
+              <ArrowRight className="w-4 h-4" />
+              السابق
             </button>
-          </form>
+
+            {step < STEPS.length - 1 ? (
+              <button
+                onClick={() => setStep((s) => s + 1)}
+                disabled={!canNext()}
+                className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 disabled:opacity-40 transition"
+              >
+                التالي
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                onClick={handleSubmit}
+                disabled={loading}
+                className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 disabled:opacity-60 transition"
+              >
+                {loading ? "جاري الإرسال..." : "إطلاق المتجر"}
+                <Rocket className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </main>
       </div>
     </>
+  );
+}
+
+function Row({ label, value, swatch }: { label: string; value?: string | null; swatch?: string }) {
+  return (
+    <div className="flex items-center justify-between px-4 py-3 text-sm">
+      <span className="text-gray-500">{label}</span>
+      <span className="font-medium text-gray-900 flex items-center gap-2">
+        {swatch && <span className="w-4 h-4 rounded-full" style={{ background: swatch }} />}
+        {value || "—"}
+      </span>
+    </div>
   );
 }
