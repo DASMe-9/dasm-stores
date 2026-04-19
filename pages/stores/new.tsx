@@ -41,6 +41,14 @@ function slugify(s: string) {
     .replace(/^-|-$/g, "");
 }
 
+// Reserved paths — must not be used as store slugs (since stores live at the root)
+const RESERVED_SLUGS = new Set([
+  "api", "auth", "dashboard", "explore", "stores", "store",
+  "_next", "favicon.ico", "sitemap.xml", "robots.txt",
+  "admin", "login", "signup", "register", "logout",
+  "about", "contact", "terms", "privacy",
+]);
+
 export default function NewStore() {
   const router = useRouter();
   const [token, setToken] = useState<string | null>(null);
@@ -76,11 +84,21 @@ export default function NewStore() {
   };
 
   const canNext = () => {
-    if (step === 0) return form.name_ar.trim() && form.name.trim() && form.slug.trim();
+    if (step === 0) {
+      return form.name_ar.trim() && form.name.trim()
+        && form.slug.trim().length >= 2
+        && !RESERVED_SLUGS.has(form.slug);
+    }
     if (step === 1) return true;
     if (step === 2) return true;
     return true;
   };
+
+  const slugError = form.slug && RESERVED_SLUGS.has(form.slug)
+    ? "هذا الرابط محجوز للنظام، اختر رابطاً آخر"
+    : form.slug && form.slug.length < 2
+      ? "الرابط قصير جداً"
+      : null;
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -253,6 +271,9 @@ export default function NewStore() {
                       dir="ltr"
                     />
                   </div>
+                  {slugError && (
+                    <p className="text-xs text-red-600 mt-1">{slugError}</p>
+                  )}
                 </div>
 
                 <div className="space-y-1.5">

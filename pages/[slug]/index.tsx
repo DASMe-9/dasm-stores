@@ -182,7 +182,7 @@ export default function StoreFront() {
 
             {/* سلة التسوق */}
             <Link
-              href={`/store/${slug}/cart`}
+              href={`/${slug}/cart`}
               className="relative flex items-center gap-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-semibold hover:bg-emerald-700 transition"
             >
               <ShoppingCart className="w-4 h-4" />
@@ -256,7 +256,7 @@ export default function StoreFront() {
                   className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition group"
                 >
                   {/* صورة المنتج */}
-                  <Link href={`/store/${slug}/product/${product.id}`}>
+                  <Link href={`/${slug}/product/${product.id}`}>
                     <div className="aspect-square bg-gray-100 relative overflow-hidden">
                       {product.primary_image ? (
                         <img
@@ -283,7 +283,7 @@ export default function StoreFront() {
                   </Link>
 
                   <div className="p-3 space-y-2">
-                    <Link href={`/store/${slug}/product/${product.id}`}>
+                    <Link href={`/${slug}/product/${product.id}`}>
                       <h3 className="text-sm font-semibold text-gray-900 line-clamp-2 hover:text-emerald-600">
                         {product.name}
                       </h3>

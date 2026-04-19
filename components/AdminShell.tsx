@@ -78,7 +78,7 @@ export default function AdminShell({ children, title, storeName = "متجري", 
                 <div className="text-sm font-bold text-gray-900 truncate">{storeName}</div>
                 {storeSlug ? (
                   <a
-                    href={`/store/${storeSlug}`}
+                    href={`/${storeSlug}`}
                     target="_blank"
                     rel="noopener"
                     className="text-[11px] text-emerald-600 hover:underline truncate block"

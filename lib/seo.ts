@@ -22,7 +22,7 @@ export const SITE = {
 export type SeoProps = {
   title?: string;
   description?: string;
-  path?: string; // e.g. "/store/alrajhi-motors"
+  path?: string; // e.g. "/alrajhi-motors"
   image?: string | null; // absolute URL or path
   noindex?: boolean;
   type?: "website" | "article" | "product";
@@ -122,7 +122,7 @@ export function storeSchema(store: StoreForSchema): Thing {
     "@context": "https://schema.org",
     "@type": "Store",
     name: store.name,
-    url: canonicalUrl(`/store/${store.slug}`),
+    url: canonicalUrl(`/${store.slug}`),
     image: absoluteImage(store.coverUrl || store.logoUrl),
     logo: absoluteImage(store.logoUrl),
   };
@@ -175,7 +175,7 @@ export function productSchema(p: ProductForSchema): Thing {
       : undefined,
     offers: {
       "@type": "Offer",
-      url: canonicalUrl(`/store/${p.storeSlug}/product/${p.slug ?? p.id}`),
+      url: canonicalUrl(`/${p.storeSlug}/product/${p.slug ?? p.id}`),
       priceCurrency: p.currency ?? "SAR",
       price: p.price,
       availability: `https://schema.org/${p.availability ?? "InStock"}`,
@@ -227,7 +227,7 @@ export function vehicleSchema(v: VehicleForSchema): Thing {
       priceCurrency: "SAR",
       price: v.price,
       availability: "https://schema.org/InStock",
-      url: canonicalUrl(`/store/${v.storeSlug}/cars/${v.slug ?? v.id}`),
+      url: canonicalUrl(`/${v.storeSlug}/cars/${v.slug ?? v.id}`),
     };
   }
   return schema;

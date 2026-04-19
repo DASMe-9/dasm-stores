@@ -110,7 +110,7 @@ export default function ExplorePage() {
               {stores.map((s) => (
                 <Link
                   key={s.id}
-                  href={`/store/${s.slug}`}
+                  href={`/${s.slug}`}
                   className="bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-md transition group"
                 >
                   {/* بنر */}
