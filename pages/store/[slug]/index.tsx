@@ -7,6 +7,7 @@ import {
   MapPin, ExternalLink, Star, Tag,
 } from "lucide-react";
 import Link from "next/link";
+import TalkStoreContext from "@/components/TalkStoreContext";
 
 interface StoreData {
   id: number;
@@ -136,6 +137,8 @@ export default function StoreFront() {
         <title>{store.meta_title || store.name} — متاجر داسم</title>
         <meta name="description" content={store.meta_description || store.description || ""} />
       </Head>
+
+      <TalkStoreContext storeId={store.id} />
 
       <div className="min-h-screen bg-gray-50 rtl">
         {/* ── البنر ── */}
