@@ -183,20 +183,22 @@ export default function SellerDashboardHome() {
               {/* الإحصائيات */}
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {[
-                  { label: "المنتجات النشطة", total: stats?.total_products, value: stats?.active_products, icon: Package, color: "text-blue-600", bg: "bg-blue-50" },
-                  { label: "الطلبات", value: stats?.total_orders, icon: ShoppingCart, color: "text-violet-600", bg: "bg-violet-50" },
-                  { label: "طلبات معلقة", value: stats?.pending_orders, icon: Clock, color: "text-orange-600", bg: "bg-orange-50" },
-                  { label: "إجمالي المبيعات", value: stats?.total_revenue != null ? `${Number(stats.total_revenue).toLocaleString("ar-SA")} ر.س` : null, icon: DollarSign, color: "text-emerald-600", bg: "bg-emerald-50" },
+                  { label: "المنتجات النشطة", total: stats?.total_products, value: stats?.active_products, icon: Package, color: "text-emerald-700 dark:text-emerald-400", iconBg: "bg-emerald-100 dark:bg-emerald-950", bg: "bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-zinc-800 dark:to-zinc-800 border-emerald-100/60 dark:border-zinc-700" },
+                  { label: "الطلبات", value: stats?.total_orders, icon: ShoppingCart, color: "text-violet-700 dark:text-violet-400", iconBg: "bg-violet-100 dark:bg-violet-950", bg: "bg-gradient-to-br from-violet-50 to-purple-50/50 dark:from-zinc-800 dark:to-zinc-800 border-violet-100/60 dark:border-zinc-700" },
+                  { label: "طلبات معلقة", value: stats?.pending_orders, icon: Clock, color: "text-amber-700 dark:text-amber-400", iconBg: "bg-amber-100 dark:bg-amber-950", bg: "bg-gradient-to-br from-amber-50 to-orange-50/50 dark:from-zinc-800 dark:to-zinc-800 border-amber-100/60 dark:border-zinc-700" },
+                  { label: "إجمالي المبيعات", value: stats?.total_revenue != null ? `${Number(stats.total_revenue).toLocaleString("ar-SA")} ر.س` : null, icon: DollarSign, color: "text-sky-700 dark:text-sky-400", iconBg: "bg-sky-100 dark:bg-sky-950", bg: "bg-gradient-to-br from-sky-50 to-blue-50/50 dark:from-zinc-800 dark:to-zinc-800 border-sky-100/60 dark:border-zinc-700" },
                 ].map((stat) => (
-                  <div key={stat.label} className={`${stat.bg} rounded-2xl border border-zinc-100 p-4 space-y-2`}>
-                    <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                    <div className="text-2xl font-bold text-zinc-900">
+                  <div key={stat.label} className={`rounded-2xl border p-4 space-y-2 ${stat.bg}`}>
+                    <div className={`h-8 w-8 rounded-lg ${stat.iconBg} flex items-center justify-center`}>
+                      <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                    </div>
+                    <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                       {stat.value ?? "—"}
                     </div>
-                    <div className="text-xs text-zinc-500">
+                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
                       {stat.label}
                       {"total" in stat && stat.total != null && (
-                        <span className="text-zinc-400"> / {stat.total} إجمالي</span>
+                        <span className="text-zinc-400 dark:text-zinc-500"> / {stat.total} إجمالي</span>
                       )}
                     </div>
                   </div>
@@ -204,7 +206,7 @@ export default function SellerDashboardHome() {
               </div>
 
               {/* التبويبات */}
-              <div className="border-b border-zinc-200">
+              <div className="border-b border-zinc-200 dark:border-zinc-800">
                 <div className="flex gap-6">
                   {([
                     { key: "overview" as TabKey, label: "نظرة عامة", icon: Store },
@@ -217,8 +219,8 @@ export default function SellerDashboardHome() {
                       onClick={() => setActiveTab(tab.key)}
                       className={`flex items-center gap-2 border-b-2 pb-3 text-sm font-medium transition ${
                         activeTab === tab.key
-                          ? "border-emerald-600 text-emerald-700"
-                          : "border-transparent text-zinc-500 hover:text-zinc-700"
+                          ? "border-emerald-600 text-emerald-700 dark:text-emerald-400"
+                          : "border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200"
                       }`}
                     >
                       <tab.icon className="h-4 w-4" />
@@ -267,7 +269,7 @@ export default function SellerDashboardHome() {
                   {products.length > 0 ? (
                     <div>
                       <div className="mb-3 flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-zinc-900">آخر المنتجات</h3>
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">آخر المنتجات</h3>
                         <button type="button" onClick={() => setActiveTab("products")} className="text-xs font-medium text-emerald-600 hover:text-emerald-700">
                           عرض الكل
                         </button>
@@ -279,7 +281,7 @@ export default function SellerDashboardHome() {
                       </div>
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-8 text-center">
+                    <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 py-8 text-center">
                       <Package className="mx-auto mb-3 h-10 w-10 text-zinc-300" />
                       <p className="mb-3 text-sm text-zinc-500">لم تضف منتجات بعد</p>
                       <Link
@@ -298,7 +300,7 @@ export default function SellerDashboardHome() {
               {activeTab === "products" && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-zinc-900">
+                    <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                       جميع المنتجات ({products.length})
                     </h3>
                     <Link
@@ -316,7 +318,7 @@ export default function SellerDashboardHome() {
                       ))}
                     </div>
                   ) : (
-                    <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-12 text-center">
+                    <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 py-12 text-center">
                       <Package className="mx-auto mb-3 h-12 w-12 text-zinc-300" />
                       <p className="mb-4 text-zinc-500">لم تضف منتجات بعد</p>
                       <Link
@@ -334,7 +336,7 @@ export default function SellerDashboardHome() {
               {/* ── تبويب: معلومات المتجر ── */}
               {activeTab === "info" && (
                 <div className="space-y-4">
-                  <div className="divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200 bg-white">
+                  <div className="divide-y divide-zinc-100 dark:divide-zinc-800 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <InfoRow label="اسم المتجر" value={store.name} />
                     <InfoRow label="الرابط" value={`${STORES_URL}/${store.slug}`} mono />
                     <InfoRow
@@ -391,26 +393,26 @@ function ProductCard({ product }: { product: StoreProduct }) {
     ?? product.images?.[0]?.url;
 
   return (
-    <div className="group overflow-hidden rounded-2xl border border-zinc-100 bg-white transition hover:shadow-md">
+    <div className="group overflow-hidden rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition hover:shadow-md">
       {imageUrl ? (
-        <div className="h-32 overflow-hidden bg-zinc-100">
+        <div className="h-32 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
           <img src={imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
         </div>
       ) : (
-        <div className="flex h-32 items-center justify-center bg-zinc-50">
-          <Package className="h-8 w-8 text-zinc-300" />
+        <div className="flex h-32 items-center justify-center bg-zinc-50 dark:bg-zinc-800">
+          <Package className="h-8 w-8 text-zinc-300 dark:text-zinc-600" />
         </div>
       )}
       <div className="space-y-2 p-3">
         <div className="flex items-start justify-between gap-2">
-          <span className="line-clamp-1 text-sm font-semibold text-zinc-900">{product.name}</span>
+          <span className="line-clamp-1 text-sm font-semibold text-zinc-900 dark:text-zinc-100">{product.name}</span>
           <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] ${
-            product.status === "active" ? "bg-green-100 text-green-700" : "bg-zinc-100 text-zinc-600"
+            product.status === "active" ? "bg-green-100 text-green-700 dark:bg-green-950 dark:text-green-400" : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400"
           }`}>
             {product.status === "active" ? "نشط" : "مسودة"}
           </span>
         </div>
-        <span className="text-sm font-bold text-emerald-700">
+        <span className="text-sm font-bold text-emerald-700 dark:text-emerald-400">
           {Number(product.price).toLocaleString("ar-SA")} ر.س
         </span>
       </div>
@@ -433,13 +435,13 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-center justify-between px-4 py-3">
-      <span className="text-sm text-zinc-500">{label}</span>
+      <span className="text-sm text-zinc-500 dark:text-zinc-400">{label}</span>
       {badge ? (
         <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${badgeColor}`}>
           {value}
         </span>
       ) : (
-        <span className={`text-sm text-zinc-900 ${mono ? "font-mono text-xs" : ""}`} dir={mono ? "ltr" : undefined}>
+        <span className={`text-sm text-zinc-900 dark:text-zinc-100 ${mono ? "font-mono text-xs" : ""}`} dir={mono ? "ltr" : undefined}>
           {value || "—"}
         </span>
       )}

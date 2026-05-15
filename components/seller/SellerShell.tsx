@@ -24,10 +24,10 @@ import { sellerApi } from "@/lib/api";
 
 function navLinkClass(active: boolean): string {
   return [
-    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+    "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200",
     active
-      ? "bg-emerald-50 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-200 shadow-[inset_0_0_0_1px_rgba(16,185,129,0.2)]"
-      : "text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
+      ? "bg-white text-emerald-800 shadow-md shadow-emerald-600/10 dark:bg-emerald-950 dark:text-emerald-200 dark:shadow-emerald-400/10"
+      : "text-emerald-900/70 hover:bg-white/60 hover:text-emerald-900 hover:shadow-sm dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100",
   ].join(" ");
 }
 
@@ -140,12 +140,12 @@ export function SellerShell({
 
   const sidebarInner = (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-3 border-b border-zinc-100 dark:border-zinc-800 px-4 py-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+      <div className="flex items-center gap-3 border-b border-emerald-200/40 dark:border-zinc-800 px-4 py-5">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-lg shadow-emerald-600/30">
           <Store className="h-5 w-5" />
         </div>
         <div className="min-w-0">
-          <div className="truncate text-sm font-bold text-zinc-900 dark:text-zinc-100">
+          <div className="truncate text-sm font-bold text-emerald-950 dark:text-zinc-100">
             {resolvedName || "متاجر داسم"}
           </div>
           {resolvedSlug ? (
@@ -159,14 +159,14 @@ export function SellerShell({
               {SITE.url}/{resolvedSlug}
             </a>
           ) : (
-            <div className="text-[11px] text-zinc-500 dark:text-zinc-400">لوحة التاجر</div>
+            <div className="text-[11px] text-emerald-700/50 dark:text-zinc-400">لوحة التاجر</div>
           )}
         </div>
       </div>
 
       <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
         <div>
-          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-800/40 dark:text-zinc-500">
             القائمة
           </p>
           <div className="space-y-1">
@@ -194,7 +194,7 @@ export function SellerShell({
         </div>
 
         <div>
-          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
+          <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-800/40 dark:text-zinc-500">
             المتجر
           </p>
           <div className="space-y-1">
@@ -226,7 +226,7 @@ export function SellerShell({
             >
               <ShoppingCart className="h-4 w-4 shrink-0 opacity-80" />
               الطلبات
-              <span className="mr-auto rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-[10px] text-zinc-500 dark:text-zinc-400">
+              <span className="mr-auto rounded-full bg-emerald-100/60 dark:bg-zinc-800 px-2 py-0.5 text-[10px] text-emerald-700/60 dark:text-zinc-400">
                 قريباً
               </span>
             </div>
@@ -234,11 +234,11 @@ export function SellerShell({
         </div>
       </nav>
 
-      <div className="border-t border-zinc-100 dark:border-zinc-800 p-3 space-y-1">
+      <div className="border-t border-emerald-200/40 dark:border-zinc-800 p-3 space-y-1">
         <button
           type="button"
           onClick={toggleTheme}
-          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+          className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-emerald-900/60 dark:text-zinc-400 hover:bg-white/60 dark:hover:bg-zinc-800 hover:text-emerald-900 dark:hover:text-zinc-100 transition-colors"
         >
           {dark ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
           {dark ? "الوضع النهاري" : "الوضع الليلي"}
@@ -247,7 +247,7 @@ export function SellerShell({
           href={SITE.url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+          className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:bg-white/60 dark:hover:bg-emerald-950 transition-colors"
         >
           <ExternalLink className="h-3.5 w-3.5" />
           واجهة العملاء (المتجر العام)
@@ -258,7 +258,7 @@ export function SellerShell({
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 rtl flex">
-      <aside className="hidden w-[260px] shrink-0 border-l border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 lg:block lg:sticky lg:top-0 lg:h-screen lg:shadow-[4px_0_24px_-12px_rgba(0,0,0,0.08)]">
+      <aside className="hidden w-[260px] shrink-0 border-l border-emerald-200/50 dark:border-zinc-800 bg-gradient-to-b from-emerald-50 via-teal-50/60 to-white dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 lg:block lg:sticky lg:top-0 lg:h-screen lg:shadow-[4px_0_32px_-8px_rgba(16,185,129,0.12)]">
         {sidebarInner}
       </aside>
 
@@ -272,15 +272,15 @@ export function SellerShell({
       ) : null}
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-[min(86vw,280px)] transform bg-white dark:bg-zinc-900 shadow-xl transition-transform duration-200 lg:hidden ${
+        className={`fixed inset-y-0 right-0 z-50 w-[min(86vw,280px)] transform bg-gradient-to-b from-emerald-50 via-teal-50/60 to-white dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 shadow-xl transition-transform duration-200 lg:hidden ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex justify-end border-b border-zinc-100 dark:border-zinc-800 p-2">
+        <div className="flex justify-end border-b border-emerald-200/40 dark:border-zinc-800 p-2">
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}
-            className="rounded-lg p-2 text-zinc-500 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+            className="rounded-lg p-2 text-emerald-700/60 hover:bg-white/60 dark:text-zinc-500 dark:hover:bg-zinc-800"
             aria-label="إغلاق"
           >
             <X className="h-5 w-5" />
@@ -290,11 +290,11 @@ export function SellerShell({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-zinc-200 dark:border-zinc-800 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md">
+        <header className="sticky top-0 z-30 border-b border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/90 backdrop-blur-lg">
           <div className="flex flex-wrap items-center gap-3 px-4 py-3 md:px-6">
             <button
               type="button"
-              className="rounded-xl p-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 lg:hidden"
+              className="rounded-xl p-2 text-zinc-600 dark:text-zinc-400 hover:bg-emerald-50 dark:hover:bg-zinc-800 lg:hidden"
               onClick={() => setDrawerOpen(true)}
               aria-label="القائمة"
             >
@@ -302,7 +302,7 @@ export function SellerShell({
             </button>
 
             <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg shadow-emerald-600/25">
                 <Icon className="h-5 w-5" />
               </div>
               <div className="min-w-0">
