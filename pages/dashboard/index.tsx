@@ -7,10 +7,12 @@ import {
   CheckCircle,
   Clock,
   DollarSign,
+  Edit3,
   ExternalLink,
   LayoutDashboard,
   Package,
   Plus,
+  Rocket,
   Settings,
   ShoppingCart,
   Store,
@@ -67,6 +69,7 @@ export default function SellerDashboardHome() {
   const [stats, setStats] = useState<StoreStats | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activating, setActivating] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
 
   useEffect(() => {
@@ -102,6 +105,21 @@ export default function SellerDashboardHome() {
       /* skip */
     } finally {
       setLoading(false);
+    }
+  };
+
+  const canActivate = store?.status === "draft" && !!store.payment_config && (stats?.active_products ?? 0) > 0;
+
+  const activateStore = async () => {
+    if (!canActivate) return;
+    setActivating(true);
+    try {
+      await sellerApi.activateStore();
+      await load();
+    } catch {
+      /* skip */
+    } finally {
+      setActivating(false);
     }
   };
 
@@ -234,21 +252,47 @@ export default function SellerDashboardHome() {
               {activeTab === "overview" && (
                 <div className="space-y-4">
                   {store.status === "draft" && (
-                    <div className="rounded-2xl border border-yellow-200 bg-yellow-50 p-4 text-sm text-yellow-800">
+                    <div className={`rounded-2xl border p-5 text-sm ${canActivate ? "border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 dark:border-emerald-800" : "border-yellow-200 bg-yellow-50 dark:bg-yellow-950/30 dark:border-yellow-800"}`}>
                       <div className="flex items-start gap-3">
-                        <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-600" />
-                        <div>
-                          <strong>متجرك في وضع المسودة</strong>
-                          <p className="mt-1 text-yellow-700">لتفعيل المتجر يجب:</p>
-                          <ul className="mt-1 list-disc space-y-0.5 pr-5">
-                            <li className={store.payment_config ? "text-yellow-500 line-through" : ""}>
-                              ربط بوابة دفع (PayMob)
-                            </li>
-                            <li className={(stats?.active_products ?? 0) > 0 ? "text-yellow-500 line-through" : ""}>
-                              إضافة منتج واحد على الأقل
-                            </li>
-                          </ul>
+                        {canActivate ? (
+                          <Rocket className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                        ) : (
+                          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-yellow-600 dark:text-yellow-400" />
+                        )}
+                        <div className="flex-1">
+                          <strong className={canActivate ? "text-emerald-900 dark:text-emerald-200" : "text-yellow-800 dark:text-yellow-200"}>
+                            {canActivate ? "متجرك جاهز للتفعيل!" : "متجرك في وضع المسودة"}
+                          </strong>
+                          {!canActivate && (
+                            <>
+                              <p className="mt-1 text-yellow-700 dark:text-yellow-300">لتفعيل المتجر يجب:</p>
+                              <ul className="mt-1 list-disc space-y-0.5 pr-5">
+                                <li className={store.payment_config ? "text-yellow-500 dark:text-yellow-600 line-through" : "text-yellow-800 dark:text-yellow-200"}>
+                                  <Link href="/dashboard/payment" className="hover:underline">ربط بوابة دفع (PayMob)</Link>
+                                </li>
+                                <li className={(stats?.active_products ?? 0) > 0 ? "text-yellow-500 dark:text-yellow-600 line-through" : "text-yellow-800 dark:text-yellow-200"}>
+                                  <Link href="/dashboard/products/new" className="hover:underline">إضافة منتج واحد على الأقل</Link>
+                                </li>
+                              </ul>
+                            </>
+                          )}
+                          {canActivate && (
+                            <p className="mt-1 text-emerald-700 dark:text-emerald-300 text-xs">
+                              بوابة الدفع مربوطة ولديك منتج نشط — فعّل متجرك ليظهر للعملاء
+                            </p>
+                          )}
                         </div>
+                        {canActivate && (
+                          <button
+                            type="button"
+                            onClick={activateStore}
+                            disabled={activating}
+                            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-700 disabled:opacity-60 transition"
+                          >
+                            <Rocket className="h-4 w-4" />
+                            {activating ? "جاري التفعيل..." : "فعّل المتجر الآن"}
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
@@ -393,10 +437,13 @@ function ProductCard({ product }: { product: StoreProduct }) {
     ?? product.images?.[0]?.url;
 
   return (
-    <div className="group overflow-hidden rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition hover:shadow-md">
+    <Link href={`/dashboard/products/${product.id}`} className="group overflow-hidden rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition hover:shadow-md block">
       {imageUrl ? (
-        <div className="h-32 overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+        <div className="h-32 overflow-hidden bg-zinc-100 dark:bg-zinc-800 relative">
           <img src={imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center">
+            <Edit3 className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition drop-shadow-lg" />
+          </div>
         </div>
       ) : (
         <div className="flex h-32 items-center justify-center bg-zinc-50 dark:bg-zinc-800">
@@ -416,7 +463,7 @@ function ProductCard({ product }: { product: StoreProduct }) {
           {Number(product.price).toLocaleString("ar-SA")} ر.س
         </span>
       </div>
-    </div>
+    </Link>
   );
 }
 
