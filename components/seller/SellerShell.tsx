@@ -128,16 +128,7 @@ export function SellerShell({
             المتجر
           </p>
           <div className="space-y-1">
-            {hasStore ? (
-              <Link
-                href="/dashboard"
-                onClick={() => setDrawerOpen(false)}
-                className={navLinkClass(pathname === "/dashboard")}
-              >
-                <Store className="h-4 w-4 shrink-0 opacity-80" />
-                إدارة المتجر
-              </Link>
-            ) : (
+            {!hasStore && (
               <Link
                 href="/stores/new"
                 onClick={() => setDrawerOpen(false)}
