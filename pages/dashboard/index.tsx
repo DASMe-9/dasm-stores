@@ -436,18 +436,23 @@ function ProductCard({ product }: { product: StoreProduct }) {
     ?? product.images?.find((i) => i.is_primary)?.url
     ?? product.images?.[0]?.url;
 
+  const [imgError, setImgError] = useState(false);
+
   return (
     <Link href={`/dashboard/products/${product.id}`} className="group overflow-hidden rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition hover:shadow-md block">
-      {imageUrl ? (
+      {imageUrl && !imgError ? (
         <div className="h-32 overflow-hidden bg-zinc-100 dark:bg-zinc-800 relative">
-          <img src={imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" />
+          <img src={imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" onError={() => setImgError(true)} />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center">
             <Edit3 className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition drop-shadow-lg" />
           </div>
         </div>
       ) : (
-        <div className="flex h-32 items-center justify-center bg-zinc-50 dark:bg-zinc-800">
+        <div className="flex h-32 items-center justify-center bg-zinc-50 dark:bg-zinc-800 relative">
           <Package className="h-8 w-8 text-zinc-300 dark:text-zinc-600" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center">
+            <Edit3 className="h-5 w-5 text-zinc-400 opacity-0 group-hover:opacity-100 transition" />
+          </div>
         </div>
       )}
       <div className="space-y-2 p-3">
