@@ -1,10 +1,10 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { Package } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Package, Upload, X as XIcon } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
-import { sellerApi } from "@/lib/api";
+import { sellerApi, uploadApi } from "@/lib/api";
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -24,6 +24,9 @@ export default function NewProductPage() {
     status: "active" as "draft" | "active",
     primary_image_url: "",
   });
+  const [uploading, setUploading] = useState(false);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const t = localStorage.getItem("stores_token");
@@ -55,6 +58,35 @@ export default function NewProductPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 8 * 1024 * 1024) {
+      setError("حجم الصورة يجب أن يكون أقل من 8 ميقابايت");
+      return;
+    }
+
+    setImagePreview(URL.createObjectURL(file));
+    setUploading(true);
+    setError(null);
+    try {
+      const { data } = await uploadApi.uploadMedia(file, "store_product_image");
+      setForm((f) => ({ ...f, primary_image_url: data.secure_url }));
+    } catch {
+      setError("فشل رفع الصورة — تأكد من اتصال الإنترنت وحاول مجدداً");
+      setImagePreview(null);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const removeImage = () => {
+    setForm((f) => ({ ...f, primary_image_url: "" }));
+    setImagePreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const submit = async () => {
@@ -210,15 +242,45 @@ export default function NewProductPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">صورة رئيسية (URL)</label>
+              <label className="text-sm font-medium text-gray-700">صورة المنتج</label>
               <input
-                type="url"
-                placeholder="https://..."
-                value={form.primary_image_url}
-                onChange={(e) => setForm((f) => ({ ...f, primary_image_url: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-left"
-                dir="ltr"
+                ref={fileInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
+                onChange={handleFileSelect}
+                className="hidden"
               />
+              {imagePreview || form.primary_image_url ? (
+                <div className="relative w-full aspect-square max-w-[200px] rounded-xl overflow-hidden border border-gray-200">
+                  <img
+                    src={imagePreview || form.primary_image_url}
+                    alt="معاينة"
+                    className="w-full h-full object-cover"
+                  />
+                  {uploading && (
+                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
+                      <div className="h-6 w-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={removeImage}
+                    className="absolute top-1 left-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  >
+                    <XIcon className="w-3 h-3" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="w-full flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-300 py-8 text-gray-400 hover:border-emerald-400 hover:text-emerald-600 transition"
+                >
+                  <Upload className="w-8 h-8" />
+                  <span className="text-sm">اضغط لاختيار صورة من جهازك</span>
+                  <span className="text-[10px]">JPG, PNG, WebP — حتى 8 ميقابايت</span>
+                </button>
+              )}
             </div>
 
             <div className="space-y-1.5">

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import {
+  CreditCard,
   ExternalLink,
   LayoutDashboard,
   Menu,
@@ -52,6 +53,12 @@ const MAIN_NAV: NavItem[] = [
     label: "أضف منتج",
     icon: Plus,
     match: (p) => p === "/dashboard/products/new",
+  },
+  {
+    href: "/dashboard/payment",
+    label: "بوابة الدفع",
+    icon: CreditCard,
+    match: (p) => p === "/dashboard/payment",
   },
   {
     href: "/dashboard/shipping",
