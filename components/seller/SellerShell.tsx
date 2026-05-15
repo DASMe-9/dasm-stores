@@ -61,12 +61,14 @@ export function SellerShell({
   icon: TitleIcon,
   actions,
   children,
+  hasStore,
 }: {
   title: string;
   subtitle?: string;
   icon?: ElementType;
   actions?: ReactNode;
   children: ReactNode;
+  hasStore?: boolean;
 }) {
   const router = useRouter();
   const pathname = router.pathname || "";
@@ -120,14 +122,25 @@ export function SellerShell({
             المتجر
           </p>
           <div className="space-y-1">
-            <Link
-              href="/stores/new"
-              onClick={() => setDrawerOpen(false)}
-              className={navLinkClass(pathname.startsWith("/stores/new"))}
-            >
-              <Plus className="h-4 w-4 shrink-0 opacity-80" />
-              إنشاء متجر جديد
-            </Link>
+            {hasStore ? (
+              <Link
+                href="/dashboard"
+                onClick={() => setDrawerOpen(false)}
+                className={navLinkClass(pathname === "/dashboard")}
+              >
+                <Store className="h-4 w-4 shrink-0 opacity-80" />
+                إدارة المتجر
+              </Link>
+            ) : (
+              <Link
+                href="/stores/new"
+                onClick={() => setDrawerOpen(false)}
+                className={navLinkClass(pathname.startsWith("/stores/new"))}
+              >
+                <Plus className="h-4 w-4 shrink-0 opacity-80" />
+                إنشاء متجر جديد
+              </Link>
+            )}
             <div
               className={`${navLinkClass(false)} cursor-not-allowed opacity-50 pointer-events-none select-none`}
               aria-disabled
