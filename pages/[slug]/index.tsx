@@ -48,6 +48,7 @@ export default function StoreFront() {
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState<string | null>(null);
   const [cart, setCart] = useState<{ productId: number; qty: number }[]>([]);
+  const [isPreview, setIsPreview] = useState(false);
 
   useEffect(() => {
     if (!slug) return;
@@ -73,8 +74,12 @@ export default function StoreFront() {
 
   const loadStore = async () => {
     try {
-      const { data } = await publicApi.getStore(slug as string);
+      const params: Record<string, string> = {};
+      const token = typeof window !== "undefined" ? localStorage.getItem("stores_token") : null;
+      if (token) params.preview = "true";
+      const { data } = await publicApi.getStore(slug as string, params);
       setStore(data.store);
+      if (data.is_preview) setIsPreview(true);
     } catch {
       /* 404 */
     } finally {
@@ -141,6 +146,11 @@ export default function StoreFront() {
       <TalkStoreContext storeId={store.id} />
 
       <div className="min-h-screen bg-gray-50 rtl">
+        {isPreview && (
+          <div className="bg-amber-500 text-white text-center py-2 text-sm font-semibold">
+            وضع المعاينة — هذا المتجر غير منشور بعد ولا يظهر للعملاء
+          </div>
+        )}
         {/* ── البنر ── */}
         <div className="relative h-48 md:h-64 bg-gradient-to-l from-emerald-600 to-emerald-800 overflow-hidden">
           {store.banner_url && (
