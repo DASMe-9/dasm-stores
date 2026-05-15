@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState, useTransition } from "react";
 export function ExploreSearch() {
   const router = useRouter();
   const params = useSearchParams();
-  const initial = params.get("q") ?? "";
+  const initial = params?.get("q") ?? "";
   const [q, setQ] = useState(initial);
   const [pending, startTransition] = useTransition();
 
@@ -18,7 +18,8 @@ export function ExploreSearch() {
   const pushQuery = useCallback(
     (value: string) => {
       startTransition(() => {
-        const next = new URLSearchParams(params.toString());
+        const p = params ?? new URLSearchParams();
+        const next = new URLSearchParams(p.toString());
         if (value.trim()) next.set("q", value.trim());
         else next.delete("q");
         const s = next.toString();
