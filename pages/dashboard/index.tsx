@@ -115,7 +115,7 @@ export default function SellerDashboardHome() {
     );
   }
 
-  const storeUrl = store?.slug ? `${STORES_URL}/store/${store.slug}` : null;
+  const storeUrl = store?.slug ? `${STORES_URL}/${store.slug}` : null;
 
   const headerActions = (
     <>
@@ -137,15 +137,6 @@ export default function SellerDashboardHome() {
           معاينة
         </a>
       )}
-      {store ? (
-        <Link
-          href="/dashboard/products/new"
-          className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
-        >
-          <Plus className="h-4 w-4" />
-          منتج جديد
-        </Link>
-      ) : null}
     </>
   );
 
@@ -233,7 +224,7 @@ export default function SellerDashboardHome() {
                             {store.status === "active" ? "نشط" : "مسودة"}
                           </span>
                           <span className="text-emerald-200 text-xs" dir="ltr">
-                            {STORES_URL}/store/{store.slug}
+                            {STORES_URL}/{store.slug}
                           </span>
                         </div>
                       </div>
@@ -242,24 +233,6 @@ export default function SellerDashboardHome() {
                       <p className="text-emerald-100 text-sm mt-2 max-w-lg">{store.description}</p>
                     )}
                     <div className="flex flex-wrap gap-2 mt-3">
-                      {storeUrl && (
-                        <a
-                          href={storeUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-emerald-700 hover:bg-emerald-50 transition"
-                        >
-                          <Eye className="h-4 w-4" />
-                          فتح المتجر
-                        </a>
-                      )}
-                      <Link
-                        href="/dashboard/shipping"
-                        className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/40 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500/60 transition"
-                      >
-                        <Settings className="h-4 w-4" />
-                        الإعدادات
-                      </Link>
                       <Link
                         href="/dashboard/products/new"
                         className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/40 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500/60 transition"
@@ -351,7 +324,7 @@ export default function SellerDashboardHome() {
                         <strong>متجرك نشط ويستقبل الطلبات</strong>
                         <p className="mt-0.5 text-xs text-green-600">
                           العملاء يمكنهم تصفح منتجاتك والشراء عبر{" "}
-                          <span className="font-mono">{STORES_URL}/store/{store.slug}</span>
+                          <span className="font-mono">{STORES_URL}/{store.slug}</span>
                         </p>
                       </div>
                     </div>
@@ -429,7 +402,7 @@ export default function SellerDashboardHome() {
                 <div className="space-y-4">
                   <div className="divide-y divide-zinc-100 overflow-hidden rounded-2xl border border-zinc-200 bg-white">
                     <InfoRow label="اسم المتجر" value={store.name} />
-                    <InfoRow label="الرابط" value={`${STORES_URL}/store/${store.slug}`} mono />
+                    <InfoRow label="الرابط" value={`${STORES_URL}/${store.slug}`} mono />
                     <InfoRow
                       label="الحالة"
                       value={store.status === "active" ? "نشط" : "مسودة"}
