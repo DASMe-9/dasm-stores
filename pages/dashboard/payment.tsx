@@ -1,7 +1,10 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
-import { CreditCard, CheckCircle, AlertCircle, Shield } from "lucide-react";
+import {
+  CreditCard, CheckCircle, AlertCircle, Shield, Building2,
+  Zap, ChevronLeft, Landmark,
+} from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi } from "@/lib/api";
 
@@ -14,6 +17,93 @@ interface PaymentConfig {
   is_active: boolean;
 }
 
+type ProviderKey = "paymob" | "tap" | "hyperpay" | "bank_transfer";
+
+interface ProviderInfo {
+  key: ProviderKey;
+  name: string;
+  nameEn: string;
+  description: string;
+  icon: typeof CreditCard;
+  color: string;
+  fields: { key: "api_key" | "secret_key"; label: string; placeholder: string; type?: string }[];
+  guide: string[];
+}
+
+const PROVIDERS: ProviderInfo[] = [
+  {
+    key: "paymob",
+    name: "PayMob",
+    nameEn: "Paymob",
+    description: "بطاقات ائتمان، مدى، STC Pay — الأكثر استخداماً في السعودية",
+    icon: CreditCard,
+    color: "emerald",
+    fields: [
+      { key: "api_key", label: "مفتاح API (API Key)", placeholder: "pk_live_..." },
+      { key: "secret_key", label: "المفتاح السري (Secret Key)", placeholder: "sk_live_..." },
+    ],
+    guide: [
+      "سجّل في accept.paymob.com",
+      "فعّل حسابك وأكمل التوثيق",
+      "من لوحة التحكم → Settings → API Keys",
+      "انسخ API Key و Secret Key والصقهم هنا",
+    ],
+  },
+  {
+    key: "tap",
+    name: "Tap Payments",
+    nameEn: "Tap",
+    description: "بطاقات ائتمان، Apple Pay، مدى — دعم خليجي واسع",
+    icon: Zap,
+    color: "blue",
+    fields: [
+      { key: "api_key", label: "المفتاح العام (Public Key)", placeholder: "pk_live_..." },
+      { key: "secret_key", label: "المفتاح السري (Secret Key)", placeholder: "sk_live_..." },
+    ],
+    guide: [
+      "سجّل في dashboard.tap.company",
+      "أكمل التوثيق وتفعيل الحساب",
+      "من goSell → API Keys",
+      "انسخ Public Key و Secret Key",
+    ],
+  },
+  {
+    key: "hyperpay",
+    name: "HyperPay",
+    nameEn: "HyperPay",
+    description: "بطاقات ائتمان، مدى، STC Pay — شريك SADAD",
+    icon: Shield,
+    color: "purple",
+    fields: [
+      { key: "api_key", label: "Access Token", placeholder: "OGE4..." },
+      { key: "secret_key", label: "Entity ID", placeholder: "8ac7..." },
+    ],
+    guide: [
+      "تواصل مع فريق HyperPay للحصول على حساب",
+      "من لوحة التحكم → Configuration",
+      "انسخ Access Token و Entity ID",
+    ],
+  },
+  {
+    key: "bank_transfer",
+    name: "تحويل بنكي (سريع)",
+    nameEn: "Bank Transfer (SARIE)",
+    description: "الزبون يحوّل مباشرة لحسابك البنكي — بدون وسيط",
+    icon: Landmark,
+    color: "amber",
+    fields: [
+      { key: "api_key", label: "رقم IBAN", placeholder: "SA02 8000 0000 6080 1016 7519", type: "text" },
+      { key: "secret_key", label: "اسم المستفيد (اختياري)", placeholder: "محمد عبدالله العمري", type: "text" },
+    ],
+    guide: [
+      "افتح تطبيق البنك الخاص بك",
+      "من الحساب الجاري → معلومات الحساب",
+      "انسخ رقم IBAN (يبدأ بـ SA)",
+      "الزبون سيحوّل عبر سريع ثم تؤكد الاستلام يدوياً",
+    ],
+  },
+];
+
 export default function PaymentSettingsPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -25,6 +115,7 @@ export default function PaymentSettingsPage() {
   const [storeStatus, setStoreStatus] = useState<string>("draft");
   const [hasProducts, setHasProducts] = useState(false);
 
+  const [selectedProvider, setSelectedProvider] = useState<ProviderKey | null>(null);
   const [form, setForm] = useState<PaymentConfig>({
     provider: "paymob",
     api_key: "",
@@ -33,6 +124,7 @@ export default function PaymentSettingsPage() {
     is_active: true,
   });
   const [configured, setConfigured] = useState(false);
+  const [savedProvider, setSavedProvider] = useState<string | null>(null);
 
   useEffect(() => {
     const t = localStorage.getItem("stores_token");
@@ -55,14 +147,23 @@ export default function PaymentSettingsPage() {
 
       if (configRes.status === "fulfilled" && configRes.value.data?.config) {
         const c = configRes.value.data.config;
+        const provider = c.provider || "paymob";
         setForm({
-          provider: c.provider || "paymob",
+          provider,
           api_key: c.api_key || "",
           secret_key: c.secret_key || "",
           is_live: c.is_live ?? false,
           is_active: c.is_active ?? true,
         });
-        setConfigured(!!(c.api_key && c.secret_key && c.is_active));
+        const isBankTransfer = provider === "bank_transfer";
+        const isConfigured = isBankTransfer
+          ? !!(c.api_key && c.is_active)
+          : !!(c.api_key && c.secret_key && c.is_active);
+        setConfigured(isConfigured);
+        if (c.api_key || c.secret_key) {
+          setSelectedProvider(provider as ProviderKey);
+          setSavedProvider(provider);
+        }
       }
 
       if (storeRes.status === "fulfilled" && storeRes.value.data?.store) {
@@ -79,19 +180,41 @@ export default function PaymentSettingsPage() {
     }
   };
 
+  const selectProvider = (key: ProviderKey) => {
+    setSelectedProvider(key);
+    setError(null);
+    setSuccess(null);
+    if (key !== savedProvider) {
+      setForm((f) => ({ ...f, provider: key, api_key: "", secret_key: "" }));
+    } else {
+      setForm((f) => ({ ...f, provider: key }));
+    }
+  };
+
   const handleSave = async () => {
+    if (!selectedProvider) return;
     setSaving(true);
     setError(null);
     setSuccess(null);
     try {
-      if (!form.api_key.trim() || !form.secret_key.trim()) {
-        setError("مفتاح API والمفتاح السري مطلوبان");
+      const provider = PROVIDERS.find((p) => p.key === selectedProvider)!;
+      const isBankTransfer = selectedProvider === "bank_transfer";
+
+      if (!form.api_key.trim()) {
+        setError(isBankTransfer ? "رقم IBAN مطلوب" : "مفتاح API مطلوب");
         setSaving(false);
         return;
       }
+      if (!isBankTransfer && !form.secret_key.trim()) {
+        setError("المفتاح السري مطلوب");
+        setSaving(false);
+        return;
+      }
+
       await sellerApi.updatePaymentConfig(form);
       setConfigured(true);
-      setSuccess("تم حفظ إعدادات الدفع بنجاح");
+      setSavedProvider(selectedProvider);
+      setSuccess(`تم حفظ إعدادات ${provider.name} بنجاح`);
       load();
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } } };
@@ -126,6 +249,14 @@ export default function PaymentSettingsPage() {
   }
 
   const canActivate = configured && hasProducts && storeStatus === "draft";
+  const activeProvider = PROVIDERS.find((p) => p.key === selectedProvider);
+
+  const colorMap: Record<string, { bg: string; border: string; text: string; ring: string; iconBg: string }> = {
+    emerald: { bg: "bg-emerald-50", border: "border-emerald-300", text: "text-emerald-700", ring: "ring-emerald-500", iconBg: "bg-emerald-100" },
+    blue:    { bg: "bg-blue-50", border: "border-blue-300", text: "text-blue-700", ring: "ring-blue-500", iconBg: "bg-blue-100" },
+    purple:  { bg: "bg-purple-50", border: "border-purple-300", text: "text-purple-700", ring: "ring-purple-500", iconBg: "bg-purple-100" },
+    amber:   { bg: "bg-amber-50", border: "border-amber-300", text: "text-amber-700", ring: "ring-amber-500", iconBg: "bg-amber-100" },
+  };
 
   return (
     <>
@@ -136,15 +267,15 @@ export default function PaymentSettingsPage() {
 
       <SellerShell
         title="بوابة الدفع"
-        subtitle="ربط PayMob لاستقبال المدفوعات مباشرة في حسابك"
+        subtitle="اختر طريقة استقبال المدفوعات من زبائنك"
         icon={CreditCard}
         hasStore
       >
-        <div className="mx-auto max-w-xl space-y-6">
+        <div className="mx-auto max-w-2xl space-y-6">
           {loading ? (
             <div className="space-y-4">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-16 bg-zinc-200 rounded-2xl animate-pulse" />
+                <div key={i} className="h-20 bg-zinc-200 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : (
@@ -165,7 +296,7 @@ export default function PaymentSettingsPage() {
                       <p className="mt-1 text-amber-700">لتفعيل المتجر أكمل الخطوات التالية:</p>
                       <ul className="mt-1 list-disc space-y-0.5 pr-5">
                         <li className={configured ? "text-amber-500 line-through" : ""}>
-                          ربط بوابة دفع (PayMob)
+                          ربط بوابة دفع
                         </li>
                         <li className={hasProducts ? "text-amber-500 line-through" : ""}>
                           إضافة منتج واحد على الأقل
@@ -176,69 +307,109 @@ export default function PaymentSettingsPage() {
                 </div>
               )}
 
-              <div className="space-y-4 rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
-                <div className="flex items-center gap-3 mb-2">
-                  <Shield className="h-5 w-5 text-emerald-600" />
-                  <h2 className="text-sm font-bold text-zinc-900">إعدادات PayMob</h2>
+              {/* ── اختيار البوابة ── */}
+              <div className="space-y-3">
+                <h2 className="text-sm font-bold text-zinc-900">اختر طريقة الدفع</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {PROVIDERS.map((provider) => {
+                    const Icon = provider.icon;
+                    const isSelected = selectedProvider === provider.key;
+                    const isSaved = savedProvider === provider.key && configured;
+                    const colors = colorMap[provider.color];
+
+                    return (
+                      <button
+                        key={provider.key}
+                        type="button"
+                        onClick={() => selectProvider(provider.key)}
+                        className={`relative text-right rounded-2xl border-2 p-4 transition-all ${
+                          isSelected
+                            ? `${colors.border} ${colors.bg} shadow-sm`
+                            : "border-zinc-200 bg-white hover:border-zinc-300 hover:shadow-sm"
+                        }`}
+                      >
+                        {isSaved && (
+                          <span className="absolute top-2 left-2 flex items-center gap-1 text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">
+                            <CheckCircle className="w-3 h-3" /> مفعّل
+                          </span>
+                        )}
+                        <div className="flex items-start gap-3">
+                          <div className={`p-2 rounded-xl ${isSelected ? colors.iconBg : "bg-zinc-100"}`}>
+                            <Icon className={`w-5 h-5 ${isSelected ? colors.text : "text-zinc-500"}`} />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-sm font-bold text-zinc-900">{provider.name}</div>
+                            <p className="text-[11px] text-zinc-500 mt-0.5 leading-relaxed">
+                              {provider.description}
+                            </p>
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
                 </div>
-
-                <p className="text-xs text-zinc-500 leading-relaxed">
-                  أدخل مفاتيح PayMob من لوحة تحكم PayMob الخاصة بك.
-                  المفاتيح تُشفَّر ولا تظهر لأحد.
-                </p>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">مفتاح API (API Key)</label>
-                  <input
-                    type="password"
-                    value={form.api_key}
-                    onChange={(e) => setForm((f) => ({ ...f, api_key: e.target.value }))}
-                    placeholder="pk_live_..."
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-left focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    dir="ltr"
-                  />
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium text-gray-700">المفتاح السري (Secret Key)</label>
-                  <input
-                    type="password"
-                    value={form.secret_key}
-                    onChange={(e) => setForm((f) => ({ ...f, secret_key: e.target.value }))}
-                    placeholder="sk_live_..."
-                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-left focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    dir="ltr"
-                  />
-                </div>
-
-                <div className="flex items-center gap-3 pt-2">
-                  <label className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={form.is_live}
-                      onChange={(e) => setForm((f) => ({ ...f, is_live: e.target.checked }))}
-                      className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
-                    />
-                    وضع الإنتاج (Live)
-                  </label>
-                  <span className="text-[10px] text-zinc-400">
-                    {form.is_live ? "المدفوعات حقيقية" : "وضع الاختبار (Sandbox)"}
-                  </span>
-                </div>
-
-                {error && <p className="text-xs text-red-600">{error}</p>}
-                {success && <p className="text-xs text-emerald-600">{success}</p>}
-
-                <button
-                  type="button"
-                  onClick={handleSave}
-                  disabled={saving}
-                  className="w-full rounded-xl bg-emerald-600 text-white py-2.5 text-sm font-bold hover:bg-emerald-700 disabled:opacity-60 transition"
-                >
-                  {saving ? "جاري الحفظ..." : "حفظ الإعدادات"}
-                </button>
               </div>
 
+              {/* ── نموذج الإعداد ── */}
+              {activeProvider && (
+                <div className="space-y-4 rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+                  <div className="flex items-center gap-3 mb-2">
+                    <activeProvider.icon className={`h-5 w-5 ${colorMap[activeProvider.color].text}`} />
+                    <h2 className="text-sm font-bold text-zinc-900">إعدادات {activeProvider.name}</h2>
+                  </div>
+
+                  <p className="text-xs text-zinc-500 leading-relaxed">
+                    {activeProvider.key === "bank_transfer"
+                      ? "أدخل رقم IBAN الخاص بك — سيظهر للزبون عند إتمام الطلب ليحوّل المبلغ مباشرة."
+                      : "أدخل مفاتيح الـ API الخاصة بك. المفاتيح تُشفَّر ولا تظهر لأحد."}
+                  </p>
+
+                  {activeProvider.fields.map((field) => (
+                    <div key={field.key} className="space-y-1.5">
+                      <label className="text-sm font-medium text-gray-700">{field.label}</label>
+                      <input
+                        type={field.type || "password"}
+                        value={form[field.key]}
+                        onChange={(e) => setForm((f) => ({ ...f, [field.key]: e.target.value }))}
+                        placeholder={field.placeholder}
+                        className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm text-left focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                        dir="ltr"
+                      />
+                    </div>
+                  ))}
+
+                  {activeProvider.key !== "bank_transfer" && (
+                    <div className="flex items-center gap-3 pt-2">
+                      <label className="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={form.is_live}
+                          onChange={(e) => setForm((f) => ({ ...f, is_live: e.target.checked }))}
+                          className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                        />
+                        وضع الإنتاج (Live)
+                      </label>
+                      <span className="text-[10px] text-zinc-400">
+                        {form.is_live ? "المدفوعات حقيقية" : "وضع الاختبار (Sandbox)"}
+                      </span>
+                    </div>
+                  )}
+
+                  {error && <p className="text-xs text-red-600">{error}</p>}
+                  {success && <p className="text-xs text-emerald-600">{success}</p>}
+
+                  <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={saving}
+                    className="w-full rounded-xl bg-emerald-600 text-white py-2.5 text-sm font-bold hover:bg-emerald-700 disabled:opacity-60 transition"
+                  >
+                    {saving ? "جاري الحفظ..." : "حفظ الإعدادات"}
+                  </button>
+                </div>
+              )}
+
+              {/* ── تفعيل المتجر ── */}
               {canActivate && (
                 <div className="rounded-2xl border-2 border-emerald-200 bg-emerald-50 p-6 text-center space-y-3">
                   <CheckCircle className="h-10 w-10 text-emerald-600 mx-auto" />
@@ -255,15 +426,17 @@ export default function PaymentSettingsPage() {
                 </div>
               )}
 
-              <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-xs text-zinc-500 leading-relaxed">
-                <strong className="text-zinc-700">كيف أحصل على مفاتيح PayMob؟</strong>
-                <ol className="mt-2 list-decimal pr-5 space-y-1">
-                  <li>سجّل في <span className="font-semibold">accept.paymob.com</span></li>
-                  <li>فعّل حسابك وأكمل التوثيق</li>
-                  <li>من لوحة التحكم → Settings → API Keys</li>
-                  <li>انسخ API Key و Secret Key والصقهم هنا</li>
-                </ol>
-              </div>
+              {/* ── دليل الإعداد ── */}
+              {activeProvider && (
+                <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-xs text-zinc-500 leading-relaxed">
+                  <strong className="text-zinc-700">كيف أحصل على بيانات {activeProvider.name}؟</strong>
+                  <ol className="mt-2 list-decimal pr-5 space-y-1">
+                    {activeProvider.guide.map((step, i) => (
+                      <li key={i}>{step}</li>
+                    ))}
+                  </ol>
+                </div>
+              )}
             </>
           )}
         </div>

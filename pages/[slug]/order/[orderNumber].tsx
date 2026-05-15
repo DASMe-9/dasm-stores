@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { checkoutApi } from "@/lib/api";
 import {
   CheckCircle, XCircle, Clock, Package, Truck,
-  ArrowRight, Copy, Check,
+  ArrowRight, Copy, Check, Landmark,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -12,6 +12,7 @@ interface OrderData {
   order_number: string;
   status: string;
   payment_status: string;
+  payment_method: string;
   tracking_number: string | null;
   carrier: string | null;
   total: number;
@@ -51,6 +52,8 @@ export default function OrderPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [copiedIban, setCopiedIban] = useState(false);
+  const [bankInfo, setBankInfo] = useState<{ iban: string; beneficiary: string } | null>(null);
 
   useEffect(() => {
     if (!slug || !orderNumber) return;
@@ -62,6 +65,7 @@ export default function OrderPage() {
       const { data } = await checkoutApi.trackOrder(slug as string, orderNumber as string);
       setOrder(data.order);
       setItems(data.items || []);
+      if (data.bank_info) setBankInfo(data.bank_info);
     } catch {
       setError(true);
     } finally {
@@ -140,13 +144,59 @@ export default function OrderPage() {
             </div>
           )}
 
-          {order.payment_status === "pending" && (
+          {order.payment_status === "pending" && !bankInfo && (
             <div className="flex items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 p-5">
               <Clock className="w-10 h-10 text-amber-600 shrink-0" />
               <div>
                 <h2 className="font-bold text-amber-900">بانتظار الدفع</h2>
                 <p className="text-sm text-amber-700 mt-0.5">لم يتم الدفع بعد — أكمل عملية الدفع لتأكيد الطلب</p>
               </div>
+            </div>
+          )}
+
+          {bankInfo && order.payment_status === "pending" && (
+            <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <Landmark className="w-8 h-8 text-amber-600 shrink-0" />
+                <div>
+                  <h2 className="font-bold text-amber-900">حوّل المبلغ لإتمام الطلب</h2>
+                  <p className="text-sm text-amber-700 mt-0.5">
+                    حوّل <strong>{Number(order.total).toFixed(2)} ر.س</strong> عبر سريع (SARIE) للحساب التالي
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-xl p-4 space-y-3 border border-amber-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">رقم IBAN</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(bankInfo.iban);
+                      setCopiedIban(true);
+                      setTimeout(() => setCopiedIban(false), 2000);
+                    }}
+                    className="flex items-center gap-1.5 text-sm font-mono font-bold text-gray-900 hover:text-emerald-600"
+                  >
+                    {bankInfo.iban}
+                    {copiedIban ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+                  </button>
+                </div>
+                {bankInfo.beneficiary && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-500">اسم المستفيد</span>
+                    <span className="text-sm font-semibold text-gray-900">{bankInfo.beneficiary}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-500">المبلغ المطلوب</span>
+                  <span className="text-sm font-bold text-emerald-600">{Number(order.total).toFixed(2)} ر.س</span>
+                </div>
+              </div>
+
+              <p className="text-xs text-amber-700 leading-relaxed">
+                بعد التحويل سيتأكد التاجر من استلام المبلغ ويُحدّث حالة الطلب.
+                احتفظ برقم الطلب <strong>{order.order_number}</strong> كمرجع.
+              </p>
             </div>
           )}
 
