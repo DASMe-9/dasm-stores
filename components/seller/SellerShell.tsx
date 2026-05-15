@@ -20,7 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { SITE } from "@/lib/seo";
-import { storeApi } from "@/lib/api";
+import { sellerApi } from "@/lib/api";
 
 function navLinkClass(active: boolean): string {
   return [
@@ -119,7 +119,7 @@ export function SellerShell({
       setResolvedName(cachedName);
       return;
     }
-    storeApi.getMyStore().then(({ data }) => {
+    sellerApi.getMyStore().then(({ data }) => {
       if (data?.store?.slug) {
         setResolvedSlug(data.store.slug);
         setResolvedName(data.store.name || "");
