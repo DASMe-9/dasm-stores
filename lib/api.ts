@@ -111,4 +111,5 @@ export const uploadApi = {
   },
 };
 
+export { platformApi };
 export default api;
