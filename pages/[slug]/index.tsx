@@ -90,6 +90,8 @@ export default function StoreFront() {
   const loadProducts = async () => {
     try {
       const params: Record<string, string> = {};
+      const token = typeof window !== "undefined" ? localStorage.getItem("stores_token") : null;
+      if (token) params.preview = "true";
       if (activeTab) params.tab = activeTab;
       if (search) params.q = search;
       const { data } = await publicApi.getProducts(slug as string, params);
