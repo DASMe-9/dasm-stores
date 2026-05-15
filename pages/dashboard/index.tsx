@@ -8,19 +8,17 @@ import {
   Clock,
   DollarSign,
   ExternalLink,
-  Eye,
   LayoutDashboard,
   Package,
   Plus,
-  RefreshCw,
   Settings,
-  ShoppingBag,
   ShoppingCart,
   Store,
   Truck,
   TrendingUp,
 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { sellerApi } from "@/lib/api";
 
 const STORES_URL =
@@ -115,30 +113,7 @@ export default function SellerDashboardHome() {
     );
   }
 
-  const storeUrl = store?.slug ? `${STORES_URL}/${store.slug}` : null;
-
-  const headerActions = (
-    <>
-      <button
-        type="button"
-        onClick={() => { load(); }}
-        className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
-      >
-        <RefreshCw className="h-4 w-4" />
-      </button>
-      {storeUrl && (
-        <a
-          href={storeUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
-        >
-          <Eye className="h-4 w-4" />
-          معاينة
-        </a>
-      )}
-    </>
-  );
+  const headerActions = null;
 
   return (
     <>
@@ -153,6 +128,8 @@ export default function SellerDashboardHome() {
         icon={LayoutDashboard}
         actions={headerActions}
         hasStore={!!store}
+        storeSlug={store?.slug}
+        storeName={store?.name}
       >
         <div className="mx-auto max-w-6xl space-y-6">
           {/* ─── Loading ─── */}
@@ -200,51 +177,8 @@ export default function SellerDashboardHome() {
           {/* ─── يوجد متجر ─── */}
           {!loading && store && (
             <>
-              {/* بطاقة المتجر */}
-              <div className="rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-5 text-white">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 space-y-2">
-                    <div className="flex items-center gap-3">
-                      {store.logo_url ? (
-                        <img src={store.logo_url} alt="" className="h-12 w-12 rounded-xl border-2 border-white/30 object-cover" />
-                      ) : (
-                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/20">
-                          <Store className="h-6 w-6" />
-                        </div>
-                      )}
-                      <div>
-                        <div className="text-lg font-bold">{store.name}</div>
-                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs ${
-                            store.status === "active"
-                              ? "bg-green-400/30 text-green-100"
-                              : "bg-yellow-400/30 text-yellow-100"
-                          }`}>
-                            {store.status === "active" ? <CheckCircle className="h-3 w-3" /> : <Clock className="h-3 w-3" />}
-                            {store.status === "active" ? "نشط" : "مسودة"}
-                          </span>
-                          <span className="text-emerald-200 text-xs" dir="ltr">
-                            {STORES_URL}/{store.slug}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    {store.description && (
-                      <p className="text-emerald-100 text-sm mt-2 max-w-lg">{store.description}</p>
-                    )}
-                    <div className="flex flex-wrap gap-2 mt-3">
-                      <Link
-                        href="/dashboard/products/new"
-                        className="inline-flex items-center gap-2 rounded-xl border border-emerald-400/30 bg-emerald-500/40 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500/60 transition"
-                      >
-                        <Plus className="h-4 w-4" />
-                        منتج جديد
-                      </Link>
-                    </div>
-                  </div>
-                  <ShoppingBag className="hidden h-20 w-20 text-emerald-400/30 sm:block" />
-                </div>
-              </div>
+              {/* بانر إعلاني — DASM Ads */}
+              <AdBanner placement="stores_dashboard" />
 
               {/* الإحصائيات */}
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
