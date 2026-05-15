@@ -69,6 +69,8 @@ export default function EditProductPage() {
   });
 
   const [images, setImages] = useState<ProductImage[]>([]);
+  const [originalImageIds, setOriginalImageIds] = useState<Set<number>>(new Set());
+  const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -99,6 +101,8 @@ export default function EditProductPage() {
         const p = prodRes.value.data.product as ProductData;
         setProduct(p);
         setImages(p.images || []);
+        setOriginalImageIds(new Set((p.images || []).map((img: ProductImage) => img.id)));
+        setRemovedImageIds([]);
         setForm({
           name: p.name,
           description: p.description || "",
@@ -169,6 +173,10 @@ export default function EditProductPage() {
 
   const removeImage = (idx: number) => {
     setImages((prev) => {
+      const removed = prev[idx];
+      if (removed && originalImageIds.has(removed.id)) {
+        setRemovedImageIds((ids) => [...ids, removed.id]);
+      }
       const next = prev.filter((_, i) => i !== idx);
       if (next.length > 0 && !next.some((img) => img.is_primary)) {
         next[0].is_primary = true;
@@ -188,6 +196,13 @@ export default function EditProductPage() {
         return;
       }
 
+      const newImages = images
+        .filter((img) => !originalImageIds.has(img.id))
+        .map((img) => ({ url: img.url, alt_text: img.alt_text, is_primary: img.is_primary }));
+
+      const primaryImg = images.find((img) => img.is_primary);
+      const primaryImageId = primaryImg && originalImageIds.has(primaryImg.id) ? primaryImg.id : null;
+
       const payload: Record<string, unknown> = {
         name: form.name.trim(),
         description: form.description.trim() || null,
@@ -201,7 +216,17 @@ export default function EditProductPage() {
         category_id: form.category_id ? parseInt(form.category_id, 10) : null,
       };
 
-      await sellerApi.updateProduct(Number(id), payload);
+      if (removedImageIds.length > 0) payload.remove_image_ids = removedImageIds;
+      if (newImages.length > 0) payload.images = newImages;
+      if (primaryImageId) payload.primary_image_id = primaryImageId;
+
+      const { data } = await sellerApi.updateProduct(Number(id), payload);
+      const updated = data?.product as ProductData | undefined;
+      if (updated) {
+        setImages(updated.images || []);
+        setOriginalImageIds(new Set((updated.images || []).map((img: ProductImage) => img.id)));
+        setRemovedImageIds([]);
+      }
       setSuccess("تم حفظ التغييرات بنجاح");
       setTimeout(() => setSuccess(null), 3000);
     } catch (e: unknown) {
