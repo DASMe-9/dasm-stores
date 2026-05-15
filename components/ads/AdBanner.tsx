@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { ExternalLink, Megaphone, ChevronLeft, ChevronRight } from "lucide-react";
+import { ExternalLink, Megaphone, ChevronLeft, ChevronRight, Sparkles, TrendingUp, Zap } from "lucide-react";
 import { platformApi } from "@/lib/api";
 
 interface Ad {
@@ -12,15 +12,42 @@ interface Ad {
   advertiser_name?: string;
 }
 
-const FALLBACK_AD: Ad = {
-  id: "welcome",
-  title: "أعلن في متاجر داسم",
-  description: "اعرض منتجاتك وخدماتك لآلاف المتسوقين — باقات إعلانية تبدأ من ٥٠ ر.س",
-  cta_text: "تعرّف على داسم أدز",
-  cta_url: "https://ads.dasm.com.sa",
-};
+const FALLBACK_ADS: Ad[] = [
+  {
+    id: "promo-1",
+    title: "عروض الصيف — خصم 30% على أول حملة إعلانية",
+    description: "اعرض منتجاتك لآلاف المتسوقين واحصل على مبيعات أكثر",
+    cta_text: "ابدأ حملتك",
+    cta_url: "https://ads.dasm.com.sa",
+    advertiser_name: "داسم أدز",
+  },
+  {
+    id: "promo-2",
+    title: "ضاعف مبيعاتك مع الإعلانات المستهدفة",
+    description: "باقات تبدأ من ٥٠ ر.س — وصول مباشر لعملائك المحتملين",
+    cta_text: "اكتشف الباقات",
+    cta_url: "https://ads.dasm.com.sa",
+    advertiser_name: "داسم أدز",
+  },
+  {
+    id: "promo-3",
+    title: "متجرك يستحق الظهور — أطلق إعلانك الأول مجاناً",
+    description: "جرّب بدون مخاطرة: أول ١٠٠٠ مشاهدة مجانية لمتجرك الجديد",
+    cta_text: "جرّب مجاناً",
+    cta_url: "https://ads.dasm.com.sa",
+    advertiser_name: "داسم أدز",
+  },
+];
 
-export function AdBanner({ placement = "stores_dashboard" }: { placement?: string }) {
+const PROMO_ICONS = [Sparkles, TrendingUp, Zap];
+
+export function AdBanner({
+  placement = "stores_dashboard",
+  variant = "card",
+}: {
+  placement?: string;
+  variant?: "card" | "header";
+}) {
   const [ads, setAds] = useState<Ad[]>([]);
   const [current, setCurrent] = useState(0);
   const [loaded, setLoaded] = useState(false);
@@ -39,20 +66,90 @@ export function AdBanner({ placement = "stores_dashboard" }: { placement?: strin
   }, [placement]);
 
   const trackClick = useCallback((ad: Ad) => {
-    if (ad.id === "welcome") return;
+    if (String(ad.id).startsWith("promo")) return;
     platformApi.post("/ads/track", { ad_id: ad.id, event: "click", placement }).catch(() => {});
   }, [placement]);
 
-  const displayed = ads.length > 0 ? ads : [FALLBACK_AD];
+  const displayed = ads.length > 0 ? ads : FALLBACK_ADS;
   const ad = displayed[current % displayed.length];
   const hasMultiple = displayed.length > 1;
 
   useEffect(() => {
     if (!hasMultiple) return;
-    const timer = setInterval(() => setCurrent((c) => (c + 1) % displayed.length), 6000);
+    const timer = setInterval(() => setCurrent((c) => (c + 1) % displayed.length), 5000);
     return () => clearInterval(timer);
   }, [hasMultiple, displayed.length]);
 
+  if (variant === "header") {
+    const PromoIcon = PROMO_ICONS[current % PROMO_ICONS.length];
+
+    if (!loaded) {
+      return (
+        <div className="h-10 rounded-xl bg-gradient-to-l from-emerald-100 to-teal-50 dark:from-zinc-800 dark:to-zinc-800 animate-pulse" />
+      );
+    }
+
+    return (
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-l from-emerald-600 via-teal-600 to-emerald-700 dark:from-emerald-900 dark:via-teal-900 dark:to-emerald-950 shadow-sm">
+        {ad.image_url && (
+          <img src={ad.image_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20" />
+        )}
+
+        <div className="relative flex items-center gap-3 px-4 py-2.5">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
+            <PromoIcon className="h-4 w-4" />
+          </div>
+
+          <div className="flex-1 min-w-0 flex items-center gap-3">
+            <p className="text-xs font-bold text-white truncate">{ad.title}</p>
+            {ad.description && (
+              <p className="hidden md:block text-[11px] text-emerald-100/80 truncate">
+                {ad.description}
+              </p>
+            )}
+          </div>
+
+          {ad.cta_url && (
+            <a
+              href={ad.cta_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackClick(ad)}
+              className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-white/95 px-3 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-white transition shadow-sm"
+            >
+              {ad.cta_text || "اعرف أكثر"}
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          )}
+
+          {hasMultiple && (
+            <div className="hidden sm:flex items-center gap-1 mr-1">
+              {displayed.map((_, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => setCurrent(i)}
+                  className={`h-1 rounded-full transition-all ${
+                    i === current % displayed.length
+                      ? "w-3 bg-white"
+                      : "w-1 bg-white/30"
+                  }`}
+                />
+              ))}
+            </div>
+          )}
+
+          {ads.length > 0 && (
+            <span className="absolute top-1 left-1 rounded-full bg-black/20 px-1.5 py-0.5 text-[8px] text-white/60">
+              إعلان
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ─── Card variant (original) ───
   if (!loaded) {
     return (
       <div className="h-36 rounded-2xl bg-gradient-to-br from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900 animate-pulse" />

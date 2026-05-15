@@ -20,7 +20,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
-import { AdBanner } from "@/components/ads/AdBanner";
 import { sellerApi } from "@/lib/api";
 
 const STORES_URL =
@@ -195,9 +194,6 @@ export default function SellerDashboardHome() {
           {/* ─── يوجد متجر ─── */}
           {!loading && store && (
             <>
-              {/* بانر إعلاني — DASM Ads */}
-              <AdBanner placement="stores_dashboard" />
-
               {/* الإحصائيات */}
               <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
                 {[
