@@ -16,7 +16,10 @@ type StoreEntry = {
   lastmod?: string;
 };
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.dasm.com.sa";
+const API_URL =
+  process.env.API_BACKEND_URL?.replace(/\/$/, "") ||
+  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
+  "https://dasm-platform-backend.onrender.com";
 
 function escapeXml(s: string): string {
   return s
@@ -73,18 +76,23 @@ function buildSitemap(stores: StoreEntry[]): string {
   const today = new Date().toISOString().slice(0, 10);
   const staticRoutes = [
     urlEntry(`${SITE.url}/`, { changefreq: "daily", priority: 1.0, lastmod: today }),
-    urlEntry(`${SITE.url}/explore`, { changefreq: "daily", priority: 0.9, lastmod: today }),
+    urlEntry(`${SITE.url}/explore`, { changefreq: "weekly", priority: 0.5, lastmod: today }),
   ];
 
   const storeRoutes = stores.flatMap((s) => {
     const lastmod = s.updated_at ? s.updated_at.slice(0, 10) : today;
     return [
-      urlEntry(`${SITE.url}/${s.slug}`, {
+      urlEntry(`${SITE.url}/store/${s.slug}`, {
         changefreq: "daily",
         priority: 0.9,
         lastmod,
       }),
-      urlEntry(`${SITE.url}/${s.slug}/cart`, {
+      urlEntry(`${SITE.url}/store/${s.slug}/products`, {
+        changefreq: "daily",
+        priority: 0.85,
+        lastmod,
+      }),
+      urlEntry(`${SITE.url}/store/${s.slug}/cart`, {
         changefreq: "monthly",
         priority: 0.3,
         lastmod,

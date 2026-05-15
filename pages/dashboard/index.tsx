@@ -1,20 +1,78 @@
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/router";
-import { Store, Package, ShoppingCart, TrendingUp, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  ExternalLink,
+  LayoutDashboard,
+  Package,
+  Plus,
+  Settings,
+  ShoppingBag,
+  ShoppingCart,
+  Store,
+  Truck,
+  TrendingUp,
+} from "lucide-react";
+import { SellerShell } from "@/components/seller/SellerShell";
+import { sellerApi } from "@/lib/api";
 
-export default function Dashboard() {
+const STORES_URL =
+  process.env.NEXT_PUBLIC_STORES_URL || "https://store.dasm.com.sa";
+
+interface StoreStats {
+  total_products: number;
+  active_products: number;
+  total_orders: number;
+  pending_orders: number;
+  paid_orders: number;
+  total_revenue: number;
+}
+
+interface StoreData {
+  id: number;
+  name: string;
+  slug: string;
+  status: string;
+  logo_url: string | null;
+}
+
+export default function SellerDashboardHome() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
+  const [store, setStore] = useState<StoreData | null>(null);
+  const [stats, setStats] = useState<StoreStats | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("stores_token");
-    if (!token) {
+    const t = localStorage.getItem("stores_token");
+    if (!t) {
       router.replace("/auth/login?returnUrl=/dashboard");
       return;
     }
     setReady(true);
+    load();
   }, [router]);
+
+  const load = async () => {
+    try {
+      const [storeRes, statsRes] = await Promise.allSettled([
+        sellerApi.getMyStore(),
+        sellerApi.getStats(),
+      ]);
+
+      if (storeRes.status === "fulfilled" && storeRes.value.data?.store) {
+        setStore(storeRes.value.data.store as StoreData);
+      }
+      if (statsRes.status === "fulfilled" && statsRes.value.data) {
+        setStats(statsRes.value.data as StoreStats);
+      }
+    } catch {
+      /* skip */
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (!ready) {
     return (
@@ -24,77 +82,205 @@ export default function Dashboard() {
     );
   }
 
+  const storeUrl = store?.slug ? `${STORES_URL}/store/${store.slug}` : null;
+
+  const headerActions = (
+    <>
+      <Link
+        href="/dashboard/products/new"
+        className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white shadow-sm transition hover:bg-emerald-700"
+      >
+        <Plus className="h-4 w-4" />
+        منتج جديد
+      </Link>
+      <Link
+        href="/dashboard/shipping"
+        className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+      >
+        <Truck className="h-4 w-4" />
+        شحن Tryoto
+      </Link>
+      {storeUrl ? (
+        <a
+          href={storeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+        >
+          <ExternalLink className="h-4 w-4" />
+          المتجر العام
+        </a>
+      ) : null}
+      <button
+        type="button"
+        onClick={() => router.push("/stores/new")}
+        className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
+      >
+        <Settings className="h-4 w-4" />
+        متجر جديد
+      </button>
+    </>
+  );
+
   return (
     <>
       <Head>
         <title>لوحتي — متاجر داسم</title>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
-      <div className="min-h-screen bg-gray-50 rtl">
-        {/* Header */}
-        <header className="bg-white border-b border-gray-100 px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-emerald-600 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-sm">م</span>
-            </div>
-            <div>
-              <div className="text-sm font-bold text-gray-900">متاجر داسم</div>
-              <div className="text-xs text-gray-400">DASM Stores</div>
-            </div>
-          </div>
-          <button
-            onClick={() => router.push("/stores/new")}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition"
-          >
-            <Plus className="w-4 h-4" />
-            متجر جديد
-          </button>
-        </header>
 
-        <main className="max-w-5xl mx-auto px-6 py-8 space-y-8">
-          {/* إحصائيات */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <SellerShell
+        title="لوحة التحكم"
+        subtitle="نظرة موحّدة على متجرك والمبيعات والشحن"
+        icon={LayoutDashboard}
+        actions={headerActions}
+      >
+        <div className="mx-auto max-w-6xl space-y-8">
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {[
-              { label: "متاجري", value: "—", icon: Store, color: "emerald" },
-              { label: "المنتجات", value: "—", icon: Package, color: "blue" },
-              { label: "الطلبات", value: "—", icon: ShoppingCart, color: "purple" },
-              { label: "المبيعات", value: "—", icon: TrendingUp, color: "orange" },
+              {
+                label: "متاجري",
+                sub: "حالة المتجر",
+                value: store?.name ?? "—",
+                icon: Store,
+                color: "text-emerald-600",
+                mono: false,
+              },
+              {
+                label: "المنتجات النشطة",
+                sub: "جاهزة للبيع",
+                value: loading ? undefined : stats?.active_products,
+                icon: Package,
+                color: "text-blue-600",
+              },
+              {
+                label: "الطلبات",
+                sub: "كل الطلبات",
+                value: loading ? undefined : stats?.total_orders,
+                icon: ShoppingCart,
+                color: "text-violet-600",
+              },
+              {
+                label: "المبيعات",
+                sub: "إجمالي المتحقق",
+                value:
+                  loading || stats?.total_revenue == null
+                    ? undefined
+                    : `${stats.total_revenue.toLocaleString("ar-SA")} ر.س`,
+                icon: TrendingUp,
+                color: "text-amber-600",
+              },
             ].map((stat) => (
               <div
                 key={stat.label}
-                className="bg-white rounded-2xl border border-gray-100 p-4 space-y-2"
+                className="rounded-2xl border border-zinc-100 bg-white p-4 shadow-sm transition hover:shadow-md"
               >
-                <stat.icon className="w-5 h-5 text-gray-400" />
-                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                <div className="text-xs text-gray-500">{stat.label}</div>
+                <div className="mb-3 flex items-center justify-between">
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                  <span className="rounded-full bg-zinc-50 px-2 py-0.5 text-[10px] font-medium text-zinc-500">
+                    {stat.sub}
+                  </span>
+                </div>
+                <div
+                  className={`text-lg font-bold text-zinc-900 md:text-xl ${stat.mono === false ? "line-clamp-2 break-words text-base" : ""}`}
+                  title={typeof stat.value === "string" ? stat.value : undefined}
+                >
+                  {loading && stat.value === undefined ? "…" : (stat.value ?? "—")}
+                </div>
+                <div className="mt-1 text-xs font-medium text-zinc-500">{stat.label}</div>
               </div>
             ))}
           </div>
 
-          {/* متاجري */}
-          <div className="bg-white rounded-2xl border border-gray-100 p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-bold text-gray-900">متاجري</h2>
+          <section className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-50 px-5 py-4">
+              <h2 className="flex items-center gap-2 text-base font-bold text-zinc-900">
+                <Store className="h-5 w-5 text-emerald-600" />
+                متاجري
+              </h2>
               <button
+                type="button"
                 onClick={() => router.push("/stores/new")}
-                className="text-sm text-emerald-600 hover:underline"
+                className="text-xs font-semibold text-emerald-700 hover:underline"
               >
                 + إنشاء متجر
               </button>
             </div>
-            <div className="text-center py-12 text-gray-400">
-              <Store className="w-10 h-10 mx-auto mb-3 text-gray-200" />
-              <p className="text-sm">لا يوجد متاجر بعد</p>
-              <button
-                onClick={() => router.push("/stores/new")}
-                className="mt-4 px-6 py-2 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 transition"
-              >
-                أنشئ متجرك الأول
-              </button>
+
+            <div className="p-5 md:p-6">
+              {store ? (
+                <div className="flex flex-col gap-4 rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50/80 to-white p-5 md:flex-row md:items-center md:justify-between">
+                  <div className="min-w-0 space-y-2">
+                    <div className="text-lg font-bold text-zinc-900">{store.name}</div>
+                    <div className="truncate font-mono text-xs text-zinc-500" dir="ltr">
+                      {STORES_URL}/store/{store.slug}
+                    </div>
+                    <span
+                      className={`inline-block rounded-full px-2.5 py-1 text-xs font-semibold ${
+                        store.status === "active"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-amber-100 text-amber-900"
+                      }`}
+                    >
+                      {store.status === "active" ? "نشط" : "مسودة"}
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {storeUrl ? (
+                      <a
+                        href={storeUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700"
+                      >
+                        <ShoppingBag className="h-4 w-4" />
+                        فتح المتجر
+                      </a>
+                    ) : null}
+                    <Link
+                      href="/dashboard/products/new"
+                      className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 shadow-sm hover:bg-zinc-50"
+                    >
+                      <Plus className="h-4 w-4" />
+                      إضافة منتج
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-14 text-center">
+                  <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-zinc-100 text-zinc-400">
+                    <ShoppingBag className="h-8 w-8" />
+                  </div>
+                  <p className="mb-1 text-sm font-semibold text-zinc-700">لا يوجد متجر بعد</p>
+                  <p className="mb-6 max-w-sm text-xs leading-relaxed text-zinc-500">
+                    أنشئ متجرك في خطوات واضحة، ثم اربط الدفع والشحن وأضف منتجاتك مع الأوزان لحساب
+                    التوصيل تلقائياً.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/stores/new")}
+                    className="rounded-xl bg-emerald-600 px-8 py-3 text-sm font-bold text-white shadow-md transition hover:bg-emerald-700"
+                  >
+                    أنشئ متجرك الأول
+                  </button>
+                </div>
+              )}
             </div>
+          </section>
+
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-sm leading-relaxed text-emerald-900">
+            نفس حسابك على داسم يعمل هنا بعد تسجيل الدخول على{" "}
+            <span className="rounded bg-emerald-100 px-1 font-mono text-xs" dir="ltr">
+              store.dasm.com.sa
+            </span>
+            . أنصح بحفظ هذا الرابط كدخول رئيسي؛ النطاق بالجمع{" "}
+            <span className="font-mono text-xs" dir="ltr">
+              stores.dasm.com.sa
+            </span>{" "}
+            إن وُجد على نفس التطبيق سيُحوَّل تلقائياً إلى النطاق القياسي بعد النشر الأخير.
           </div>
-        </main>
-      </div>
+        </div>
+      </SellerShell>
     </>
   );
 }
