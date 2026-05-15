@@ -34,6 +34,8 @@ export default function SsoHandoff() {
       return;
     }
 
+    window.history.replaceState({}, "", "/auth/sso");
+
     (async () => {
       try {
         const res = await axios.get(`${API_URL}/api/auth/me`, {
