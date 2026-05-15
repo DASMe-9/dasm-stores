@@ -83,7 +83,8 @@ export function StoreSidebar({
   slug: string;
   categories: StoreCategory[];
 }) {
-  const params = useSearchParams();
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams?.toString() ?? "");
   const activeId = params.get("category_id");
   const [mobileOpen, setMobileOpen] = useState(false);
 

@@ -7,7 +7,9 @@ import type { StoreTab } from "@/lib/api-server";
 export function ProductsToolbar({ tabs }: { tabs: StoreTab[] }) {
   const router = useRouter();
   const pathname = usePathname();
-  const params = useSearchParams();
+  const basePath = pathname ?? "/";
+  const searchParams = useSearchParams();
+  const params = new URLSearchParams(searchParams?.toString() ?? "");
   const [pending, startTransition] = useTransition();
 
   const qParam = params.get("q") ?? "";
@@ -26,11 +28,11 @@ export function ProductsToolbar({ tabs }: { tabs: StoreTab[] }) {
         else next.delete("q");
         next.delete("page");
         const qs = next.toString();
-        router.push(qs ? `${pathname}?${qs}` : pathname);
+        router.push(qs ? `${basePath}?${qs}` : basePath);
       });
     }, 400);
     return () => clearTimeout(t);
-  }, [localQ, qParam, params, pathname, router]);
+  }, [localQ, qParam, params, basePath, router]);
 
   const replaceParams = useCallback(
     (updates: Record<string, string | undefined>) => {
@@ -42,10 +44,10 @@ export function ProductsToolbar({ tabs }: { tabs: StoreTab[] }) {
         });
         next.delete("page");
         const q = next.toString();
-        router.push(q ? `${pathname}?${q}` : pathname);
+        router.push(q ? `${basePath}?${q}` : basePath);
       });
     },
-    [params, pathname, router],
+    [params, basePath, router],
   );
 
   const tab = params.get("tab") ?? "";
