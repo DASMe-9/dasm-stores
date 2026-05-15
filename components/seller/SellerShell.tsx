@@ -42,10 +42,16 @@ const MAIN_NAV: NavItem[] = [
     match: (p) => p === "/dashboard",
   },
   {
-    href: "/dashboard/products/new",
+    href: "/dashboard/products",
     label: "المنتجات",
     icon: Package,
-    match: (p) => p.startsWith("/dashboard/products"),
+    match: (p) => p === "/dashboard/products",
+  },
+  {
+    href: "/dashboard/products/new",
+    label: "أضف منتج",
+    icon: Plus,
+    match: (p) => p === "/dashboard/products/new",
   },
   {
     href: "/dashboard/shipping",
