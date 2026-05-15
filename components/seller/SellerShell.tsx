@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { SITE } from "@/lib/seo";
 import { sellerApi } from "@/lib/api";
+import { AdBanner } from "@/components/ads/AdBanner";
 
 function navLinkClass(active: boolean): string {
   return [
@@ -135,8 +136,6 @@ export function SellerShell({
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("stores_theme", next ? "dark" : "light");
   };
-
-  const Icon = TitleIcon ?? LayoutDashboard;
 
   const sidebarInner = (
     <div className="flex h-full flex-col">
@@ -291,7 +290,7 @@ export function SellerShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 border-b border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/90 backdrop-blur-lg">
-          <div className="flex flex-wrap items-center gap-3 px-4 py-3 md:px-6">
+          <div className="flex items-center gap-3 px-4 py-2 md:px-6">
             <button
               type="button"
               className="rounded-xl p-2 text-zinc-600 dark:text-zinc-400 hover:bg-emerald-50 dark:hover:bg-zinc-800 lg:hidden"
@@ -301,32 +300,12 @@ export function SellerShell({
               <Menu className="h-5 w-5" />
             </button>
 
-            <div className="flex min-w-0 flex-1 items-center gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 text-white shadow-lg shadow-emerald-600/25">
-                <Icon className="h-5 w-5" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="truncate text-base font-bold text-zinc-900 dark:text-zinc-100">
-                  {resolvedName || title}
-                </h1>
-                {resolvedSlug ? (
-                  <a
-                    href={`${SITE.url}/${resolvedSlug}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block truncate text-xs text-emerald-600 dark:text-emerald-400 hover:underline"
-                    dir="ltr"
-                  >
-                    {SITE.url}/{resolvedSlug}
-                  </a>
-                ) : subtitle ? (
-                  <p className="truncate text-xs text-zinc-500 dark:text-zinc-400">{subtitle}</p>
-                ) : null}
-              </div>
+            <div className="flex-1 min-w-0">
+              <AdBanner placement="stores_dashboard_header" variant="header" />
             </div>
 
             {actions ? (
-              <div className="flex w-full flex-wrap items-center gap-2 md:w-auto md:justify-end">
+              <div className="flex shrink-0 items-center gap-2">
                 {actions}
               </div>
             ) : null}
