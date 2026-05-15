@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   Package,
   Plus,
-  Settings,
   ShoppingBag,
   ShoppingCart,
   Store,
@@ -113,16 +112,6 @@ export default function SellerDashboardHome() {
           المتجر العام
         </a>
       ) : null}
-      {!store && !loading ? (
-        <button
-          type="button"
-          onClick={() => router.push("/stores/new")}
-          className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50"
-        >
-          <Settings className="h-4 w-4" />
-          متجر جديد
-        </button>
-      ) : null}
     </>
   );
 
@@ -198,20 +187,11 @@ export default function SellerDashboardHome() {
           </div>
 
           <section className="overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-50 px-5 py-4">
+            <div className="border-b border-zinc-50 px-5 py-4">
               <h2 className="flex items-center gap-2 text-base font-bold text-zinc-900">
                 <Store className="h-5 w-5 text-emerald-600" />
                 متاجري
               </h2>
-              {!store && !loading ? (
-                <button
-                  type="button"
-                  onClick={() => router.push("/stores/new")}
-                  className="text-xs font-semibold text-emerald-700 hover:underline"
-                >
-                  + إنشاء متجر
-                </button>
-              ) : null}
             </div>
 
             <div className="p-5 md:p-6">
@@ -259,17 +239,9 @@ export default function SellerDashboardHome() {
                     <ShoppingBag className="h-8 w-8" />
                   </div>
                   <p className="mb-1 text-sm font-semibold text-zinc-700">لا يوجد متجر بعد</p>
-                  <p className="mb-6 max-w-sm text-xs leading-relaxed text-zinc-500">
-                    أنشئ متجرك في خطوات واضحة، ثم اربط الدفع والشحن وأضف منتجاتك مع الأوزان لحساب
-                    التوصيل تلقائياً.
+                  <p className="max-w-sm text-xs leading-relaxed text-zinc-500">
+                    استخدم «إنشاء متجر جديد» من القائمة الجانبية لبدء متجرك.
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => router.push("/stores/new")}
-                    className="rounded-xl bg-emerald-600 px-8 py-3 text-sm font-bold text-white shadow-md transition hover:bg-emerald-700"
-                  >
-                    أنشئ متجرك الأول
-                  </button>
                 </div>
               )}
             </div>
