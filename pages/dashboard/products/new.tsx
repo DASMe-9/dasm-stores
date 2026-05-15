@@ -117,6 +117,7 @@ export default function NewProductPage() {
         title="إضافة منتج"
         subtitle="يُستخدم وزن المنتج مع Tryoto لعرض تكلفة الشحن في الدفع"
         icon={Package}
+        hasStore
         actions={
           <Link
             href="/dashboard/shipping"

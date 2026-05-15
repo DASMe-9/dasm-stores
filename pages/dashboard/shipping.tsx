@@ -107,6 +107,7 @@ export default function DashboardShippingSettingsPage() {
         title="شحن Tryoto (أوتو)"
         subtitle="التجميع من ship.dasm.com.sa — يظهر للعميل في الدفع"
         icon={Truck}
+        hasStore
         actions={
           <Link
             href="/dashboard"
