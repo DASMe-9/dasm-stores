@@ -7,7 +7,12 @@
  */
 
 export const SITE = {
-  url: process.env.NEXT_PUBLIC_SITE_URL || "https://store.dasm.com.sa",
+  url:
+    process.env.NEXT_PUBLIC_STORE_DOMAIN?.startsWith("http")
+      ? process.env.NEXT_PUBLIC_STORE_DOMAIN!
+      : process.env.NEXT_PUBLIC_STORE_DOMAIN
+        ? `https://${process.env.NEXT_PUBLIC_STORE_DOMAIN.replace(/^https?:\/\//, "")}`
+        : process.env.NEXT_PUBLIC_SITE_URL || "https://store.dasm.com.sa",
   name: "متاجر داسم",
   nameEn: "DASM Stores",
   defaultTitle: "متاجر داسم — منصة المتاجر من داسم",
@@ -89,7 +94,7 @@ export function websiteSchema(): Thing {
     inLanguage: "ar-SA",
     potentialAction: {
       "@type": "SearchAction",
-      target: `${SITE.url}/explore?q={search_term_string}`,
+      target: `${SITE.url}/?q={search_term_string}`,
       "query-input": "required name=search_term_string",
     },
   };
@@ -122,7 +127,7 @@ export function storeSchema(store: StoreForSchema): Thing {
     "@context": "https://schema.org",
     "@type": "Store",
     name: store.name,
-    url: canonicalUrl(`/${store.slug}`),
+    url: canonicalUrl(`/store/${store.slug}`),
     image: absoluteImage(store.coverUrl || store.logoUrl),
     logo: absoluteImage(store.logoUrl),
   };
@@ -175,7 +180,7 @@ export function productSchema(p: ProductForSchema): Thing {
       : undefined,
     offers: {
       "@type": "Offer",
-      url: canonicalUrl(`/${p.storeSlug}/product/${p.slug ?? p.id}`),
+      url: canonicalUrl(`/store/${p.storeSlug}/products/${p.slug ?? p.id}`),
       priceCurrency: p.currency ?? "SAR",
       price: p.price,
       availability: `https://schema.org/${p.availability ?? "InStock"}`,
