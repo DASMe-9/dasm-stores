@@ -12,7 +12,7 @@ export const SITE = {
       ? process.env.NEXT_PUBLIC_STORE_DOMAIN!
       : process.env.NEXT_PUBLIC_STORE_DOMAIN
         ? `https://${process.env.NEXT_PUBLIC_STORE_DOMAIN.replace(/^https?:\/\//, "")}`
-        : process.env.NEXT_PUBLIC_SITE_URL || "https://store.dasm.com.sa",
+        : process.env.NEXT_PUBLIC_SITE_URL || "https://stores.dasm.com.sa",
   name: "متاجر داسم",
   nameEn: "DASM Stores",
   defaultTitle: "متاجر داسم — منصة المتاجر من داسم",

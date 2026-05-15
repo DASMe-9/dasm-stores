@@ -1,5 +1,5 @@
 # DASM Stores — robots policy
-# https://store.dasm.com.sa
+# https://stores.dasm.com.sa
 
 User-agent: *
 Allow: /
@@ -15,4 +15,4 @@ Disallow: /api/
 Disallow: /*?preview=
 Disallow: /*?ref=
 
-Sitemap: https://store.dasm.com.sa/sitemap.xml
+Sitemap: https://stores.dasm.com.sa/sitemap.xml

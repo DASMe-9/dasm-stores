@@ -324,7 +324,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                     className="px-3 py-2.5 text-xs text-gray-500 bg-gray-100 border-l border-gray-200"
                     dir="ltr"
                   >
-                    store.dasm.com.sa/
+                    stores.dasm.com.sa/
                   </span>
                   <input
                     type="text"
@@ -469,7 +469,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                         {form.name_ar || "اسم متجرك"}
                       </div>
                       <div className="text-[11px] text-gray-400" dir="ltr">
-                        store.dasm.com.sa/{form.slug || "your-store"}
+                        stores.dasm.com.sa/{form.slug || "your-store"}
                       </div>
                     </div>
                   </div>
@@ -551,7 +551,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
               <div className="rounded-2xl border border-gray-200 divide-y divide-gray-100">
                 <Row label="الاسم بالعربي" value={form.name_ar} />
                 <Row label="الاسم بالإنجليزي" value={form.name} />
-                <Row label="الرابط" value={`store.dasm.com.sa/${form.slug}`} />
+                <Row label="الرابط" value={`stores.dasm.com.sa/${form.slug}`} />
                 <Row label="التصنيف" value={CATEGORIES.find((c) => c.value === form.category)?.label} />
                 <Row label="اللون الأساسي" value={active.label} swatch={active.primary} />
                 {form.first_product.name ? (
