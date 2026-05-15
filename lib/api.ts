@@ -7,14 +7,20 @@ const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+const platformApi = axios.create({
+  baseURL: `${API_URL}/api`,
+});
+
 // أضف التوكن تلقائياً لكل طلب
-api.interceptors.request.use((config) => {
+const attachToken = (config: any) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("stores_token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
-});
+};
+api.interceptors.request.use(attachToken);
+platformApi.interceptors.request.use(attachToken);
 
 // لو 401 → وجّه لتسجيل الدخول
 api.interceptors.response.use(
@@ -89,6 +95,20 @@ export const sellerApi = {
   createShippingConfig: (data: any) => api.post("/my-store/shipping-config", data),
   updateShippingConfig: (id: number, data: any) => api.put(`/my-store/shipping-config/${id}`, data),
   deleteShippingConfig: (id: number) => api.delete(`/my-store/shipping-config/${id}`),
+};
+
+/* ── Upload (goes to platform API, not stores API) ── */
+export const uploadApi = {
+  uploadMedia: (file: File, context: string) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("context", context);
+    return platformApi.post<{ status: string; secure_url: string; context: string }>(
+      "/upload/media",
+      formData,
+      { headers: { "Content-Type": "multipart/form-data" } }
+    );
+  },
 };
 
 export default api;
