@@ -30,7 +30,7 @@ api.interceptors.response.use(
 
 /* ── Public APIs ── */
 export const publicApi = {
-  getStore: (slug: string) => api.get(`/public/${slug}`),
+  getStore: (slug: string, params?: Record<string, string>) => api.get(`/public/${slug}`, { params }),
   getProducts: (slug: string, params?: Record<string, string>) =>
     api.get(`/public/${slug}/products`, { params }),
   getProduct: (slug: string, id: number) =>
