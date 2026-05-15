@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 
 const API_BASE   = process.env.NEXT_PUBLIC_API_URL || "https://api.dasm.com.sa/api";
-const STORE_HOST = "store.dasm.com.sa";
+const STORE_HOST = "stores.dasm.com.sa";
 
 const fmtNum = (n: number) => Number(n || 0).toLocaleString("ar-SA");
 const fmtPct = (n: number) => `${Number(n || 0).toFixed(1)}%`;

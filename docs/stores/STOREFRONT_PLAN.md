@@ -1,6 +1,6 @@
 # DASM Stores — Storefront Implementation Plan
 
-> **الريبو المستهدف:** `DASMe-9/dasm-stores` → `store.dasm.com.sa`
+> **الريبو المستهدف:** `DASMe-9/dasm-stores` → `stores.dasm.com.sa`
 > **المرجع المعماري:** Salla Twilight storefront (SSR/ISR + Web Components)
 > **التقنية:** Next.js 16 App Router · TypeScript · Tailwind CSS
 > **الحالة:** PR-B مدموج (SEO foundation + sitemap + robots + JSON-LD) → هذه الخطة للمراحل التالية
@@ -266,7 +266,8 @@ const productSchema = {
 # .env.local في dasm-stores
 API_BACKEND_URL=https://dasm-platform-backend.onrender.com
 NEXT_PUBLIC_API_URL=                          # فارغ → SSR proxy
-NEXT_PUBLIC_STORE_DOMAIN=store.dasm.com.sa
+NEXT_PUBLIC_STORES_URL=https://stores.dasm.com.sa
+NEXT_PUBLIC_STORE_DOMAIN=stores.dasm.com.sa
 ```
 
 ---

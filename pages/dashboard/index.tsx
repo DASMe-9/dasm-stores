@@ -18,7 +18,7 @@ import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi } from "@/lib/api";
 
 const STORES_URL =
-  process.env.NEXT_PUBLIC_STORES_URL || "https://store.dasm.com.sa";
+  process.env.NEXT_PUBLIC_STORES_URL || "https://stores.dasm.com.sa";
 
 interface StoreStats {
   total_products: number;
@@ -271,13 +271,9 @@ export default function SellerDashboardHome() {
           <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-sm leading-relaxed text-emerald-900">
             نفس حسابك على داسم يعمل هنا بعد تسجيل الدخول على{" "}
             <span className="rounded bg-emerald-100 px-1 font-mono text-xs" dir="ltr">
-              store.dasm.com.sa
-            </span>
-            . أنصح بحفظ هذا الرابط كدخول رئيسي؛ النطاق بالجمع{" "}
-            <span className="font-mono text-xs" dir="ltr">
               stores.dasm.com.sa
-            </span>{" "}
-            إن وُجد على نفس التطبيق سيُحوَّل تلقائياً إلى النطاق القياسي بعد النشر الأخير.
+            </span>
+            . احفظ هذا الرابط كدخول رئيسي لمتاجر داسم؛ الإنتاج المعتمد هو هذا النطاق فقط ولا يُعرَّض في Next لتحويل نطاقات.
           </div>
         </div>
       </SellerShell>
