@@ -177,8 +177,27 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
       setDone(true);
       setTimeout(() => nav.push("/dashboard"), 2500);
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } }; message?: string };
-      setError(err?.response?.data?.message ?? err?.message ?? "حدث خطأ");
+      const err = e as {
+        response?: {
+          data?: {
+            message?: string;
+            trace_id?: string;
+            errors?: Record<string, string[]>;
+          };
+        };
+        message?: string;
+      };
+      const data = err?.response?.data;
+      const firstValidation =
+        data?.errors && typeof data.errors === "object"
+          ? Object.values(data.errors).flat().find(Boolean)
+          : undefined;
+      let msg = data?.message ?? firstValidation ?? err?.message ?? "حدث خطأ";
+      const tid = data?.trace_id;
+      if (tid) {
+        msg = `${msg}\nمعرّف التتبع: ${tid}`;
+      }
+      setError(msg);
     } finally {
       setLoading(false);
     }
@@ -567,7 +586,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
               </div>
 
               {error ? (
-                <div className="rounded-xl bg-red-50 border border-red-100 p-3 text-xs text-red-600">
+                <div className="rounded-xl bg-red-50 border border-red-100 p-3 text-xs text-red-600 whitespace-pre-line">
                   {error}
                 </div>
               ) : null}
