@@ -115,12 +115,23 @@ export const FREE_STORE_THEMES: StoreTheme[] = [
 
 export const STORE_THEMES = FREE_STORE_THEMES;
 
+const THEME_ALIASES: Record<string, string> = {
+  emerald: "dasm-emerald",
+  indigo: "royal-blue",
+  royal: "royal-blue",
+  rose: "rose-market",
+  amber: "luxury-gold",
+  slate: "night-neon",
+};
+
 export function getStoreTheme(slug?: string | null): StoreTheme {
-  return STORE_THEMES.find((theme) => theme.slug === slug) ?? STORE_THEMES[0];
+  const resolvedSlug = slug ? (THEME_ALIASES[slug] ?? slug) : STORE_THEMES[0].slug;
+  return STORE_THEMES.find((theme) => theme.slug === resolvedSlug) ?? STORE_THEMES[0];
 }
 
 export function getThemeSlug(config?: StoreThemeConfig | null): string {
-  return config?.theme_slug ?? config?.themeSlug ?? config?.palette ?? STORE_THEMES[0].slug;
+  const slug = config?.theme_slug ?? config?.themeSlug ?? config?.palette ?? STORE_THEMES[0].slug;
+  return THEME_ALIASES[slug] ?? slug;
 }
 
 export function getHeroVideoUrl(config?: StoreThemeConfig | null): string | null {
