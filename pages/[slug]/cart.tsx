@@ -39,12 +39,26 @@ export default function CartPage() {
   const [submitting, setSubmitting] = useState(false);
 
   // بيانات العميل
-  const [form, setForm] = useState({
-    customer_name: "",
-    customer_email: "",
-    customer_phone: "",
-    shipping_address: { city: "", street: "", zip: "" },
+  const [form, setForm] = useState(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const saved = localStorage.getItem("dasm_checkout_form");
+        if (saved) return JSON.parse(saved);
+      } catch {}
+    }
+    return {
+      customer_name: "",
+      customer_email: "",
+      customer_phone: "",
+      shipping_address: { city: "", street: "", zip: "" },
+    };
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("dasm_checkout_form", JSON.stringify(form));
+    } catch {}
+  }, [form]);
 
   // الشحن
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
