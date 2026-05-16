@@ -85,12 +85,12 @@ export function AdBanner({
 
     if (!loaded) {
       return (
-        <div className="h-44 md:h-52 bg-gradient-to-l from-emerald-100 to-teal-50 dark:from-zinc-800 dark:to-zinc-800 animate-pulse" />
+        <div className="h-44 md:h-52 rounded-2xl bg-gradient-to-l from-emerald-100 to-teal-50 dark:from-zinc-800 dark:to-zinc-800 animate-pulse" />
       );
     }
 
     return (
-      <div className="relative overflow-hidden bg-gradient-to-l from-emerald-600 via-teal-600 to-emerald-700 dark:from-emerald-900 dark:via-teal-900 dark:to-emerald-950 shadow-lg shadow-emerald-600/15 dark:shadow-emerald-900/30">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-emerald-600 via-teal-600 to-emerald-700 dark:from-emerald-900 dark:via-teal-900 dark:to-emerald-950 shadow-lg shadow-emerald-600/15 dark:shadow-emerald-900/30">
         {ad.image_url && (
           <img src={ad.image_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20" />
         )}
