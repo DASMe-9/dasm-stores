@@ -44,6 +44,8 @@ export const publicApi = {
   getCategories: (slug: string) => api.get(`/public/${slug}/categories`),
   explore: (params?: Record<string, string>) =>
     api.get("/public/explore", { params }),
+  getShippingRates: (slug: string, data: { destination_city: string; weight_kg?: number }) =>
+    api.post(`/public/${slug}/shipping-rates`, data),
 };
 
 /* ── Checkout ── */
