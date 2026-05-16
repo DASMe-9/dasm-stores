@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { checkoutApi } from "@/lib/api";
 import {
   CheckCircle, XCircle, Clock, Package, Truck,
-  ArrowRight, Copy, Check, Landmark,
+  ArrowRight, Copy, Check, Landmark, CreditCard, Loader2,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -54,6 +54,8 @@ export default function OrderPage() {
   const [copied, setCopied] = useState(false);
   const [copiedIban, setCopiedIban] = useState(false);
   const [bankInfo, setBankInfo] = useState<{ iban: string; beneficiary: string } | null>(null);
+  const [paying, setPaying] = useState(false);
+  const [payError, setPayError] = useState("");
 
   useEffect(() => {
     if (!slug || !orderNumber) return;
@@ -78,6 +80,24 @@ export default function OrderPage() {
     navigator.clipboard.writeText(order.order_number);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handlePayNow = async () => {
+    if (!slug || !order) return;
+    setPaying(true);
+    setPayError("");
+    try {
+      const { data } = await checkoutApi.retryPayment(slug as string, order.order_number);
+      if (data.payment_url) {
+        window.location.href = data.payment_url;
+      } else {
+        setPayError("لم نتمكن من إنشاء رابط الدفع — تواصل مع المتجر");
+      }
+    } catch {
+      setPayError("حدث خطأ أثناء إنشاء جلسة الدفع");
+    } finally {
+      setPaying(false);
+    }
   };
 
   if (loading) {
@@ -135,22 +155,44 @@ export default function OrderPage() {
           )}
 
           {order.payment_status === "failed" && (
-            <div className="flex items-center gap-3 rounded-2xl bg-red-50 border border-red-200 p-5">
-              <XCircle className="w-10 h-10 text-red-500 shrink-0" />
-              <div>
-                <h2 className="font-bold text-red-900">فشل الدفع</h2>
-                <p className="text-sm text-red-700 mt-0.5">يرجى المحاولة مجدداً أو التواصل مع المتجر</p>
+            <div className="rounded-2xl bg-red-50 border border-red-200 p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <XCircle className="w-10 h-10 text-red-500 shrink-0" />
+                <div>
+                  <h2 className="font-bold text-red-900">فشل الدفع</h2>
+                  <p className="text-sm text-red-700 mt-0.5">يرجى المحاولة مجدداً أو التواصل مع المتجر</p>
+                </div>
               </div>
+              <button
+                onClick={handlePayNow}
+                disabled={paying}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition disabled:opacity-60"
+              >
+                {paying ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                {paying ? "جاري التحويل لصفحة الدفع..." : "أعد المحاولة — ادفع الآن"}
+              </button>
+              {payError && <p className="text-sm text-red-600 text-center">{payError}</p>}
             </div>
           )}
 
           {order.payment_status === "pending" && !bankInfo && (
-            <div className="flex items-center gap-3 rounded-2xl bg-amber-50 border border-amber-200 p-5">
-              <Clock className="w-10 h-10 text-amber-600 shrink-0" />
-              <div>
-                <h2 className="font-bold text-amber-900">بانتظار الدفع</h2>
-                <p className="text-sm text-amber-700 mt-0.5">لم يتم الدفع بعد — أكمل عملية الدفع لتأكيد الطلب</p>
+            <div className="rounded-2xl bg-amber-50 border border-amber-200 p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <Clock className="w-10 h-10 text-amber-600 shrink-0" />
+                <div>
+                  <h2 className="font-bold text-amber-900">بانتظار الدفع</h2>
+                  <p className="text-sm text-amber-700 mt-0.5">لم يتم الدفع بعد — أكمل عملية الدفع لتأكيد الطلب</p>
+                </div>
               </div>
+              <button
+                onClick={handlePayNow}
+                disabled={paying}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-emerald-600 text-white font-bold text-sm hover:bg-emerald-700 transition disabled:opacity-60"
+              >
+                {paying ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-4 h-4" />}
+                {paying ? "جاري التحويل لصفحة الدفع..." : "ادفع الآن"}
+              </button>
+              {payError && <p className="text-sm text-red-600 text-center">{payError}</p>}
             </div>
           )}
 

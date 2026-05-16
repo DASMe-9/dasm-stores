@@ -53,6 +53,8 @@ export const checkoutApi = {
   createOrder: (slug: string, data: any) => api.post(`/checkout/${slug}`, data),
   trackOrder: (slug: string, orderNumber: string) =>
     api.get(`/track/${slug}/${orderNumber}`),
+  retryPayment: (slug: string, orderNumber: string) =>
+    api.post(`/retry-payment/${slug}/${orderNumber}`),
 };
 
 /* ── Seller APIs ── */
