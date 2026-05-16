@@ -150,8 +150,8 @@ export default function StoreFront() {
 
       <div className="min-h-screen bg-gray-50 rtl">
         {isPreview && (
-          <div className="bg-amber-500 text-white text-center py-2 text-sm font-semibold">
-            وضع المعاينة — هذا المتجر غير منشور بعد ولا يظهر للعملاء
+          <div className="bg-amber-500/90 text-white text-center py-1.5 text-xs font-medium">
+            وضع المعاينة
           </div>
         )}
         {/* ── البنر ── */}
