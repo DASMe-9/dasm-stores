@@ -63,7 +63,7 @@ export function CheckoutClient({
       customer_name: "",
       customer_email: "",
       customer_phone: "",
-      shipping_address: { city: "", street: "", zip: "" },
+      shipping_address: { city: "", district: "", street: "", zip: "", short_address: "" },
     };
   });
 
@@ -330,7 +330,19 @@ export function CheckoutClient({
         />
         <input
           required
-          placeholder="العنوان / الشارع"
+          placeholder="الحي (مثال: حي المعارض)"
+          value={form.shipping_address.district ?? ""}
+          onChange={(e) =>
+            setForm({
+              ...form,
+              shipping_address: { ...form.shipping_address, district: e.target.value },
+            })
+          }
+          className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+        />
+        <input
+          required
+          placeholder="الشارع (مثال: طريق أبوحدرية)"
           value={form.shipping_address.street}
           onChange={(e) =>
             setForm({
@@ -340,17 +352,30 @@ export function CheckoutClient({
           }
           className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
         />
-        <input
-          placeholder="الرمز البريدي (اختياري)"
-          value={form.shipping_address.zip}
-          onChange={(e) =>
-            setForm({
-              ...form,
-              shipping_address: { ...form.shipping_address, zip: e.target.value },
-            })
-          }
-          className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
-        />
+        <div className="grid grid-cols-2 gap-2">
+          <input
+            placeholder="الرمز البريدي (مثال: 31952)"
+            value={form.shipping_address.zip}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                shipping_address: { ...form.shipping_address, zip: e.target.value },
+              })
+            }
+            className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+          />
+          <input
+            placeholder="العنوان المختصر (مثال: AAAA1234)"
+            value={form.shipping_address.short_address ?? ""}
+            onChange={(e) =>
+              setForm({
+                ...form,
+                shipping_address: { ...form.shipping_address, short_address: e.target.value },
+              })
+            }
+            className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+          />
+        </div>
 
         {tryotoOn ? (
           <fieldset className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/20 p-4">

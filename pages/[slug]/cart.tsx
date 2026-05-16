@@ -50,7 +50,7 @@ export default function CartPage() {
       customer_name: "",
       customer_email: "",
       customer_phone: "",
-      shipping_address: { city: "", street: "", zip: "" },
+      shipping_address: { city: "", district: "", street: "", zip: "", short_address: "" },
     };
   });
 
@@ -320,11 +320,32 @@ export default function CartPage() {
                 </div>
                 <input
                   required
-                  placeholder="العنوان / الحي / الشارع"
+                  placeholder="الحي (مثال: حي المعارض)"
+                  value={form.shipping_address.district ?? ""}
+                  onChange={(e) => setForm({ ...form, shipping_address: { ...form.shipping_address, district: e.target.value } })}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+                <input
+                  required
+                  placeholder="الشارع (مثال: طريق أبوحدرية)"
                   value={form.shipping_address.street}
                   onChange={(e) => setForm({ ...form, shipping_address: { ...form.shipping_address, street: e.target.value } })}
                   className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    placeholder="الرمز البريدي (مثال: 31952)"
+                    value={form.shipping_address.zip}
+                    onChange={(e) => setForm({ ...form, shipping_address: { ...form.shipping_address, zip: e.target.value } })}
+                    className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  />
+                  <input
+                    placeholder="العنوان المختصر (مثال: AAAA1234)"
+                    value={form.shipping_address.short_address ?? ""}
+                    onChange={(e) => setForm({ ...form, shipping_address: { ...form.shipping_address, short_address: e.target.value } })}
+                    className="rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  />
+                </div>
               </div>
 
               {/* 3. خيارات الشحن */}
