@@ -90,9 +90,16 @@ export const sellerApi = {
   getOrder: (id: number) => api.get(`/my-store/orders/${id}`),
   updateOrderStatus: (id: number, data: any) => api.put(`/my-store/orders/${id}/status`, data),
 
-  // بوابة الدفع
+  // بوابة الدفع (legacy)
   getPaymentConfig: () => api.get("/my-store/payment-config"),
   updatePaymentConfig: (data: any) => api.put("/my-store/payment-config", data),
+
+  // العنوان الوطني (على مستوى المستخدم — ثابت في كل المنصات)
+  getNationalAddress: () => platformApi.get("/user/national-address"),
+  submitNationalAddress: (formData: FormData) =>
+    platformApi.post("/user/national-address", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    }),
 
   // الشحن
   getShippingConfigs: () => api.get("/my-store/shipping-config"),

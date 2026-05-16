@@ -19,6 +19,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
+import { NationalAddressCard } from "@/components/seller/NationalAddressCard";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { sellerApi } from "@/lib/api";
 
@@ -186,9 +187,9 @@ export default function SellerDashboardHome() {
                 <strong>كيف يعمل؟</strong>
                 <ol className="mt-2 list-decimal pr-5 space-y-1 text-xs leading-relaxed">
                   <li>أنشئ متجرك واختر اسمه ورابطه وتصنيفه.</li>
-                  <li>اربط بوابة الدفع (PayMob) من إعدادات المتجر.</li>
+                  <li>سجّل عنوانك الوطني (الرقم المخت��ر من سبل).</li>
                   <li>أضف منتجاتك مع الأسعار والصور والأوزان.</li>
-                  <li>فعّل المتجر وابدأ استقبال الطلبات!</li>
+                  <li>فعّل المتجر — الدفع يعمل تلقائياً عبر بوابة داسم!</li>
                 </ol>
               </div>
             </div>
@@ -221,6 +222,9 @@ export default function SellerDashboardHome() {
                   </div>
                 ))}
               </div>
+
+              {/* العنوان الوطني */}
+              <NationalAddressCard />
 
               {/* التبويبات */}
               <div className="border-b border-zinc-200 dark:border-zinc-800">
