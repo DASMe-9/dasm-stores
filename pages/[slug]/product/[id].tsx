@@ -3,7 +3,7 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 import { publicApi } from "@/lib/api";
 import {
-  ArrowRight, ShoppingCart, Star, Tag, Minus, Plus, Check,
+  ArrowRight, ShoppingCart, Star, Tag, Minus, Plus,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -45,7 +45,7 @@ export default function ProductDetailPage() {
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState<number | null>(null);
   const [qty, setQty] = useState(1);
-  const [added, setAdded] = useState(false);
+
 
   useEffect(() => {
     if (!slug || !id) return;
@@ -85,8 +85,7 @@ export default function ProductDetailPage() {
     }
 
     localStorage.setItem(cartKey, JSON.stringify(cart));
-    setAdded(true);
-    setTimeout(() => setAdded(false), 2000);
+    router.push(`/${slug}/cart`);
   };
 
   const activeVariant = product?.variants?.find((v) => v.id === selectedVariant);
@@ -254,21 +253,9 @@ export default function ProductDetailPage() {
               {/* زر الإضافة */}
               <button
                 onClick={addToCart}
-                className={`w-full py-3 font-semibold rounded-xl transition flex items-center justify-center gap-2 text-sm ${
-                  added
-                    ? "bg-emerald-100 text-emerald-700"
-                    : "bg-emerald-600 text-white hover:bg-emerald-700"
-                }`}
+                className="w-full py-3 font-semibold rounded-xl transition flex items-center justify-center gap-2 text-sm bg-emerald-600 text-white hover:bg-emerald-700"
               >
-                {added ? (
-                  <>
-                    <Check className="w-4 h-4" /> تمت الإضافة للسلة
-                  </>
-                ) : (
-                  <>
-                    <ShoppingCart className="w-4 h-4" /> أضف للسلة — {(Number(displayPrice) * qty).toFixed(0)} ر.س
-                  </>
-                )}
+                <ShoppingCart className="w-4 h-4" /> اشترِ الآن — {(Number(displayPrice) * qty).toFixed(0)} ر.س
               </button>
 
               {/* الوصف */}

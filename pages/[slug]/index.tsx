@@ -111,6 +111,7 @@ export default function StoreFront() {
     }
     setCart(updated);
     localStorage.setItem(`cart_${slug}`, JSON.stringify(updated));
+    router.push(`/${slug}/cart`);
   };
 
   const cartCount = cart.reduce((sum, c) => sum + c.qty, 0);
