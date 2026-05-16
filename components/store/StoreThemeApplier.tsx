@@ -1,15 +1,24 @@
+import { themeCssVariables, type StoreThemeConfig } from "@/lib/store-themes";
+
 /**
  * Injects merchant theme tokens into :root (SSR-safe).
  * Keys from API may be `primary` or `--primary`; both normalize to `--primary`.
  */
 export function StoreThemeApplier({
   vars,
+  config,
 }: {
   vars: Record<string, string> | null | undefined;
+  config?: StoreThemeConfig | null | undefined;
 }) {
-  if (!vars || Object.keys(vars).length === 0) return null;
+  const resolvedVars = {
+    ...(config ? themeCssVariables(config) : {}),
+    ...(vars ?? {}),
+  };
 
-  const css = Object.entries(vars)
+  if (Object.keys(resolvedVars).length === 0) return null;
+
+  const css = Object.entries(resolvedVars)
     .map(([k, v]) => {
       const key = k.startsWith("--") ? k : `--${k}`;
       return `${key}: ${v};`;

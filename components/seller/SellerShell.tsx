@@ -12,6 +12,7 @@ import {
   Menu,
   Moon,
   Package,
+  Palette,
   Plus,
   ShoppingCart,
   Store,
@@ -70,6 +71,12 @@ const MAIN_NAV: NavItem[] = [
     icon: Truck,
     match: (p) => p.startsWith("/dashboard/shipping"),
   },
+  {
+    href: "/dashboard/theme",
+    label: "ثيم المتجر",
+    icon: Palette,
+    match: (p) => p.startsWith("/dashboard/theme"),
+  },
 ];
 
 export function SellerShell({
@@ -102,21 +109,21 @@ export function SellerShell({
   useEffect(() => {
     const saved = localStorage.getItem("stores_theme");
     const isDark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDark(isDark);
     document.documentElement.classList.toggle("dark", isDark);
+    queueMicrotask(() => setDark(isDark));
   }, []);
 
   useEffect(() => {
     if (storeSlug && storeName) {
-      setResolvedSlug(storeSlug);
-      setResolvedName(storeName);
       return;
     }
     const cachedSlug = sessionStorage.getItem("store_slug");
     const cachedName = sessionStorage.getItem("store_name");
     if (cachedSlug && cachedName) {
-      setResolvedSlug(cachedSlug);
-      setResolvedName(cachedName);
+      queueMicrotask(() => {
+        setResolvedSlug(cachedSlug);
+        setResolvedName(cachedName);
+      });
       return;
     }
     sellerApi.getMyStore().then(({ data }) => {
@@ -148,13 +155,13 @@ export function SellerShell({
           </div>
           {resolvedSlug ? (
             <a
-              href={`${SITE.url}/${resolvedSlug}`}
+              href={`${SITE.url}/store/${resolvedSlug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block truncate text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline"
               dir="ltr"
             >
-              {SITE.url}/{resolvedSlug}
+              {SITE.url}/store/{resolvedSlug}
             </a>
           ) : (
             <div className="text-[11px] text-emerald-700/50 dark:text-zinc-400">لوحة التاجر</div>
@@ -198,7 +205,7 @@ export function SellerShell({
           <div className="space-y-1">
             {resolvedSlug && (
               <a
-                href={`${SITE.url}/${resolvedSlug}?preview=true`}
+                href={`${SITE.url}/store/${resolvedSlug}?preview=true`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setDrawerOpen(false)}

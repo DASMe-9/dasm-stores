@@ -13,6 +13,7 @@ import {
   Check,
 } from "lucide-react";
 import { sellerApi } from "@/lib/api";
+import { STORE_THEMES, themeToConfig } from "@/lib/store-themes";
 
 export type SellerNavHandlers = {
   replace: (path: string) => void;
@@ -31,13 +32,12 @@ const CATEGORIES = [
   { value: "general", label: "متنوع", emoji: "🛍️" },
 ];
 
-const PALETTES = [
-  { key: "emerald", label: "أخضر داسم", primary: "#059669", accent: "#10b981" },
-  { key: "indigo", label: "أزرق ملكي", primary: "#4f46e5", accent: "#6366f1" },
-  { key: "rose", label: "وردي عصري", primary: "#e11d48", accent: "#f43f5e" },
-  { key: "amber", label: "ذهبي فاخر", primary: "#d97706", accent: "#f59e0b" },
-  { key: "slate", label: "رمادي أنيق", primary: "#0f172a", accent: "#334155" },
-];
+const PALETTES = STORE_THEMES.map((theme) => ({
+  key: theme.slug,
+  label: theme.name,
+  primary: theme.primary,
+  accent: theme.accent,
+}));
 
 const STEPS = [
   { key: "basics", title: "بيانات المتجر", icon: Store },
@@ -93,7 +93,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
     description: "",
     logo_url: "",
     banner_url: "",
-    palette: "emerald",
+    palette: STORE_THEMES[0].slug,
     first_product: { name: "", price: "", image_url: "" },
   });
 
@@ -140,7 +140,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
     setLoading(true);
     setError(null);
     try {
-      const palette = PALETTES.find((p) => p.key === form.palette)!;
+      const theme = STORE_THEMES.find((p) => p.slug === form.palette) ?? STORE_THEMES[0];
       const payload = {
         name: form.name,
         name_ar: form.name_ar,
@@ -149,11 +149,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
         description: form.description || null,
         logo_url: form.logo_url || null,
         banner_url: form.banner_url || null,
-        theme_config: {
-          palette: form.palette,
-          primary: palette.primary,
-          accent: palette.accent,
-        },
+        theme_config: themeToConfig(theme),
       };
       await sellerApi.createStore(payload);
 
