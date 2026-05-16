@@ -289,8 +289,8 @@ export function SellerShell({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 border-b border-zinc-200/80 dark:border-zinc-800 bg-white/95 dark:bg-zinc-900/90 backdrop-blur-lg">
-          <div className="flex items-center gap-3 px-4 py-2 md:px-6">
+        <header className="sticky top-0 z-30 bg-zinc-50/95 dark:bg-zinc-950/90 backdrop-blur-lg">
+          <div className="flex items-center gap-3 px-3 py-2.5 md:px-5">
             <button
               type="button"
               className="rounded-xl p-2 text-zinc-600 dark:text-zinc-400 hover:bg-emerald-50 dark:hover:bg-zinc-800 lg:hidden"
