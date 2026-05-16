@@ -42,9 +42,12 @@ export default function CartPage() {
 
   const loadProductDetails = async (items: CartItem[]) => {
     try {
+      const params: Record<string, string> = {};
+      const token = typeof window !== "undefined" ? localStorage.getItem("stores_token") : null;
+      if (token) params.preview = "true";
       const map: Record<number, any> = {};
       for (const item of items) {
-        const { data } = await publicApi.getProduct(slug as string, item.productId);
+        const { data } = await publicApi.getProduct(slug as string, item.productId, params);
         map[item.productId] = data.product;
       }
       setProducts(map);
