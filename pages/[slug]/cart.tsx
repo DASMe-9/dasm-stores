@@ -7,6 +7,7 @@ import {
   CreditCard, Truck, MapPin, Loader2, Package,
 } from "lucide-react";
 import Link from "next/link";
+import { PaymentLogos } from "@/components/shared/PaymentLogos";
 
 interface CartItem {
   productId: number;
@@ -414,6 +415,8 @@ export default function CartPage() {
                   </>
                 )}
               </button>
+
+              <PaymentLogos className="mt-4" />
             </form>
           )}
         </main>

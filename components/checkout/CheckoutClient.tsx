@@ -11,6 +11,7 @@ import type {
 import { submitCheckout } from "@/lib/actions/checkout-order";
 import { useCartStore } from "@/store/cartStore";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
+import { PaymentLogos } from "@/components/shared/PaymentLogos";
 
 type TryotoRateRow = {
   delivery_option_id: string;
@@ -524,6 +525,7 @@ export function CheckoutClient({
         <Link href={`/store/${slug}/cart`} className="block text-center text-sm hover:underline">
           تعديل السلة
         </Link>
+        <PaymentLogos className="mt-3" />
       </aside>
     </form>
   );
