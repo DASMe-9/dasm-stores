@@ -290,22 +290,18 @@ export function SellerShell({
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 bg-zinc-50/95 dark:bg-zinc-950/90 backdrop-blur-lg">
-          <div className="flex items-center gap-3 px-3 py-2.5 md:px-5">
+          <div className="relative">
+            <AdBanner placement="stores_dashboard_header" variant="header" />
             <button
               type="button"
-              className="rounded-xl p-2 text-zinc-600 dark:text-zinc-400 hover:bg-emerald-50 dark:hover:bg-zinc-800 lg:hidden"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-xl p-2 text-white/80 hover:bg-white/10 lg:hidden"
               onClick={() => setDrawerOpen(true)}
               aria-label="القائمة"
             >
               <Menu className="h-5 w-5" />
             </button>
-
-            <div className="flex-1 min-w-0">
-              <AdBanner placement="stores_dashboard_header" variant="header" />
-            </div>
-
             {actions ? (
-              <div className="flex shrink-0 items-center gap-2">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
                 {actions}
               </div>
             ) : null}
