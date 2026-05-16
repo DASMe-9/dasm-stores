@@ -3,10 +3,8 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import {
-  AlertCircle,
   CheckCircle,
   Clock,
-  CreditCard,
   DollarSign,
   Edit3,
   ExternalLink,
@@ -252,73 +250,22 @@ export default function SellerDashboardHome() {
               {/* ── تبويب: نظرة عامة ── */}
               {activeTab === "overview" && (
                 <div className="space-y-4">
-                  {store.status === "draft" && (
-                    <div className={`rounded-2xl border p-5 text-sm ${canActivate ? "border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 dark:border-emerald-800" : "border-zinc-200 bg-white dark:bg-zinc-900 dark:border-zinc-700"}`}>
-                      <div className="flex items-start gap-3">
-                        {canActivate ? (
-                          <Rocket className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-                        ) : (
-                          <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500 dark:text-amber-400" />
-                        )}
-                        <div className="flex-1">
-                          <strong className={canActivate ? "text-emerald-900 dark:text-emerald-200" : "text-zinc-900 dark:text-zinc-100"}>
-                            {canActivate ? "متجرك جاهز للتفعيل!" : "متجرك في وضع المسودة"}
-                          </strong>
-                          {!canActivate && (
-                            <>
-                              <p className="mt-1.5 text-zinc-500 dark:text-zinc-400 text-xs">لتفعيل المتجر، أكمل الخطوات التالية:</p>
-                              <div className="mt-3 space-y-2.5">
-                                <Link href="/dashboard/payment" className="flex items-center gap-3 group">
-                                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${store.payment_config ? "bg-emerald-100 dark:bg-emerald-950" : "bg-amber-100 dark:bg-amber-950"}`}>
-                                    {store.payment_config ? (
-                                      <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                    ) : (
-                                      <CreditCard className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                    )}
-                                  </div>
-                                  <span className={`text-sm group-hover:underline ${store.payment_config ? "text-zinc-400 dark:text-zinc-500 line-through" : "font-medium text-zinc-800 dark:text-zinc-200"}`}>
-                                    ربط بوابة دفع (PayMob)
-                                  </span>
-                                  {!store.payment_config && (
-                                    <span className="mr-auto rounded-full bg-amber-100 dark:bg-amber-950 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">مطلوب</span>
-                                  )}
-                                </Link>
-                                <Link href="/dashboard/products/new" className="flex items-center gap-3 group">
-                                  <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${(stats?.active_products ?? 0) > 0 ? "bg-emerald-100 dark:bg-emerald-950" : "bg-amber-100 dark:bg-amber-950"}`}>
-                                    {(stats?.active_products ?? 0) > 0 ? (
-                                      <CheckCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                                    ) : (
-                                      <Package className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                                    )}
-                                  </div>
-                                  <span className={`text-sm group-hover:underline ${(stats?.active_products ?? 0) > 0 ? "text-zinc-400 dark:text-zinc-500 line-through" : "font-medium text-zinc-800 dark:text-zinc-200"}`}>
-                                    إضافة منتج واحد على الأقل
-                                  </span>
-                                  {(stats?.active_products ?? 0) > 0 && (
-                                    <span className="mr-auto rounded-full bg-emerald-100 dark:bg-emerald-950 px-2 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400">تم</span>
-                                  )}
-                                </Link>
-                              </div>
-                            </>
-                          )}
-                          {canActivate && (
-                            <p className="mt-1 text-emerald-700 dark:text-emerald-300 text-xs">
-                              بوابة الدفع مربوطة ولديك منتج نشط — فعّل متجرك ليظهر للعملاء
-                            </p>
-                          )}
-                        </div>
-                        {canActivate && (
-                          <button
-                            type="button"
-                            onClick={activateStore}
-                            disabled={activating}
-                            className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-700 disabled:opacity-60 transition"
-                          >
-                            <Rocket className="h-4 w-4" />
-                            {activating ? "جاري التفعيل..." : "فعّل المتجر الآن"}
-                          </button>
-                        )}
+                  {store.status === "draft" && canActivate && (
+                    <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 dark:border-emerald-800 p-4 text-sm">
+                      <Rocket className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                      <div className="flex-1 min-w-0">
+                        <strong className="text-emerald-900 dark:text-emerald-200">متجرك جاهز للتفعيل!</strong>
+                        <p className="mt-0.5 text-emerald-700 dark:text-emerald-300 text-xs">بوابة الدفع مربوطة ولديك منتج نشط — فعّل متجرك ليظهر للعملاء</p>
                       </div>
+                      <button
+                        type="button"
+                        onClick={activateStore}
+                        disabled={activating}
+                        className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-700 disabled:opacity-60 transition"
+                      >
+                        <Rocket className="h-4 w-4" />
+                        {activating ? "جاري التفعيل..." : "فعّل المتجر الآن"}
+                      </button>
                     </div>
                   )}
 
