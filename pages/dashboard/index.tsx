@@ -315,18 +315,9 @@ export default function SellerDashboardHome() {
               {/* ── تبويب: المنتجات ── */}
               {activeTab === "products" && (
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                      جميع المنتجات ({products.length})
-                    </h3>
-                    <Link
-                      href="/dashboard/products/new"
-                      className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 transition"
-                    >
-                      <Plus className="h-4 w-4" />
-                      منتج جديد
-                    </Link>
-                  </div>
+                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                    جميع المنتجات ({products.length})
+                  </h3>
                   {products.length > 0 ? (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                       {products.map((p) => (
