@@ -155,10 +155,10 @@ export default function SellerDashboardHome() {
           {/* ─── Loading ─── */}
           {loading && (
             <div className="space-y-4">
-              <div className="h-6 w-32 bg-zinc-200 rounded animate-pulse" />
+              <div className="h-6 w-32 bg-zinc-200 dark:bg-zinc-800 rounded animate-pulse" />
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className="h-24 bg-zinc-200 rounded-2xl animate-pulse" />
+                  <div key={i} className="h-24 bg-zinc-200 dark:bg-zinc-800 rounded-2xl animate-pulse" />
                 ))}
               </div>
             </div>
@@ -337,7 +337,7 @@ export default function SellerDashboardHome() {
                       label="الحالة"
                       value={store.status === "active" ? "نشط" : "مسودة"}
                       badge
-                      badgeColor={store.status === "active" ? "bg-green-100 text-green-700" : "bg-amber-100 text-amber-700"}
+                      badgeColor={store.status === "active" ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400"}
                     />
                     <InfoRow
                       label="نوع المالك"
@@ -356,7 +356,7 @@ export default function SellerDashboardHome() {
                       label="بوابة الدفع"
                       value={store.payment_config ? "مربوطة" : "غير مربوطة"}
                       badge
-                      badgeColor={store.payment_config ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}
+                      badgeColor={store.payment_config ? "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400" : "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400"}
                     />
                     <InfoRow
                       label="تاريخ الإنشاء"

@@ -153,26 +153,26 @@ export default function NewProductPage() {
         actions={
           <Link
             href="/dashboard/shipping"
-            className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-700 shadow-sm hover:bg-emerald-50"
+            className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-semibold text-emerald-700 dark:text-emerald-400 shadow-sm hover:bg-emerald-50 dark:hover:bg-emerald-950"
           >
             إعدادات الشحن
           </Link>
         }
       >
         <div className="mx-auto max-w-xl space-y-6">
-          <div className="space-y-4 rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+          <div className="space-y-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">اسم المنتج</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">اسم المنتج</label>
               <input
                 required
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">السعر (ر.س)</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">السعر (ر.س)</label>
               <input
                 required
                 type="number"
@@ -180,28 +180,28 @@ export default function NewProductPage() {
                 step="0.01"
                 value={form.price}
                 onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm"
+                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">الوزن للشحن (كجم)</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">الوزن للشحن (كجم)</label>
               <input
                 type="number"
                 min="0.01"
                 step="0.01"
                 value={form.weight_kg}
                 onChange={(e) => setForm((f) => ({ ...f, weight_kg: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm"
+                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">التبويب</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">التبويب</label>
               <select
                 value={form.tab_id}
                 onChange={(e) => setForm((f) => ({ ...f, tab_id: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm bg-white"
+                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
               >
                 {tabs.length === 0 ? (
                   <option value="">— لا توجد تبويبات — أنشئ tab عبر API أولاً</option>
@@ -216,7 +216,7 @@ export default function NewProductPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">الحالة</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">الحالة</label>
               <select
                 value={form.status}
                 onChange={(e) =>
@@ -225,7 +225,7 @@ export default function NewProductPage() {
                     status: e.target.value === "draft" ? "draft" : "active",
                   }))
                 }
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm bg-white"
+                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
               >
                 <option value="active">نشط</option>
                 <option value="draft">مسودة</option>
@@ -233,16 +233,16 @@ export default function NewProductPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">SKU (اختياري)</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">SKU (اختياري)</label>
               <input
                 value={form.sku}
                 onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm"
+                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">صورة المنتج</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">صورة المنتج</label>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -251,7 +251,7 @@ export default function NewProductPage() {
                 className="hidden"
               />
               {imagePreview || form.primary_image_url ? (
-                <div className="relative w-full aspect-square max-w-[200px] rounded-xl overflow-hidden border border-gray-200">
+                <div className="relative w-full aspect-square max-w-[200px] rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-700">
                   <img
                     src={imagePreview || form.primary_image_url}
                     alt="معاينة"
@@ -274,7 +274,7 @@ export default function NewProductPage() {
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-300 py-8 text-gray-400 hover:border-emerald-400 hover:text-emerald-600 transition"
+                  className="w-full flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-700 py-8 text-gray-400 dark:text-zinc-500 hover:border-emerald-400 dark:hover:border-emerald-600 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
                 >
                   <Upload className="w-8 h-8" />
                   <span className="text-sm">اضغط لاختيار صورة من جهازك</span>
@@ -284,12 +284,12 @@ export default function NewProductPage() {
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">الوصف</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">الوصف</label>
               <textarea
                 rows={3}
                 value={form.description}
                 onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm resize-none focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 resize-none focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
 
@@ -305,9 +305,9 @@ export default function NewProductPage() {
             </button>
 
             {tabs.length === 0 ? (
-              <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-100 rounded-xl p-3">
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-800 rounded-xl p-3">
                 لا توجد تبويبات للمتجر بعد. أنشئ تاباً واحداً على الأقل عبر{" "}
-                <code className="rounded bg-amber-100 px-1">POST /api/stores/my-store/tabs</code> ثم أعد
+                <code className="rounded bg-amber-100 dark:bg-amber-900/30 px-1">POST /api/stores/my-store/tabs</code> ثم أعد
                 فتح الصفحة، أو استخدم أداة مثل Postman بتوكنك.
               </p>
             ) : null}

@@ -111,14 +111,14 @@ export default function DashboardShippingSettingsPage() {
         actions={
           <Link
             href="/dashboard"
-            className="rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 shadow-sm hover:bg-zinc-50"
+            className="rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-xs font-semibold text-zinc-700 dark:text-zinc-300 shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800"
           >
             لوحتي
           </Link>
         }
       >
         <div className="mx-auto max-w-xl space-y-6">
-          <div className="space-y-5 rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm">
+          <div className="space-y-5 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
                 type="checkbox"
@@ -128,29 +128,29 @@ export default function DashboardShippingSettingsPage() {
                 }
                 className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
               />
-              <span className="text-sm font-semibold text-gray-900">
+              <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100">
                 تفعيل أسعار الشحن الفورية للعملاء عبر التجميع
               </span>
             </label>
 
             <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700">مدينة الشحن (من مخزنك)</label>
+              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">مدينة الشحن (من مخزنك)</label>
               <input
                 placeholder="مثال: الرياض"
                 value={form.shipping_origin_city}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, shipping_origin_city: e.target.value }))
                 }
-                className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-emerald-500"
               />
-              <p className="text-[11px] text-gray-400">
+              <p className="text-[11px] text-gray-400 dark:text-zinc-500">
                 يجب مطابقة تسمية المدينة بقدر الإمكان لما تعتمده شبكة التجميع.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">رسوم المنصّة (ر.س / ثابت)</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">رسوم المنصّة (ر.س / ثابت)</label>
                 <input
                   type="number"
                   min="0"
@@ -159,11 +159,11 @@ export default function DashboardShippingSettingsPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, shipping_markup_sar: e.target.value }))
                   }
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm"
+                  className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">طبقة وزن (ر.س / كجم فوق الأول)</label>
+                <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">طبقة وزن (ر.س / كجم فوق الأول)</label>
                 <input
                   type="number"
                   min="0"
@@ -172,7 +172,7 @@ export default function DashboardShippingSettingsPage() {
                   onChange={(e) =>
                     setForm((f) => ({ ...f, shipping_extra_per_kg_sar: e.target.value }))
                   }
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm"
+                  className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
                 />
               </div>
             </div>
@@ -180,7 +180,7 @@ export default function DashboardShippingSettingsPage() {
             <div className="grid grid-cols-3 gap-2">
               {(["parcel_length_cm", "parcel_width_cm", "parcel_height_cm"] as const).map((k) => (
                 <div key={k} className="space-y-1">
-                  <label className="text-[11px] font-medium text-gray-600">
+                  <label className="text-[11px] font-medium text-gray-600 dark:text-zinc-400">
                     {k === "parcel_length_cm" ? "طول سم" : k === "parcel_width_cm" ? "عرض سم" : "ارتفاع سم"}
                   </label>
                   <input
@@ -189,7 +189,7 @@ export default function DashboardShippingSettingsPage() {
                     placeholder="اختياري"
                     value={form[k]}
                     onChange={(e) => setForm((f) => ({ ...f, [k]: e.target.value }))}
-                    className="w-full rounded-lg border border-gray-200 px-2 py-2 text-xs"
+                    className="w-full rounded-lg border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2 py-2 text-xs text-zinc-900 dark:text-zinc-100"
                   />
                 </div>
               ))}
@@ -211,11 +211,11 @@ export default function DashboardShippingSettingsPage() {
               {saving ? "جاري الحفظ..." : "حفظ الإعدادات"}
             </button>
 
-            <p className="text-[11px] leading-relaxed text-gray-500">
+            <p className="text-[11px] leading-relaxed text-gray-500 dark:text-zinc-400">
               الأسعار تُجلب من <strong>dasm-shipping</strong> (Tryoto). تأكّد أن المتغير{" "}
-              <code className="rounded bg-gray-100 px-1">DASM_SHIPPING_URL</code> مضبوطاً على الخادم.
+              <code className="rounded bg-gray-100 dark:bg-zinc-800 px-1">DASM_SHIPPING_URL</code> مضبوطاً على الخادم.
               لا يزال بإمكانك استخدام طرق الشحن الثابتة من لوحة الـ API{" "}
-              <code className="rounded bg-gray-100 px-1">shipping-config</code> إلى جانب Tryoto أو بدله.
+              <code className="rounded bg-gray-100 dark:bg-zinc-800 px-1">shipping-config</code> إلى جانب Tryoto أو بدله.
             </p>
           </div>
         </div>

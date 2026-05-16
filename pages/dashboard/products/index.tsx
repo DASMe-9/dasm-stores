@@ -62,7 +62,7 @@ export default function ProductsListPage() {
 
   if (!ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500 text-sm">
+      <div className="min-h-screen flex items-center justify-center text-gray-500 dark:text-zinc-400 text-sm bg-gray-50 dark:bg-zinc-950">
         جاري التحميل...
       </div>
     );
@@ -94,14 +94,14 @@ export default function ProductsListPage() {
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="h-20 bg-zinc-200 rounded-2xl animate-pulse" />
+                <div key={i} className="h-20 bg-gray-200 dark:bg-zinc-800 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : products.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 py-16 text-center">
-              <Package className="mx-auto mb-4 h-14 w-14 text-zinc-300" />
-              <p className="mb-2 text-base font-semibold text-zinc-600">لم تضف منتجات بعد</p>
-              <p className="mb-5 text-sm text-zinc-400">أضف أول منتج لمتجرك وابدأ البيع</p>
+            <div className="rounded-2xl border border-dashed border-gray-200 dark:border-zinc-700 bg-gray-50 dark:bg-zinc-900 py-16 text-center">
+              <Package className="mx-auto mb-4 h-14 w-14 text-gray-300 dark:text-zinc-600" />
+              <p className="mb-2 text-base font-semibold text-gray-700 dark:text-zinc-200">لم تضف منتجات بعد</p>
+              <p className="mb-5 text-sm text-gray-400 dark:text-zinc-500">أضف أول منتج لمتجرك وابدأ البيع</p>
               <Link
                 href="/dashboard/products/new"
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 transition"
@@ -113,7 +113,7 @@ export default function ProductsListPage() {
           ) : (
             <>
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-bold text-zinc-900">
+                <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
                   جميع المنتجات ({products.length})
                 </h2>
               </div>
@@ -128,43 +128,43 @@ export default function ProductsListPage() {
                   return (
                     <div
                       key={product.id}
-                      className="flex items-center gap-4 rounded-2xl border border-zinc-100 bg-white p-4 transition hover:shadow-sm"
+                      className="flex items-center gap-4 rounded-2xl border border-gray-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 transition hover:shadow-sm"
                     >
                       {imageUrl ? (
                         <img
                           src={imageUrl}
                           alt={product.name}
-                          className="h-16 w-16 rounded-xl object-cover bg-zinc-100 shrink-0"
+                          className="h-16 w-16 rounded-xl object-cover bg-gray-100 dark:bg-zinc-800 shrink-0"
                         />
                       ) : (
-                        <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-zinc-100 shrink-0">
-                          <Package className="h-6 w-6 text-zinc-300" />
+                        <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gray-100 dark:bg-zinc-800 shrink-0">
+                          <Package className="h-6 w-6 text-gray-300 dark:text-zinc-600" />
                         </div>
                       )}
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <span className="text-sm font-semibold text-zinc-900 truncate">
+                          <span className="text-sm font-semibold text-gray-900 dark:text-zinc-100 truncate">
                             {product.name}
                           </span>
                           <span
                             className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${
                               product.status === "active"
-                                ? "bg-green-100 text-green-700"
-                                : "bg-zinc-100 text-zinc-600"
+                                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                : "bg-gray-100 text-gray-600 dark:bg-zinc-800 dark:text-zinc-400"
                             }`}
                           >
                             {product.status === "active" ? "نشط" : "مسودة"}
                           </span>
                         </div>
-                        <div className="mt-1 flex items-center gap-3 text-xs text-zinc-500">
-                          <span className="font-bold text-emerald-700">
+                        <div className="mt-1 flex items-center gap-3 text-xs text-gray-500 dark:text-zinc-400">
+                          <span className="font-bold text-emerald-700 dark:text-emerald-400">
                             {Number(product.price).toLocaleString("ar-SA")} ر.س
                           </span>
                           {product.sku && (
-                            <span className="text-zinc-400">SKU: {product.sku}</span>
+                            <span className="text-gray-400 dark:text-zinc-500">SKU: {product.sku}</span>
                           )}
-                          <span className="text-zinc-400">
+                          <span className="text-gray-400 dark:text-zinc-500">
                             {product.created_at
                               ? new Date(product.created_at).toLocaleDateString("ar-SA")
                               : ""}
@@ -177,7 +177,7 @@ export default function ProductsListPage() {
                           type="button"
                           onClick={() => handleDelete(product.id)}
                           disabled={deleting === product.id}
-                          className="rounded-lg p-2 text-zinc-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-40"
+                          className="rounded-lg p-2 text-gray-400 dark:text-zinc-500 hover:bg-red-50 dark:hover:bg-red-950/30 hover:text-red-600 dark:hover:text-red-400 transition disabled:opacity-40"
                           title="حذف"
                         >
                           <Trash2 className="h-4 w-4" />
