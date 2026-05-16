@@ -269,19 +269,6 @@ export default function SellerDashboardHome() {
                     </div>
                   )}
 
-                  {store.status === "active" && (
-                    <div className="flex items-center gap-3 rounded-2xl border border-green-200 bg-green-50 p-4 text-sm text-green-800">
-                      <CheckCircle className="h-5 w-5 text-green-600" />
-                      <div>
-                        <strong>متجرك نشط ويستقبل الطلبات</strong>
-                        <p className="mt-0.5 text-xs text-green-600">
-                          العملاء يمكنهم تصفح منتجاتك والشراء عبر{" "}
-                          <span className="font-mono">{STORES_URL}/{store.slug}</span>
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
                   {products.length > 0 ? (
                     <div>
                       <div className="mb-3 flex items-center justify-between">
