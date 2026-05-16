@@ -21,6 +21,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
+import { AdBanner } from "@/components/ads/AdBanner";
 import { sellerApi } from "@/lib/api";
 
 const STORES_URL =
@@ -150,6 +151,9 @@ export default function SellerDashboardHome() {
         storeName={store?.name}
       >
         <div className="mx-auto max-w-6xl space-y-6">
+          {/* ─── Ad Banner ─── */}
+          <AdBanner placement="stores_dashboard_header" variant="header" />
+
           {/* ─── Loading ─── */}
           {loading && (
             <div className="space-y-4">

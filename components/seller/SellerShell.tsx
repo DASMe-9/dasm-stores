@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { SITE } from "@/lib/seo";
 import { sellerApi } from "@/lib/api";
-import { AdBanner } from "@/components/ads/AdBanner";
 
 function navLinkClass(active: boolean): string {
   return [
@@ -289,23 +288,18 @@ export function SellerShell({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 bg-zinc-50/95 dark:bg-zinc-950/90 backdrop-blur-lg">
-          <div className="relative">
-            <AdBanner placement="stores_dashboard_header" variant="header" />
-            <button
-              type="button"
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 rounded-xl p-2 text-white/80 hover:bg-white/10 lg:hidden"
-              onClick={() => setDrawerOpen(true)}
-              aria-label="القائمة"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            {actions ? (
-              <div className="absolute left-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
-                {actions}
-              </div>
-            ) : null}
-          </div>
+        <header className="sticky top-0 z-30 flex items-center justify-between bg-zinc-50/95 dark:bg-zinc-950/90 backdrop-blur-lg border-b border-zinc-200/60 dark:border-zinc-800 px-4 py-3 lg:hidden">
+          <button
+            type="button"
+            className="rounded-xl p-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
+            onClick={() => setDrawerOpen(true)}
+            aria-label="القائمة"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          {actions ? (
+            <div className="flex items-center gap-2">{actions}</div>
+          ) : null}
         </header>
 
         <main className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
