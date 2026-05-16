@@ -85,27 +85,28 @@ export function AdBanner({
 
     if (!loaded) {
       return (
-        <div className="h-10 rounded-xl bg-gradient-to-l from-emerald-100 to-teal-50 dark:from-zinc-800 dark:to-zinc-800 animate-pulse" />
+        <div className="h-20 rounded-2xl bg-gradient-to-l from-emerald-100 to-teal-50 dark:from-zinc-800 dark:to-zinc-800 animate-pulse" />
       );
     }
 
     return (
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-l from-emerald-600 via-teal-600 to-emerald-700 dark:from-emerald-900 dark:via-teal-900 dark:to-emerald-950 shadow-sm">
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-l from-emerald-600 via-teal-600 to-emerald-700 dark:from-emerald-900 dark:via-teal-900 dark:to-emerald-950 shadow-lg shadow-emerald-600/15 dark:shadow-emerald-900/30">
         {ad.image_url && (
           <img src={ad.image_url} alt="" className="absolute inset-0 h-full w-full object-cover opacity-20" />
         )}
 
-        <div className="relative flex items-center gap-3 px-4 py-2.5">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white/15 text-white">
-            <PromoIcon className="h-4 w-4" />
+        <div className="relative flex items-center gap-4 px-5 py-4 md:px-6">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 text-white">
+            <PromoIcon className="h-6 w-6" />
           </div>
 
-          <div className="flex-1 min-w-0 flex items-center gap-3">
-            <p className="text-xs font-bold text-white truncate">{ad.title}</p>
+          <div className="flex-1 min-w-0 space-y-0.5">
+            <p className="text-sm font-bold text-white truncate">{ad.title}</p>
             {ad.description && (
-              <p className="hidden md:block text-[11px] text-emerald-100/80 truncate">
-                {ad.description}
-              </p>
+              <p className="text-xs text-emerald-100/80 truncate">{ad.description}</p>
+            )}
+            {ad.advertiser_name && (
+              <span className="inline-block text-[10px] text-emerald-200/60">{ad.advertiser_name}</span>
             )}
           </div>
 
@@ -115,24 +116,24 @@ export function AdBanner({
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => trackClick(ad)}
-              className="shrink-0 inline-flex items-center gap-1 rounded-lg bg-white/95 px-3 py-1.5 text-[11px] font-bold text-emerald-700 hover:bg-white transition shadow-sm"
+              className="shrink-0 inline-flex items-center gap-1.5 rounded-xl bg-white px-4 py-2.5 text-xs font-bold text-emerald-700 hover:bg-emerald-50 transition shadow-sm"
             >
               {ad.cta_text || "اعرف أكثر"}
-              <ExternalLink className="h-3 w-3" />
+              <ExternalLink className="h-3.5 w-3.5" />
             </a>
           )}
 
           {hasMultiple && (
-            <div className="hidden sm:flex items-center gap-1 mr-1">
+            <div className="hidden sm:flex items-center gap-1.5 mr-1">
               {displayed.map((_, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => setCurrent(i)}
-                  className={`h-1 rounded-full transition-all ${
+                  className={`h-1.5 rounded-full transition-all ${
                     i === current % displayed.length
-                      ? "w-3 bg-white"
-                      : "w-1 bg-white/30"
+                      ? "w-4 bg-white"
+                      : "w-1.5 bg-white/30"
                   }`}
                 />
               ))}
@@ -140,7 +141,7 @@ export function AdBanner({
           )}
 
           {ads.length > 0 && (
-            <span className="absolute top-1 left-1 rounded-full bg-black/20 px-1.5 py-0.5 text-[8px] text-white/60">
+            <span className="absolute top-2 left-2 rounded-full bg-black/20 px-2 py-0.5 text-[9px] text-white/60">
               إعلان
             </span>
           )}
