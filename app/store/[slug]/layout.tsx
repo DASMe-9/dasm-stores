@@ -18,7 +18,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data) return { title: "متجر غير موجود" };
 
   const s = data.store;
-  const title = (s.meta_title || s.name) + " — متاجر داسم";
+  const title = `${s.meta_title || s.name} — متاجر داسم`;
   const description = clip(s.meta_description || s.description || "", 160);
 
   return {
