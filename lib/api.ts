@@ -39,8 +39,8 @@ export const publicApi = {
   getStore: (slug: string, params?: Record<string, string>) => api.get(`/public/${slug}`, { params }),
   getProducts: (slug: string, params?: Record<string, string>) =>
     api.get(`/public/${slug}/products`, { params }),
-  getProduct: (slug: string, id: number) =>
-    api.get(`/public/${slug}/products/${id}`),
+  getProduct: (slug: string, id: number, params?: Record<string, string>) =>
+    api.get(`/public/${slug}/products/${id}`, { params }),
   getCategories: (slug: string) => api.get(`/public/${slug}/categories`),
   explore: (params?: Record<string, string>) =>
     api.get("/public/explore", { params }),

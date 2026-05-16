@@ -54,7 +54,10 @@ export default function ProductDetailPage() {
 
   const loadProduct = async () => {
     try {
-      const { data } = await publicApi.getProduct(slug as string, Number(id));
+      const params: Record<string, string> = {};
+      const token = typeof window !== "undefined" ? localStorage.getItem("stores_token") : null;
+      if (token) params.preview = "true";
+      const { data } = await publicApi.getProduct(slug as string, Number(id), params);
       setProduct(data.product);
       if (data.product.variants?.length > 0) {
         setSelectedVariant(data.product.variants[0].id);
