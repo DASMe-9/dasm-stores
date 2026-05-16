@@ -60,7 +60,7 @@ const MAIN_NAV: NavItem[] = [
   },
   {
     href: "/dashboard/payment",
-    label: "بوابة الدفع",
+    label: "المالية والدفع",
     icon: CreditCard,
     match: (p) => p === "/dashboard/payment",
   },
@@ -100,10 +100,15 @@ export function SellerShell({
   const [resolvedName, setResolvedName] = useState(storeName || "");
 
   useEffect(() => {
-    const saved = localStorage.getItem("stores_theme");
-    const isDark = saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    setDark(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
+    // Defer theme init to the next microtask so the first paint + hydration settle
+    // before we sync React state and the document `dark` class (avoids brief mismatch flicker).
+    queueMicrotask(() => {
+      const saved = localStorage.getItem("stores_theme");
+      const isDark =
+        saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      setDark(isDark);
+      document.documentElement.classList.toggle("dark", isDark);
+    });
   }, []);
 
   useEffect(() => {
@@ -148,13 +153,13 @@ export function SellerShell({
           </div>
           {resolvedSlug ? (
             <a
-              href={`${SITE.url}/${resolvedSlug}`}
+              href={`${SITE.url}/store/${resolvedSlug}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block truncate text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline"
               dir="ltr"
             >
-              {SITE.url}/{resolvedSlug}
+              {SITE.url}/store/{resolvedSlug}
             </a>
           ) : (
             <div className="text-[11px] text-emerald-700/50 dark:text-zinc-400">لوحة التاجر</div>
@@ -198,7 +203,7 @@ export function SellerShell({
           <div className="space-y-1">
             {resolvedSlug && (
               <a
-                href={`${SITE.url}/${resolvedSlug}?preview=true`}
+                href={`${SITE.url}/store/${resolvedSlug}?preview=true`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setDrawerOpen(false)}
