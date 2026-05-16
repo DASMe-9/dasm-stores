@@ -42,7 +42,7 @@ export default async function StoreLayout({ children, params }: Props) {
 
   return (
     <>
-      <StoreThemeApplier vars={vars} config={store.theme_config} />
+      <StoreThemeApplier vars={vars} />
       <StoreChrome slug={slug} whatsapp={store.contact_whatsapp} />
       <StoreHeader store={store} slug={slug} />
       <StoreTabsNav slug={slug} tabs={store.tabs ?? []} />

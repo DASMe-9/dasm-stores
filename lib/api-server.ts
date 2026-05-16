@@ -61,7 +61,6 @@ export type StorePublic = {
   description: string | null;
   logo_url: string | null;
   banner_url: string | null;
-  theme_config?: import("./store-themes").StoreThemeConfig | null;
   contact_phone: string | null;
   contact_email: string | null;
   contact_whatsapp: string | null;

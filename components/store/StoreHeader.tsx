@@ -5,7 +5,6 @@ import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { canonicalUrl } from "@/lib/seo";
 import type { StorePublic } from "@/lib/api-server";
-import { getHeroMotion, getHeroVideoUrl, getStoreTheme, getThemeSlug } from "@/lib/store-themes";
 
 export function StoreHeader({
   store,
@@ -15,24 +14,11 @@ export function StoreHeader({
   slug: string;
 }) {
   const areaName = store.area?.name_ar;
-  const theme = getStoreTheme(getThemeSlug(store.theme_config));
-  const heroVideoUrl = getHeroVideoUrl(store.theme_config);
-  const heroMotion = getHeroMotion(store.theme_config);
 
   return (
     <>
-      <div className={`store-hero-motion store-hero-${heroMotion} relative h-56 overflow-hidden bg-[var(--muted)] md:h-72`}>
-        {heroVideoUrl ? (
-          <video
-            className="absolute inset-0 h-full w-full object-cover"
-            src={heroVideoUrl}
-            autoPlay
-            loop
-            muted
-            playsInline
-            poster={store.banner_url ?? undefined}
-          />
-        ) : store.banner_url ? (
+      <div className="relative h-44 overflow-hidden bg-[var(--muted)] md:h-56">
+        {store.banner_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={store.banner_url}
@@ -40,19 +26,16 @@ export function StoreHeader({
             className="absolute inset-0 h-full w-full object-cover opacity-90"
           />
         ) : null}
-        <div className="store-hero-orb store-hero-orb-a" style={{ backgroundColor: theme.primary }} />
-        <div className="store-hero-orb store-hero-orb-b" style={{ backgroundColor: theme.accent }} />
-        <div className="store-hero-scanline" />
         <div
-          className="absolute inset-0 opacity-60"
+          className="absolute inset-0 opacity-35"
           style={{
-            background: `linear-gradient(to top, rgba(0,0,0,.55), rgba(0,0,0,.12), transparent)`,
+            background: `linear-gradient(to top, rgba(0,0,0,.55), transparent, transparent)`,
           }}
         />
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 pt-0 pb-4">
-        <div className="-mt-16 flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm md:-mt-20 md:flex-row md:items-start">
+        <div className="-mt-14 flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 shadow-sm md:-mt-16 md:flex-row md:items-start">
           <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-[var(--card)] bg-[var(--muted)] shadow">
             {store.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
