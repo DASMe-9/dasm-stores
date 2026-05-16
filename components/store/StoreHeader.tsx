@@ -127,11 +127,11 @@ export function StoreHeader({
               ) : null}
               <span className="flex items-center gap-1">
                 <ShieldCheck className="h-3.5 w-3.5" />
-                متجر موثوق
+                واجهة متجر على داسم
               </span>
               <span className="flex items-center gap-1">
                 <Truck className="h-3.5 w-3.5" />
-                توصيل سريع
+                خيارات التوصيل حسب المتجر
               </span>
               {store.contact_phone ? (
                 <a
