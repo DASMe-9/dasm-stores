@@ -20,25 +20,7 @@ export default async function StoreHomePage({
   );
 
   return (
-    <div className="space-y-10">
-      <section className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-sm">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h2 className="text-lg font-bold">مرحباً بك في {data.store.name}</h2>
-            <p className="mt-1 max-w-xl text-sm text-[var(--muted-foreground)]">
-              تصفّح المنتجات المميزة أو انتقل إلى الكتالوج الكامل مع الفلاتر المتقدمة.
-            </p>
-          </div>
-          <Link
-            href={`/store/${slug}/products`}
-            className="inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-bold text-[var(--primary-foreground)]"
-            style={{ backgroundColor: "var(--primary)" }}
-          >
-            كل المنتجات
-          </Link>
-        </div>
-      </section>
-
+    <div className="space-y-8">
       <section>
         <div className="mb-4 flex items-center justify-between gap-2">
           <h2 className="text-base font-bold">منتجات مميزة</h2>
