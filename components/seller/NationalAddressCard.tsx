@@ -44,7 +44,7 @@ export function NationalAddressCard() {
       return;
     }
     if (!/^[A-Z]{4}\d{4}$/i.test(shortCode.trim())) {
-      setError("صيغة الرقم المختصر غير صحيحة — مثال: RAAA1234");
+      setError("صيغة غير صحيحة — مثال: RAAA1234");
       return;
     }
 
@@ -59,7 +59,7 @@ export function NationalAddressCard() {
         formData.append("document", file);
       }
       await sellerApi.submitNationalAddress(formData);
-      setSuccess("تم الإرسال بنجاح — سيُراجع من الأدمن");
+      setSuccess("تم الإرسال — سيُراجع من الأدمن");
       setFile(null);
       load();
     } catch (e: unknown) {
@@ -71,7 +71,7 @@ export function NationalAddressCard() {
   };
 
   if (loading) {
-    return <div className="h-32 bg-zinc-200 dark:bg-zinc-800 rounded-2xl animate-pulse" />;
+    return <div className="h-16 bg-emerald-100/40 dark:bg-zinc-800 rounded-xl animate-pulse mx-3" />;
   }
 
   const status = data?.national_address_status || "none";
@@ -79,115 +79,98 @@ export function NationalAddressCard() {
   const isPending = status === "pending";
   const isRejected = status === "rejected";
 
-  return (
-    <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-4">
-      <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-100 dark:bg-blue-950/40">
-          <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+  if (isVerified) {
+    return (
+      <div className="mx-3 rounded-xl bg-emerald-50/80 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 px-3 py-2.5">
+        <div className="flex items-center gap-2 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+          <CheckCircle className="h-3.5 w-3.5 shrink-0" />
+          <span>العنوان موثّق</span>
         </div>
-        <div>
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">العنوان الوطني (سبل)</h3>
-          <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
-            إلزامي لتفعيل المتجر — يُسجّل مرة واحدة ويظهر في كل منصات داسم
-          </p>
+        <div className="mt-1 font-mono text-[11px] text-emerald-600 dark:text-emerald-500 tracking-wider pr-5" dir="ltr">
+          {data?.national_address_short}
         </div>
       </div>
+    );
+  }
 
-      {/* حالة التحقق */}
-      {isVerified && (
-        <div className="flex items-center gap-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 px-3 py-2 text-xs text-emerald-700 dark:text-emerald-400">
-          <CheckCircle className="h-4 w-4" />
-          <span>العنوان موثّق ✓ — {data?.national_address_short}</span>
+  if (isPending) {
+    return (
+      <div className="mx-3 rounded-xl bg-amber-50/80 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-800/40 px-3 py-2.5">
+        <div className="flex items-center gap-2 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+          <Clock className="h-3.5 w-3.5 shrink-0" />
+          <span>قيد المراجعة</span>
         </div>
-      )}
+        <div className="mt-1 font-mono text-[11px] text-amber-600 dark:text-amber-500 tracking-wider pr-5" dir="ltr">
+          {data?.national_address_short}
+        </div>
+        {data?.national_address_doc_url && (
+          <a
+            href={data.national_address_doc_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-1.5 inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            <Upload className="h-3 w-3" />
+            عرض الوثيقة
+          </a>
+        )}
+      </div>
+    );
+  }
 
-      {isPending && (
-        <div className="flex items-center gap-2 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-3 py-2 text-xs text-amber-700 dark:text-amber-400">
-          <Clock className="h-4 w-4" />
-          <span>قيد المراجعة — {data?.national_address_short}</span>
-        </div>
-      )}
+  return (
+    <div className="mx-3 rounded-xl border border-blue-200/60 dark:border-blue-900/40 bg-blue-50/50 dark:bg-blue-950/10 p-3 space-y-2.5">
+      <div className="flex items-center gap-2">
+        <MapPin className="h-3.5 w-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+        <span className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200">العنوان الوطني</span>
+      </div>
 
       {isRejected && (
-        <div className="rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 px-3 py-2 text-xs text-red-700 dark:text-red-400 space-y-1">
-          <div className="flex items-center gap-2">
-            <AlertTriangle className="h-4 w-4" />
-            <span>مرفوض — يرجى التصحيح وإعادة الإرسال</span>
+        <div className="flex items-start gap-1.5 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200/60 dark:border-red-800/40 px-2 py-1.5 text-[10px] text-red-600 dark:text-red-400">
+          <AlertTriangle className="h-3 w-3 shrink-0 mt-0.5" />
+          <div>
+            <span>مرفوض — أعد الإرسال</span>
+            {data?.national_address_rejection_reason && (
+              <p className="mt-0.5 text-red-500 dark:text-red-300">{data.national_address_rejection_reason}</p>
+            )}
           </div>
-          {data?.national_address_rejection_reason && (
-            <p className="pr-6 text-red-600 dark:text-red-300">{data.national_address_rejection_reason}</p>
-          )}
         </div>
       )}
 
-      {/* نموذج الإدخال */}
-      {!isVerified && !isPending && (
-        <div className="space-y-3">
-          <div>
-            <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-              الرقم المختصر للعنوان الوطني
-            </label>
-            <input
-              type="text"
-              value={shortCode}
-              onChange={(e) => setShortCode(e.target.value.toUpperCase())}
-              placeholder="RAAA1234"
-              maxLength={8}
-              className="mt-1 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 text-left tracking-widest font-mono focus:ring-2 focus:ring-blue-500 focus:outline-none"
-              dir="ltr"
-            />
-            <p className="mt-1 text-[10px] text-zinc-400 dark:text-zinc-500">
-              تجده في تطبيق سبل أو splonline.com.sa — مثال: RAAA1234
-            </p>
-          </div>
+      <div>
+        <input
+          type="text"
+          value={shortCode}
+          onChange={(e) => setShortCode(e.target.value.toUpperCase())}
+          placeholder="RAAA1234"
+          maxLength={8}
+          className="w-full rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-2.5 py-1.5 text-xs text-zinc-900 dark:text-zinc-100 text-left tracking-widest font-mono focus:ring-1 focus:ring-blue-500 focus:outline-none"
+          dir="ltr"
+        />
+      </div>
 
-          <div>
-            <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
-              وثيقة إثبات العنوان (من سبل)
-            </label>
-            <div className="mt-1 flex items-center gap-3">
-              <label className="flex items-center gap-2 cursor-pointer rounded-xl border border-dashed border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-800 px-4 py-2.5 text-xs text-zinc-600 dark:text-zinc-400 hover:border-blue-400 dark:hover:border-blue-600 transition">
-                <Upload className="h-4 w-4" />
-                {file ? file.name : "اختر ملف (PDF أو صورة)"}
-                <input
-                  type="file"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  className="hidden"
-                  onChange={(e) => setFile(e.target.files?.[0] || null)}
-                />
-              </label>
-            </div>
-            <p className="mt-1 text-[10px] text-zinc-400 dark:text-zinc-500">
-              اطبع وثيقة العنوان من تطبيق سبل → ملفي → طباعة العنوان
-            </p>
-          </div>
+      <label className="flex items-center gap-1.5 cursor-pointer rounded-lg border border-dashed border-zinc-300 dark:border-zinc-600 bg-white/60 dark:bg-zinc-800/60 px-2.5 py-1.5 text-[10px] text-zinc-500 dark:text-zinc-400 hover:border-blue-400 dark:hover:border-blue-600 transition">
+        <Upload className="h-3 w-3 shrink-0" />
+        <span className="truncate">{file ? file.name : "وثيقة سبل (PDF/صورة)"}</span>
+        <input
+          type="file"
+          accept=".pdf,.jpg,.jpeg,.png"
+          className="hidden"
+          onChange={(e) => setFile(e.target.files?.[0] || null)}
+        />
+      </label>
 
-          {error && <p className="text-xs text-red-600">{error}</p>}
-          {success && <p className="text-xs text-emerald-600">{success}</p>}
+      {error && <p className="text-[10px] text-red-600">{error}</p>}
+      {success && <p className="text-[10px] text-emerald-600">{success}</p>}
 
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={saving}
-            className="w-full rounded-xl bg-blue-600 text-white py-2.5 text-sm font-bold hover:bg-blue-700 disabled:opacity-60 transition"
-          >
-            {saving ? "جاري الإرسال..." : "إرسال للتوثيق"}
-          </button>
-        </div>
-      )}
-
-      {/* رابط وثيقة العنوان المحفوظة */}
-      {data?.national_address_doc_url && (isVerified || isPending) && (
-        <a
-          href={data.national_address_doc_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400 hover:underline"
-        >
-          <Upload className="h-3.5 w-3.5" />
-          عرض الوثيقة المرفقة
-        </a>
-      )}
+      <button
+        type="button"
+        onClick={handleSubmit}
+        disabled={saving}
+        className="w-full rounded-lg bg-blue-600 text-white py-1.5 text-[11px] font-bold hover:bg-blue-700 disabled:opacity-60 transition"
+      >
+        {saving ? "جاري الإرسال..." : "إرسال للتوثيق"}
+      </button>
     </div>
   );
 }

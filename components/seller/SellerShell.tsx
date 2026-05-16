@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { SITE } from "@/lib/seo";
 import { sellerApi } from "@/lib/api";
+import { NationalAddressCard } from "./NationalAddressCard";
 
 function navLinkClass(active: boolean): string {
   return [
@@ -236,6 +237,10 @@ export function SellerShell({
           </div>
         </div>
       </nav>
+
+      <div className="px-0 pb-3">
+        <NationalAddressCard />
+      </div>
 
       <div className="border-t border-emerald-200/40 dark:border-zinc-800 p-3 space-y-1">
         <button

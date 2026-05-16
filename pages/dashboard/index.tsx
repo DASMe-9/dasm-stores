@@ -19,7 +19,6 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
-import { NationalAddressCard } from "@/components/seller/NationalAddressCard";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { sellerApi } from "@/lib/api";
 
@@ -222,9 +221,6 @@ export default function SellerDashboardHome() {
                   </div>
                 ))}
               </div>
-
-              {/* العنوان الوطني */}
-              <NationalAddressCard />
 
               {/* التبويبات */}
               <div className="border-b border-zinc-200 dark:border-zinc-800">
