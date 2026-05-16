@@ -65,6 +65,36 @@ export default async function ExplorePage({
         </section>
 
         <div className="mx-auto max-w-6xl px-4 py-8">
+          <div className="mb-6 flex flex-wrap items-center justify-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 text-sm">
+            <a
+              href="https://dasm.com.sa/auctions"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl px-4 py-2 font-medium hover:bg-[var(--muted)]"
+              style={{ border: "1px solid var(--border)" }}
+            >
+              تصفّح المزادات
+            </a>
+            <a
+              href="https://dasm.com.sa/classifieds"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl px-4 py-2 font-medium hover:bg-[var(--muted)]"
+              style={{ border: "1px solid var(--border)" }}
+            >
+              السوق الكبير
+            </a>
+            <a
+              href="https://dasm.com.sa"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-xl px-4 py-2 font-medium hover:bg-[var(--muted)]"
+              style={{ border: "1px solid var(--border)" }}
+            >
+              منصة داسم
+            </a>
+          </div>
+
           <StoreGrid stores={paginator.data} />
 
           {paginator.last_page > 1 ? (
