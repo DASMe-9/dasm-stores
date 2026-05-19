@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { CSSProperties } from "react";
 import {
+  ArrowRight,
   Grid2X2,
   Headphones,
   MapPin,
@@ -52,6 +53,19 @@ export function StoreHeader({
 
   return (
     <>
+      <div className="bg-[var(--card)] border-b border-[var(--border)]">
+        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 text-sm">
+          <Link
+            href="/"
+            className="flex items-center gap-1.5 font-semibold text-[var(--primary)] hover:underline"
+          >
+            <ArrowRight className="h-4 w-4" />
+            متاجر داسم
+          </Link>
+          <span className="text-[var(--muted-foreground)]">/</span>
+          <span className="text-[var(--foreground)] font-medium">{store.name}</span>
+        </div>
+      </div>
       <div
         className={`store-hero-motion store-hero-${motion} relative h-72 overflow-hidden bg-[var(--muted)] md:h-[360px]`}
         style={{ "--primary": primary, "--accent": accent } as CSSProperties}
