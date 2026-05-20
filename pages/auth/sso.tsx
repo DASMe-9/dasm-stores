@@ -5,6 +5,29 @@ import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.dasm.com.sa";
 
+type AuthUser = {
+  id?: number | string;
+  display_name?: string;
+  name?: string;
+  email?: string;
+  type?: string;
+  role?: string;
+};
+
+type AuthMeResponse = {
+  data?: { user?: AuthUser };
+  user?: AuthUser;
+};
+
+type AxiosMessageError = {
+  response?: { data?: { message?: string } };
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  const axiosError = error as AxiosMessageError;
+  return axiosError.response?.data?.message ?? fallback;
+}
+
 /**
  * SSO handoff from the main DASM platform.
  *
@@ -20,6 +43,7 @@ export default function SsoHandoff() {
 
   useEffect(() => {
     if (!router.isReady) return;
+    let redirectTimer: ReturnType<typeof setTimeout> | undefined;
 
     const token =
       (typeof router.query.token === "string" ? router.query.token : "") ||
@@ -29,19 +53,24 @@ export default function SsoHandoff() {
       typeof router.query.return_url === "string" ? router.query.return_url : "/dashboard";
 
     if (!token) {
-      setError("لم يصل توكن صالح من المنصة.");
-      setTimeout(() => router.replace("/auth/login"), 2000);
-      return;
+      queueMicrotask(() => {
+        setError("لم يصل توكن صالح من المنصة.");
+        redirectTimer = setTimeout(() => router.replace("/auth/login"), 2000);
+      });
+      return () => {
+        if (redirectTimer) clearTimeout(redirectTimer);
+      };
     }
 
     window.history.replaceState({}, "", "/auth/sso");
 
     (async () => {
       try {
-        const res = await axios.get(`${API_URL}/api/auth/me`, {
+        const res = await axios.get<AuthMeResponse | AuthUser>(`${API_URL}/api/auth/me`, {
           headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
         });
-        const user = res.data?.data?.user ?? res.data?.user ?? res.data;
+        const body = res.data as AuthMeResponse & AuthUser;
+        const user = body.data?.user ?? body.user ?? body;
         const role = (user?.type ?? user?.role ?? "").toString().toLowerCase();
         const allowed = ["venue_owner", "dealer", "admin", "super_admin"];
 
@@ -60,12 +89,14 @@ export default function SsoHandoff() {
 
         setStatus("تم التحقق، جاري التحويل...");
         router.replace(returnUrl);
-      } catch (e: any) {
-        const msg = e?.response?.data?.message ?? "فشل التحقق من الجلسة.";
-        setError(msg);
-        setTimeout(() => router.replace("/auth/login"), 2500);
+      } catch (e: unknown) {
+        setError(getErrorMessage(e, "فشل التحقق من الجلسة."));
+        redirectTimer = setTimeout(() => router.replace("/auth/login"), 2500);
       }
     })();
+    return () => {
+      if (redirectTimer) clearTimeout(redirectTimer);
+    };
   }, [router]);
 
   return (

@@ -1,22 +1,27 @@
 import Link from "next/link";
 import type { StoreProductCard } from "@/lib/api-server";
+import { productCardClassName } from "@/lib/themes/product-card-class";
 
 export function ProductCard({
   product,
   slug,
+  cardStyle,
 }: {
   product: StoreProductCard;
   slug: string;
+  cardStyle?: string | null;
 }) {
   const price = Number(product.price);
   const compare = product.compare_at_price != null ? Number(product.compare_at_price) : null;
   const discountPct =
     compare && compare > price ? Math.round(((compare - price) / compare) * 100) : null;
 
+  const cardClass = productCardClassName(cardStyle);
+
   return (
-    <article className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition hover:shadow-md">
-      <Link href={`/store/${slug}/products/${product.id}`} className="block">
-        <div className="relative aspect-square bg-[var(--muted)]">
+    <article className={cardClass}>
+      <Link href={`/store/${slug}/products/${product.id}`} className="store-product-card__link block">
+        <div className="store-product-card__media relative aspect-square bg-[var(--muted)]">
           {product.primary_image?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -41,7 +46,7 @@ export function ProductCard({
           ) : null}
         </div>
       </Link>
-      <div className="space-y-2 p-3">
+      <div className="store-product-card__body space-y-2 p-3">
         <Link href={`/store/${slug}/products/${product.id}`}>
           <h3 className="line-clamp-2 text-sm font-semibold leading-snug hover:underline">
             {product.name}

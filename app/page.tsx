@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
-  ArrowLeft, BadgeCheck, Blocks, FlaskConical, Gavel, Headphones,
+  ArrowLeft, BadgeCheck, Blocks, FlaskConical, Headphones,
   Megaphone, PackageCheck, Search, Shirt, ShoppingBag, ShoppingCart, Sparkles,
   Store, Target, User, Wrench,
 } from "lucide-react";
@@ -25,7 +25,7 @@ const categories = [
   { name: "أزياء", description: "ملابس رجالية ونسائية", icon: Shirt, href: "/?q=أزياء" },
   { name: "خدمات", description: "خدمات متنوعة", icon: Wrench, href: "/?q=خدمات" },
   { name: "معارض", description: "معارض ومبيعات", icon: Store, href: "/?owner_type=venue_owner" },
-  { name: "مزادات", description: "مزادات علنية مباشرة", icon: Gavel, href: "https://dasm.com.sa/auctions" },
+  { name: "إكسسوارات", description: "كماليات ومنتجات متنوعة", icon: ShoppingBag, href: "/?q=إكسسوارات" },
 ];
 
 function ownerLabel(type: string) {

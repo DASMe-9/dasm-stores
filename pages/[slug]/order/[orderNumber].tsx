@@ -6,6 +6,7 @@ import {
   CheckCircle, XCircle, Clock, Package, Truck,
   ArrowRight, Copy, Check, Landmark, CreditCard, Loader2,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 
 interface OrderData {
@@ -28,7 +29,7 @@ interface OrderItem {
   image_url: string | null;
 }
 
-const STATUS_MAP: Record<string, { label: string; color: string; icon: any }> = {
+const STATUS_MAP: Record<string, { label: string; color: string; icon: LucideIcon }> = {
   pending:    { label: "بانتظار الدفع", color: "text-amber-600 bg-amber-50", icon: Clock },
   confirmed:  { label: "تم التأكيد", color: "text-blue-600 bg-blue-50", icon: CheckCircle },
   processing: { label: "قيد التجهيز", color: "text-blue-600 bg-blue-50", icon: Package },

@@ -4,6 +4,7 @@ import {
   Home, Package, ShoppingCart, Users, BarChart3,
   Settings, Palette, Truck, CreditCard, Store, LogOut, Menu, X,
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { ReactNode, useState } from "react";
 
 const NAV = [
@@ -28,6 +29,12 @@ interface Props {
   storeSlug?: string;
 }
 
+interface NavLinkProps {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+}
+
 export default function AdminShell({ children, title, storeName = "متجري", storeSlug }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -35,7 +42,7 @@ export default function AdminShell({ children, title, storeName = "متجري", 
   const isActive = (href: string) =>
     href === "/dashboard" ? router.pathname === href : router.pathname.startsWith(href);
 
-  const NavLink = ({ href, label, icon: Icon }: any) => (
+  const NavLink = ({ href, label, icon: Icon }: NavLinkProps) => (
     <Link
       href={href}
       onClick={() => setOpen(false)}

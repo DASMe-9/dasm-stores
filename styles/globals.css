@@ -401,6 +401,99 @@ body {
   50% { transform: translate3d(0, -1.4rem, 0) scale(1.2); opacity: 1; }
 }
 
+/* Store product cards — Salla/Zid-inspired variants */
+.store-product-card {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--card);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.store-product-card:hover {
+  transform: translateY(-2px);
+}
+
+.store-product-card__media img {
+  transition: transform 0.35s ease;
+}
+
+.store-product-card:hover .store-product-card__media img {
+  transform: scale(1.03);
+}
+
+.store-product-card--rounded-shadow {
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+}
+
+.store-product-card--rounded-shadow:hover {
+  box-shadow: 0 12px 28px rgb(0 0 0 / 0.1);
+}
+
+.store-product-card--flat-grid {
+  border-radius: 0.75rem;
+  box-shadow: none;
+}
+
+.store-product-card--luxury-tall {
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.08);
+}
+
+.store-product-card--luxury-tall .store-product-card__media {
+  aspect-ratio: 3 / 4;
+}
+
+.store-product-card--compact-dense {
+  border-radius: 0.5rem;
+}
+
+.store-product-card--compact-dense .store-product-card__body {
+  padding: 0.5rem;
+}
+
+.store-product-card--highlight-price .store-product-card__body span:first-of-type {
+  font-size: 1.125rem;
+  letter-spacing: -0.02em;
+}
+
+.store-product-grid {
+  gap: 0.75rem;
+}
+
+@media (min-width: 768px) {
+  .store-product-grid {
+    gap: 1rem;
+  }
+}
+
+.store-front-root[data-product-card-style="luxury-tall"] .store-product-card {
+  border-radius: 1.25rem;
+  box-shadow: 0 8px 30px rgb(0 0 0 / 0.08);
+}
+
+.store-front-root[data-product-card-style="luxury-tall"] .store-product-card__media {
+  aspect-ratio: 3 / 4;
+}
+
+.store-front-root[data-product-card-style="flat-grid"] .store-product-card {
+  border-radius: 0.75rem;
+  box-shadow: none;
+}
+
+.store-front-root[data-product-card-style="compact-dense"] .store-product-card {
+  border-radius: 0.5rem;
+}
+
+.store-front-root[data-product-card-style="compact-dense"] .store-product-card__body {
+  padding: 0.5rem;
+}
+
+.store-front-root[data-product-card-style="highlight-price"] .store-product-card__body span:first-of-type {
+  font-size: 1.125rem;
+  letter-spacing: 0;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .home-hero-light-a,
   .home-hero-light-b,
