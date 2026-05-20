@@ -15,9 +15,47 @@ const fmtPct = (n: number) => `${Number(n || 0).toFixed(1)}%`;
 
 type Period = 7 | 28 | 90;
 
+interface GscMetricRow {
+  clicks: number;
+  impressions: number;
+  ctr: number;
+  position: number;
+}
+
+interface GscQuery extends GscMetricRow {
+  query: string;
+}
+
+interface GscPage extends GscMetricRow {
+  page: string;
+}
+
+interface GscCountry {
+  country: string;
+  clicks: number;
+  impressions: number;
+}
+
+interface GscSitemap {
+  path: string;
+  errors: number;
+}
+
+interface SeoPayload {
+  configured?: boolean;
+  setup_steps?: string[];
+  data?: {
+    performance?: GscMetricRow;
+    top_queries?: GscQuery[];
+    top_pages?: GscPage[];
+    by_country?: GscCountry[];
+    sitemaps?: GscSitemap[];
+  };
+}
+
 export default function StoresSeoPage() {
   const router  = useRouter();
-  const [data, setData]       = useState<any>(null);
+  const [data, setData]       = useState<SeoPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod]   = useState<Period>(28);
   const [token, setToken]     = useState<string | null>(null);
@@ -35,7 +73,7 @@ export default function StoresSeoPage() {
       const res = await fetch(`${API_BASE}/admin/seo/gsc?days=${d}`, {
         headers: { Authorization: `Bearer ${t}`, Accept: "application/json" },
       });
-      const body = await res.json();
+    const body = (await res.json()) as SeoPayload;
       setData(body);
     } catch { /* silent */ }
     finally { setLoading(false); }
@@ -46,7 +84,7 @@ export default function StoresSeoPage() {
   const perf      = data?.data?.performance;
   const queries   = data?.data?.top_queries ?? [];
   const pages     = (data?.data?.top_pages ?? []).filter(
-    (p: any) => typeof p.page === "string" && p.page.includes(STORE_HOST)
+    (p: GscPage) => typeof p.page === "string" && p.page.includes(STORE_HOST)
   );
   const countries = data?.data?.by_country ?? [];
   const sitemaps  = data?.data?.sitemaps ?? [];
@@ -156,7 +194,7 @@ export default function StoresSeoPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {queries.map((q: any, i: number) => (
+                        {queries.map((q: GscQuery, i: number) => (
                           <tr key={i} className="hover:bg-gray-50">
                             <td className="px-3 py-2.5 font-medium text-gray-900 max-w-[160px] truncate">{q.query}</td>
                             <td className="px-3 py-2.5 text-blue-600 font-semibold">{fmtNum(q.clicks)}</td>
@@ -191,7 +229,7 @@ export default function StoresSeoPage() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-100">
-                        {pages.map((p: any, i: number) => (
+                        {pages.map((p: GscPage, i: number) => (
                           <tr key={i} className="hover:bg-gray-50">
                             <td className="px-3 py-2.5 max-w-[180px]">
                               <a href={p.page} target="_blank" rel="noreferrer"
@@ -217,7 +255,7 @@ export default function StoresSeoPage() {
                   <div className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
                     <h3 className="font-bold text-gray-900 mb-3">الزوار حسب الدولة</h3>
                     <div className="space-y-2">
-                      {countries.map((c: any, i: number) => (
+                      {countries.map((c: GscCountry, i: number) => (
                         <div key={i} className="flex items-center justify-between text-sm">
                           <span className="font-mono text-gray-700" dir="ltr">{c.country}</span>
                           <div className="flex items-center gap-4">
@@ -245,7 +283,7 @@ export default function StoresSeoPage() {
                     </div>
                   ) : (
                     <div className="space-y-2">
-                      {sitemaps.map((s: any, i: number) => (
+                      {sitemaps.map((s: GscSitemap, i: number) => (
                         <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-gray-50 border border-gray-200 text-sm">
                           <code className="text-xs font-mono text-gray-700" dir="ltr">{s.path}</code>
                           {s.errors > 0

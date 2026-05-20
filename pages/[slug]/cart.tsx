@@ -15,6 +15,27 @@ interface CartItem {
   qty: number;
 }
 
+interface ProductDetails {
+  id: number;
+  name: string;
+  price: number | string;
+  weight?: number | string | null;
+  primary_image?: { url: string; alt_text?: string | null } | null;
+}
+
+interface CheckoutForm {
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  shipping_address: {
+    city: string;
+    district: string;
+    street: string;
+    zip: string;
+    short_address: string;
+  };
+}
+
 interface ShippingRate {
   id: string;
   provider: string;
@@ -29,17 +50,26 @@ interface ShippingRate {
   type: string;
 }
 
+type AxiosMessageError = {
+  response?: { data?: { message?: string } };
+};
+
+function getErrorMessage(error: unknown, fallback: string) {
+  const axiosError = error as AxiosMessageError;
+  return axiosError.response?.data?.message ?? fallback;
+}
+
 export default function CartPage() {
   const router = useRouter();
   const { slug } = router.query;
 
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [products, setProducts] = useState<Record<number, any>>({});
+  const [products, setProducts] = useState<Record<number, ProductDetails>>({});
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
   // بيانات العميل
-  const [form, setForm] = useState(() => {
+  const [form, setForm] = useState<CheckoutForm>(() => {
     if (typeof window !== "undefined") {
       try {
         const saved = localStorage.getItem("dasm_checkout_form");
@@ -84,7 +114,7 @@ export default function CartPage() {
       const params: Record<string, string> = {};
       const token = typeof window !== "undefined" ? localStorage.getItem("stores_token") : null;
       if (token) params.preview = "true";
-      const map: Record<number, any> = {};
+      const map: Record<number, ProductDetails> = {};
       for (const item of items) {
         const { data } = await publicApi.getProduct(slug as string, item.productId, params);
         map[item.productId] = data.product;
@@ -137,9 +167,8 @@ export default function CartPage() {
       setShippingRates(rates);
       if (rates.length === 1) setSelectedRate(rates[0]);
       setCitySearched(city);
-    } catch (err: any) {
-      const msg = err.response?.data?.message || "تعذّر جلب أسعار الشحن";
-      setRatesError(msg);
+    } catch (err: unknown) {
+      setRatesError(getErrorMessage(err, "تعذر جلب أسعار الشحن"));
     } finally {
       setLoadingRates(false);
     }
@@ -182,8 +211,8 @@ export default function CartPage() {
       } else {
         router.push(`/${slug}/order/${data.order.order_number}`);
       }
-    } catch (err: any) {
-      alert(err.response?.data?.message || "حدث خطأ");
+    } catch (err: unknown) {
+      alert(getErrorMessage(err, "حدث خطأ"));
     } finally {
       setSubmitting(false);
     }

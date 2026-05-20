@@ -39,20 +39,28 @@ export default async function StoreLayout({ children, params }: Props) {
 
   const store = data.store;
   const vars = store.theme?.css_variables ?? undefined;
+  const productCardStyle =
+    vars?.["product-card-style"] ?? vars?.["--product-card-style"] ?? "rounded-shadow";
 
   return (
     <>
       <StoreThemeApplier vars={vars} />
-      <StoreChrome slug={slug} whatsapp={store.contact_whatsapp} />
-      <StoreHeader store={store} slug={slug} />
-      <StoreTabsNav slug={slug} tabs={store.tabs ?? []} />
-      <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
-      <footer className="border-t border-[var(--border)] bg-[var(--card)] py-8 text-center text-xs text-[var(--muted-foreground)]">
+      <div data-product-card-style={productCardStyle} className="store-front-root">
+        <StoreChrome slug={slug} whatsapp={store.contact_whatsapp} />
+        <StoreHeader store={store} slug={slug} />
+        <StoreTabsNav slug={slug} tabs={store.tabs ?? []} />
+        <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
+        <footer className="border-t border-[var(--border)] bg-[var(--card)] py-8 text-center text-xs text-[var(--muted-foreground)]">
         {store.name} — مدعوم بواسطة{" "}
-        <a href="https://dasm.com.sa" className="hover:underline" style={{ color: "var(--primary)" }}>
+        <a
+          href="https://dasm.com.sa"
+          className="hover:underline"
+          style={{ color: "var(--primary)" }}
+        >
           متاجر داسم
         </a>
-      </footer>
+        </footer>
+      </div>
     </>
   );
 }

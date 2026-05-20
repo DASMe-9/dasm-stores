@@ -3,8 +3,8 @@ import Head from "next/head";
 import { useEffect, useState } from "react";
 import { publicApi } from "@/lib/api";
 import {
-  Store as StoreIcon, Search, ShoppingCart, Phone, Mail,
-  MapPin, ExternalLink, Star, Tag,
+  Store as StoreIcon, Search, ShoppingCart, Phone,
+  MapPin, Tag,
 } from "lucide-react";
 import Link from "next/link";
 import TalkStoreContext from "@/components/TalkStoreContext";
@@ -22,9 +22,15 @@ interface StoreData {
   social_links: Record<string, string>;
   meta_title: string;
   meta_description: string;
-  theme_config: any;
+  theme_config: Record<string, unknown> | null;
   tabs: { id: number; name: string; slug: string; icon: string }[];
   area: { name: string } | null;
+}
+
+interface ProductVariant {
+  id: number;
+  name?: string | null;
+  price?: number | string | null;
 }
 
 interface Product {
@@ -35,7 +41,7 @@ interface Product {
   compare_at_price: number | null;
   is_featured: boolean;
   primary_image: { url: string; alt_text: string } | null;
-  variants: any[];
+  variants: ProductVariant[];
 }
 
 export default function StoreFront() {
