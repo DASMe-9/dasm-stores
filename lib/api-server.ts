@@ -115,11 +115,26 @@ export type StoreProductCard = {
   id: number;
   name: string;
   slug: string;
+  description?: string | null;
   price: string | number;
   compare_at_price?: string | number | null;
   is_featured: boolean;
   primary_image?: { url: string; alt_text?: string | null } | null;
   variants?: StoreProductVariant[];
+};
+
+export type ExploreStoreProductItem = StoreProductCard & {
+  availability?: string | null;
+  store: ExploreStoreItem;
+  owner_public_profile?: {
+    id: number;
+    display_name?: string | null;
+    type?: string | null;
+    avatar_url?: string | null;
+  } | null;
+  category?: { id: number; name: string; slug: string } | null;
+  tab?: { id: number; name: string; slug: string } | null;
+  created_at?: string | null;
 };
 
 export type StoreCategory = {
@@ -178,6 +193,40 @@ export async function getExploreStores(params?: {
   });
   if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: 20, total: 0 };
   return parseJson<Paginated<ExploreStoreItem>>(res);
+}
+
+/** ISR 60s — products across active stores */
+export async function getExploreProducts(params?: {
+  q?: string;
+  category?: string;
+  category_id?: number;
+  store_slug?: string;
+  owner_id?: number;
+  owner_type?: string;
+  featured?: boolean;
+  sort?: string;
+  per_page?: number;
+  page?: number;
+}): Promise<Paginated<ExploreStoreProductItem>> {
+  const qs = new URLSearchParams();
+  if (params?.q) qs.set("q", params.q);
+  if (params?.category) qs.set("category", params.category);
+  if (params?.category_id) qs.set("category_id", String(params.category_id));
+  if (params?.store_slug) qs.set("store_slug", params.store_slug);
+  if (params?.owner_id) qs.set("owner_id", String(params.owner_id));
+  if (params?.owner_type) qs.set("owner_type", params.owner_type);
+  if (params?.featured != null) qs.set("featured", params.featured ? "1" : "0");
+  if (params?.sort) qs.set("sort", params.sort);
+  if (params?.per_page) qs.set("per_page", String(params.per_page));
+  if (params?.page) qs.set("page", String(params.page));
+
+  const url = `${getApiBase()}/api/stores/public/products/explore?${qs}`;
+  const res = await fetch(url, {
+    headers: { Accept: "application/json" },
+    next: { revalidate: 60 },
+  });
+  if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: 24, total: 0 };
+  return parseJson<Paginated<ExploreStoreProductItem>>(res);
 }
 
 /** ISR 300s — store shell */
