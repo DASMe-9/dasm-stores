@@ -7,7 +7,9 @@ import {
   CheckCircle2, Loader2,
 } from "lucide-react";
 
-const API_BASE   = process.env.NEXT_PUBLIC_API_URL || "https://api.dasm.com.sa/api";
+import { platformApiBasePath } from "@/lib/platform-api-url";
+
+const API_BASE = platformApiBasePath();
 const STORE_HOST = "stores.dasm.com.sa";
 
 const fmtNum = (n: number) => Number(n || 0).toLocaleString("ar-SA");

@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import axios from "axios";
+import { platformApiOrigin } from "@/lib/platform-api-url";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.dasm.com.sa";
+const API_URL = platformApiOrigin();
 
 type AuthUser = {
   id?: number | string;

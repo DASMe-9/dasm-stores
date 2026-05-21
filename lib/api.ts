@@ -1,6 +1,8 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "https://dasm-platform-backend.onrender.com";
+import { DEFAULT_PLATFORM_API_ORIGIN } from "./platform-api-url";
+
+const API_URL = DEFAULT_PLATFORM_API_ORIGIN;
 type JsonRecord = Record<string, unknown>;
 type QueryParams = Record<string, string | number | boolean | undefined>;
 type CheckoutItem = {
