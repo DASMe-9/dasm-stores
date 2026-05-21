@@ -13,3 +13,12 @@ export function platformApiOrigin(): string {
 export function platformApiBasePath(): string {
   return `${platformApiOrigin()}/api`;
 }
+
+/** أصل API من مسارات الخادم (API routes) — يفضّل DASM_API_URL ثم NEXT_PUBLIC_API_URL. */
+export function resolveServerPlatformApiOrigin(): string {
+  return (
+    process.env.DASM_API_URL?.replace(/\/$/, "") ||
+    process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
+    DEFAULT_PLATFORM_API_ORIGIN
+  );
+}
