@@ -1,12 +1,13 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { resolveServerPlatformApiOrigin } from "@/lib/platform-api-url";
 
 const supabase = createClient(
   process.env.SUPABASE_SERVICES_URL!,
   process.env.SUPABASE_SERVICES_SERVICE_KEY!
 );
 
-const DASM_API_URL    = process.env.DASM_API_URL    ?? "https://api.dasm.com.sa";
+const DASM_API_URL = resolveServerPlatformApiOrigin();
 const PLATFORM_KEY    = process.env.DASM_PLATFORM_API_KEY!;
 const PLATFORM_NAME   = process.env.DASM_PLATFORM_NAME ?? "dasm-stores";
 
