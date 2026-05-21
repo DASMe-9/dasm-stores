@@ -11,6 +11,7 @@ import {
   LayoutDashboard,
   Menu,
   Moon,
+  Palette,
   Package,
   Plus,
   ShoppingCart,
@@ -46,6 +47,12 @@ const MAIN_NAV: NavItem[] = [
     label: "لوحة التحكم",
     icon: LayoutDashboard,
     match: (p) => p === "/dashboard",
+  },
+  {
+    href: "/dashboard/theme",
+    label: "تصميم المتجر",
+    icon: Palette,
+    match: (p) => p === "/dashboard/theme",
   },
   {
     href: "/dashboard/products",
@@ -97,8 +104,10 @@ export function SellerShell({
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const [dark, setDark] = useState(false);
-  const [resolvedSlug, setResolvedSlug] = useState(storeSlug || "");
-  const [resolvedName, setResolvedName] = useState(storeName || "");
+  const [cachedSlug, setCachedSlug] = useState("");
+  const [cachedName, setCachedName] = useState("");
+  const resolvedSlug = storeSlug || cachedSlug;
+  const resolvedName = storeName || cachedName;
 
   useEffect(() => {
     // Defer theme init to the next microtask so the first paint + hydration settle
@@ -113,26 +122,36 @@ export function SellerShell({
   }, []);
 
   useEffect(() => {
-    if (storeSlug && storeName) {
-      setResolvedSlug(storeSlug);
-      setResolvedName(storeName);
-      return;
-    }
-    const cachedSlug = sessionStorage.getItem("store_slug");
-    const cachedName = sessionStorage.getItem("store_name");
-    if (cachedSlug && cachedName) {
-      setResolvedSlug(cachedSlug);
-      setResolvedName(cachedName);
-      return;
-    }
-    sellerApi.getMyStore().then(({ data }) => {
-      if (data?.store?.slug) {
-        setResolvedSlug(data.store.slug);
-        setResolvedName(data.store.name || "");
-        sessionStorage.setItem("store_slug", data.store.slug);
-        sessionStorage.setItem("store_name", data.store.name || "");
+    if (storeSlug && storeName) return;
+
+    let cancelled = false;
+    queueMicrotask(() => {
+      const savedSlug = sessionStorage.getItem("store_slug");
+      const savedName = sessionStorage.getItem("store_name");
+      if (savedSlug && savedName) {
+        if (!cancelled) {
+          setCachedSlug(savedSlug);
+          setCachedName(savedName);
+        }
+        return;
       }
-    }).catch(() => {});
+
+      sellerApi
+        .getMyStore()
+        .then(({ data }) => {
+          if (cancelled || !data?.store?.slug) return;
+          const name = data.store.name || "";
+          setCachedSlug(data.store.slug);
+          setCachedName(name);
+          sessionStorage.setItem("store_slug", data.store.slug);
+          sessionStorage.setItem("store_name", name);
+        })
+        .catch(() => {});
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [storeSlug, storeName]);
 
   const toggleTheme = () => {
@@ -312,7 +331,31 @@ export function SellerShell({
           ) : null}
         </header>
 
-        <main className="flex-1 px-4 py-6 md:px-8 md:py-8">{children}</main>
+        <main className="flex-1 px-4 py-6 md:px-8 md:py-8">
+          <div className="mb-6 hidden items-start justify-between gap-4 lg:flex">
+            <div className="min-w-0">
+              <div className="flex items-center gap-3">
+                {TitleIcon ? (
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+                    <TitleIcon className="h-5 w-5" />
+                  </span>
+                ) : null}
+                <div>
+                  <h1 className="text-xl font-extrabold text-zinc-950 dark:text-zinc-50">
+                    {title}
+                  </h1>
+                  {subtitle ? (
+                    <p className="mt-1 max-w-2xl text-sm leading-6 text-zinc-500 dark:text-zinc-400">
+                      {subtitle}
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+            {actions ? <div className="shrink-0">{actions}</div> : null}
+          </div>
+          {children}
+        </main>
       </div>
     </div>
   );
