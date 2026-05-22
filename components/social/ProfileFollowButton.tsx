@@ -43,6 +43,7 @@ export function ProfileFollowButton({
   }, [owner]);
 
   if (!owner) return null;
+  const ownerId = owner.id;
 
   function requireToken(action: string): string | null {
     const token = readToken();
@@ -63,7 +64,7 @@ export function ProfileFollowButton({
     const next = !isFollowing;
 
     try {
-      const res = await fetch(`${API_URL}/api/public/profiles/${owner.id}/follow`, {
+      const res = await fetch(`${API_URL}/api/public/profiles/${ownerId}/follow`, {
         method: isFollowing ? "DELETE" : "POST",
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
@@ -89,7 +90,7 @@ export function ProfileFollowButton({
     setMessage(null);
 
     try {
-      const res = await fetch(`${API_URL}/api/public/profiles/${owner.id}/reaction`, {
+      const res = await fetch(`${API_URL}/api/public/profiles/${ownerId}/reaction`, {
         method: "POST",
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
