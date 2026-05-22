@@ -80,6 +80,31 @@ export type StorePublic = {
   shipping_configs?: StoreShippingConfig[];
 };
 
+export type OwnerPublicProfile = {
+  id: number;
+  display_name: string;
+  handle?: string | null;
+  type?: string | null;
+  avatar_url?: string | null;
+  profile_url?: string | null;
+};
+
+export type SocialSummary = {
+  followers: number;
+  following?: number;
+  likes: number;
+  watchers?: number;
+  reviews?: number;
+  avg_rating?: number | null;
+};
+
+export type ProfileViewerState = {
+  is_self: boolean;
+  is_following: boolean;
+  has_reacted: boolean;
+  is_watching?: boolean;
+};
+
 export type StoreShippingSummary = {
   tryoto_enabled: boolean;
   legacy_flat_enabled: boolean;
@@ -91,6 +116,9 @@ export type StoreShippingSummary = {
 /** Laravel serializes camelCase relation keys when loaded as shippingConfigs */
 export type StoreShowResponse = {
   store: StorePublic & { shippingConfigs?: StoreShippingConfig[] };
+  owner_public_profile?: OwnerPublicProfile | null;
+  social_summary?: SocialSummary | null;
+  viewer_state?: ProfileViewerState | null;
   has_payment: boolean;
   shipping?: StoreShippingSummary;
 };

@@ -47,7 +47,13 @@ export default async function StoreLayout({ children, params }: Props) {
       <StoreThemeApplier vars={vars} />
       <div data-product-card-style={productCardStyle} className="store-front-root">
         <StoreChrome slug={slug} whatsapp={store.contact_whatsapp} />
-        <StoreHeader store={store} slug={slug} />
+        <StoreHeader
+          store={store}
+          slug={slug}
+          ownerPublicProfile={data.owner_public_profile ?? null}
+          socialSummary={data.social_summary ?? null}
+          viewerState={data.viewer_state ?? null}
+        />
         <StoreTabsNav slug={slug} tabs={store.tabs ?? []} />
         <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
         <footer className="border-t border-[var(--border)] bg-[var(--card)] py-8 text-center text-xs text-[var(--muted-foreground)]">

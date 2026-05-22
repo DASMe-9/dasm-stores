@@ -17,8 +17,9 @@ import {
 import { CartBadge } from "./CartBadge";
 import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
+import { ProfileFollowButton } from "@/components/social/ProfileFollowButton";
 import { canonicalUrl } from "@/lib/seo";
-import type { StorePublic } from "@/lib/api-server";
+import type { OwnerPublicProfile, ProfileViewerState, SocialSummary, StorePublic } from "@/lib/api-server";
 
 type HeroTemplateConfig = {
   hero_video_url?: string | null;
@@ -39,9 +40,15 @@ function heroMotion(value: string | null | undefined): string {
 export function StoreHeader({
   store,
   slug,
+  ownerPublicProfile,
+  socialSummary,
+  viewerState,
 }: {
   store: StorePublic;
   slug: string;
+  ownerPublicProfile?: OwnerPublicProfile | null;
+  socialSummary?: SocialSummary | null;
+  viewerState?: ProfileViewerState | null;
 }) {
   const areaName = store.area?.name_ar;
   const vars = store.theme?.css_variables ?? undefined;
@@ -168,6 +175,13 @@ export function StoreHeader({
               </Link>
               <ShareButton title={store.name} url={canonicalUrl(`/store/${slug}`)} />
               <WhatsAppButton phone={store.contact_whatsapp} />
+            </div>
+            <div className="mt-4">
+              <ProfileFollowButton
+                owner={ownerPublicProfile ?? null}
+                socialSummary={socialSummary ?? null}
+                viewerState={viewerState ?? null}
+              />
             </div>
           </div>
 
