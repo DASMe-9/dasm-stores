@@ -18,7 +18,7 @@ export default function LoginPage() {
 
   const returnUrl =
     typeof router.query.returnUrl === "string"
-      ? router.query.returnUrl
+      ? safeInternalReturnUrl(router.query.returnUrl)
       : "/dashboard";
 
   const onSubmit = async (e: FormEvent) => {
@@ -266,4 +266,10 @@ export default function LoginPage() {
       </div>
     </>
   );
+}
+
+function safeInternalReturnUrl(value: string, fallback = "/dashboard") {
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return fallback;
+  return trimmed;
 }

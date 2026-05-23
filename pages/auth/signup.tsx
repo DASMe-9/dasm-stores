@@ -16,7 +16,6 @@ import {
   MapPin,
   Phone,
   ShieldCheck,
-  ShoppingBag,
   Store,
   UserRound,
 } from "lucide-react";
@@ -26,7 +25,7 @@ import { platformApiOrigin } from "@/lib/platform-api-url";
 const API_URL = platformApiOrigin();
 const ARABIC_NAME_RE = /^[\u0600-\u06FF\s]+$/;
 
-type AccountType = "user" | "venue_owner";
+type AccountType = "venue_owner";
 
 type Region = {
   id: number | string;
@@ -77,11 +76,6 @@ const initialForm: SignupFormState = {
   password_confirmation: "",
 };
 
-const accountTypeLabels: Record<AccountType, string> = {
-  user: "مستخدم",
-  venue_owner: "صاحب متجر / مالك معرض",
-};
-
 const errorPriority = [
   "email",
   "email_confirmation",
@@ -108,8 +102,6 @@ export default function SignupPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-
-  const businessAccount = form.account_type === "venue_owner";
 
   const selectedRegion = useMemo(
     () => regions.find((region) => String(region.id) === form.area_id),
@@ -210,14 +202,14 @@ export default function SignupPage() {
     if (form.password !== form.password_confirmation) {
       return "كلمتا المرور غير متطابقتين.";
     }
-    if (businessAccount && form.company_name.trim().length < 3) {
-      return "اسم المتجر أو المعرض مطلوب ويجب أن يكون 3 أحرف على الأقل.";
+    if (form.company_name.trim().length < 3) {
+      return "اسم المتجر مطلوب ويجب أن يكون 3 أحرف على الأقل.";
     }
-    if (businessAccount && form.commercial_registry.trim().length < 5) {
+    if (form.commercial_registry.trim().length < 5) {
       return "رقم السجل التجاري مطلوب ويجب أن يكون 5 أحرف على الأقل.";
     }
-    if (form.account_type === "venue_owner" && form.address.trim().length < 5) {
-      return "عنوان المتجر أو المعرض مطلوب ويجب أن يكون 5 أحرف على الأقل.";
+    if (form.address.trim().length < 5) {
+      return "عنوان المتجر مطلوب ويجب أن يكون 5 أحرف على الأقل.";
     }
 
     return "";
@@ -236,6 +228,7 @@ export default function SignupPage() {
 
     setBusy(true);
 
+    const returnUrl = safeInternalReturnUrl(router.query.returnUrl, "/dashboard");
     const payload: Record<string, string | undefined> = {
       first_name: form.first_name.trim(),
       middle_name: form.middle_name.trim() || undefined,
@@ -246,12 +239,14 @@ export default function SignupPage() {
       password: form.password,
       password_confirmation: form.password_confirmation,
       account_type: form.account_type,
+      product_context: "stores",
+      return_url: returnUrl,
       area_id: form.area_id || undefined,
       area_label: selectedRegion?.name,
       referral_code: form.referral_code.trim().toUpperCase() || undefined,
-      company_name: businessAccount ? form.company_name.trim() : undefined,
-      commercial_registry: businessAccount ? form.commercial_registry.trim() : undefined,
-      address: form.account_type === "venue_owner" ? form.address.trim() : undefined,
+      company_name: form.company_name.trim(),
+      commercial_registry: form.commercial_registry.trim(),
+      address: form.address.trim(),
     };
 
     try {
@@ -271,7 +266,9 @@ export default function SignupPage() {
 
       setSuccess("تم إنشاء الحساب بنجاح. سننقلك الآن للتحقق من البريد الإلكتروني.");
       setTimeout(() => {
-        router.replace(`/auth/verify-email?email=${encodeURIComponent(payload.email ?? "")}`);
+        router.replace(
+          `/auth/verify-email?email=${encodeURIComponent(payload.email ?? "")}&returnUrl=${encodeURIComponent(returnUrl)}`,
+        );
       }, 900);
     } catch (caughtError: unknown) {
       setError(resolveApiError(caughtError, "تعذر إنشاء الحساب. يرجى التحقق من البيانات والمحاولة مرة أخرى."));
@@ -473,19 +470,13 @@ export default function SignupPage() {
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field id="account_type" label="نوع الحساب" icon={<ShoppingBag className="h-4 w-4" />}>
-                    <select
-                      id="account_type"
-                      value={form.account_type}
-                      onChange={(event) => updateField("account_type", event.target.value as AccountType)}
-                      className={`${inputClassName} appearance-none`}
+                  <Field id="account_type_display" label="صفة التسجيل" icon={<Store className="h-4 w-4" />}>
+                    <div
+                      id="account_type_display"
+                      className="flex min-h-[48px] items-center rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm font-extrabold text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300"
                     >
-                      {Object.entries(accountTypeLabels).map(([value, label]) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </select>
+                      صاحب متجر
+                    </div>
                   </Field>
 
                   <Field id="area_id" label="المنطقة / المدينة" icon={<MapPin className="h-4 w-4" />} hint={regionsError}>
@@ -508,47 +499,43 @@ export default function SignupPage() {
                   </Field>
                 </div>
 
-                {businessAccount && (
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <Field
-                      id="company_name"
-                      label="اسم المتجر / المعرض"
-                      icon={<Building2 className="h-4 w-4" />}
-                    >
-                      <input
-                        id="company_name"
-                        value={form.company_name}
-                        onChange={(event) => updateField("company_name", event.target.value)}
-                        required={businessAccount}
-                        className={inputClassName}
-                      />
-                    </Field>
-
-                    <Field id="commercial_registry" label="السجل التجاري" icon={<ClipboardList className="h-4 w-4" />}>
-                      <input
-                        id="commercial_registry"
-                        dir="ltr"
-                        value={form.commercial_registry}
-                        onChange={(event) => updateField("commercial_registry", event.target.value.replace(/\s+/g, ""))}
-                        required={businessAccount}
-                        className={inputClassName}
-                      />
-                    </Field>
-                  </div>
-                )}
-
-                {form.account_type === "venue_owner" && (
-                  <Field id="address" label="عنوان المتجر / المعرض" icon={<MapPin className="h-4 w-4" />}>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field
+                    id="company_name"
+                    label="اسم المتجر"
+                    icon={<Building2 className="h-4 w-4" />}
+                  >
                     <input
-                      id="address"
-                      value={form.address}
-                      onChange={(event) => updateField("address", event.target.value)}
+                      id="company_name"
+                      value={form.company_name}
+                      onChange={(event) => updateField("company_name", event.target.value)}
                       required
-                      placeholder="مثال: الرياض، حي الياسمين"
                       className={inputClassName}
                     />
                   </Field>
-                )}
+
+                  <Field id="commercial_registry" label="السجل التجاري" icon={<ClipboardList className="h-4 w-4" />}>
+                    <input
+                      id="commercial_registry"
+                      dir="ltr"
+                      value={form.commercial_registry}
+                      onChange={(event) => updateField("commercial_registry", event.target.value.replace(/\s+/g, ""))}
+                      required
+                      className={inputClassName}
+                    />
+                  </Field>
+                </div>
+
+                <Field id="address" label="عنوان المتجر" icon={<MapPin className="h-4 w-4" />}>
+                  <input
+                    id="address"
+                    value={form.address}
+                    onChange={(event) => updateField("address", event.target.value)}
+                    required
+                    placeholder="مثال: الرياض، حي الياسمين"
+                    className={inputClassName}
+                  />
+                </Field>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <Field id="password" label="كلمة المرور" icon={<LockKeyhole className="h-4 w-4" />}>
@@ -608,6 +595,13 @@ const inputClassName =
 
 function normalizeEmail(value: string) {
   return value.trim().toLowerCase();
+}
+
+function safeInternalReturnUrl(value: string | string[] | undefined, fallback = "/dashboard") {
+  if (typeof value !== "string") return fallback;
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//")) return fallback;
+  return trimmed;
 }
 
 function emailHasNonAscii(value: string) {
