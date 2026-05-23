@@ -14,6 +14,10 @@ export function ThemePreviewStorefront({ preset }: { preset: ThemePreset }) {
   ) as CSSProperties;
 
   const cardClass = productCardClassName(preset.productCardStyle);
+  const previewProducts =
+    preset.market === "automotive"
+      ? ["غطاء مقعد جلد", "منظم صندوق"]
+      : ["منتج مختار", "عرض المتجر"];
 
   return (
     <div
@@ -52,13 +56,25 @@ export function ThemePreviewStorefront({ preset }: { preset: ThemePreset }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2 p-3">
-        {[1, 2].map((n) => (
-          <article key={n} className={cardClass}>
-            <div className="store-product-card__media aspect-[4/5] bg-[var(--muted)]" />
+        {previewProducts.map((name, index) => (
+          <article key={name} className={cardClass}>
+            <div
+              className="store-product-card__media flex aspect-[4/5] items-center justify-center bg-[var(--muted)]"
+              style={{
+                background:
+                  index === 0
+                    ? `linear-gradient(135deg, ${vars.primary}, ${vars.accent})`
+                    : `linear-gradient(135deg, ${vars.accent}, ${vars.primary})`,
+              }}
+            >
+              <ShoppingBag className="h-7 w-7 text-white/90" aria-hidden />
+            </div>
             <div className="store-product-card__body space-y-1 p-2">
-              <div className="h-2 w-4/5 rounded bg-[var(--muted)]" />
+              <p className="truncate text-[11px] font-semibold text-[var(--foreground)]">
+                {name}
+              </p>
               <p className="text-xs font-bold" style={{ color: vars.primary }}>
-                199 ر.س
+                {index === 0 ? "199 ر.س" : "149 ر.س"}
               </p>
             </div>
           </article>
