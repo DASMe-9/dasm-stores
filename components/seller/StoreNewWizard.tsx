@@ -12,7 +12,7 @@ import {
   Rocket,
   Check,
 } from "lucide-react";
-import { sellerApi } from "@/lib/api";
+import { sellerApi, storeSelection } from "@/lib/api";
 
 export type SellerNavHandlers = {
   replace: (path: string) => void;
@@ -162,7 +162,10 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
           accent: palette.accent,
         },
       };
-      await sellerApi.createStore(payload);
+      const { data } = await sellerApi.createStore(payload);
+      if (data?.store?.id) {
+        storeSelection.set(String(data.store.id));
+      }
 
       if (form.first_product.name && form.first_product.price) {
         try {
