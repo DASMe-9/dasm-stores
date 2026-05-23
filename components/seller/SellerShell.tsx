@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { SITE } from "@/lib/seo";
 import { sellerApi } from "@/lib/api";
+import { getStoreDisplayName } from "@/lib/store-display";
 import { NationalAddressCard } from "./NationalAddressCard";
 
 function navLinkClass(active: boolean): string {
@@ -163,7 +164,7 @@ export function SellerShell({
         .getMyStore()
         .then(({ data }) => {
           if (cancelled || !data?.store?.slug) return;
-          const name = data.store.name || "";
+          const name = getStoreDisplayName(data.store);
           const status = data.store.status || "";
           setCachedSlug(data.store.slug);
           setCachedName(name);

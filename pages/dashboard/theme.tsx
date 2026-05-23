@@ -8,6 +8,7 @@ import { ThemePicker } from "@/components/theme/ThemePicker";
 import { ThemePreviewStorefront } from "@/components/theme/ThemePreviewStorefront";
 import { sellerApi } from "@/lib/api";
 import { SITE } from "@/lib/seo";
+import { getStoreDisplayName } from "@/lib/store-display";
 import {
   detectPresetFromThemeConfig,
   findPresetById,
@@ -42,7 +43,7 @@ export default function StoreThemePage() {
         return;
       }
       setStoreSlug(store.slug || "");
-      setStoreName(store.name || store.name_ar || "");
+      setStoreName(getStoreDisplayName(store));
       setStoreStatus(store.status || "");
       const themeConfig = (store.theme_config || {}) as Record<string, unknown>;
       const fromConfig = detectPresetFromThemeConfig(themeConfig);
