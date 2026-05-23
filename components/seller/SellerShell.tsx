@@ -21,7 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { SITE } from "@/lib/seo";
-import { sellerApi } from "@/lib/api";
+import { sellerApi, storeSelection } from "@/lib/api";
 import { getStoreDisplayName } from "@/lib/store-display";
 import { NationalAddressCard } from "./NationalAddressCard";
 
@@ -55,6 +55,14 @@ type NavItem = {
   icon: ElementType;
   match?: (path: string) => boolean;
   badge?: string;
+};
+
+type SellerStoreOption = {
+  id: string | number;
+  name?: string | null;
+  name_ar?: string | null;
+  slug?: string | null;
+  status?: string | null;
 };
 
 const MAIN_NAV: NavItem[] = [
@@ -125,6 +133,8 @@ export function SellerShell({
   const [cachedSlug, setCachedSlug] = useState("");
   const [cachedName, setCachedName] = useState("");
   const [cachedStatus, setCachedStatus] = useState("");
+  const [stores, setStores] = useState<SellerStoreOption[]>([]);
+  const [selectedStoreId, setSelectedStoreId] = useState("");
   const resolvedSlug = storeSlug || cachedSlug;
   const resolvedName = storeName || cachedName;
   const resolvedStatus = storeStatus || cachedStatus;
@@ -184,6 +194,38 @@ export function SellerShell({
     };
   }, [storeSlug, storeName, storeStatus]);
 
+  useEffect(() => {
+    let cancelled = false;
+    sellerApi
+      .getMyStores()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const list = Array.isArray(data?.stores) ? (data.stores as SellerStoreOption[]) : [];
+        setStores(list);
+        const stored = storeSelection.get();
+        const selected =
+          stored && list.some((store) => String(store.id) === stored)
+            ? stored
+            : list[0]?.id != null
+              ? String(list[0].id)
+              : "";
+        setSelectedStoreId(selected);
+        if (!stored && selected) storeSelection.set(selected);
+      })
+      .catch(() => {});
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleStoreChange = (storeId: string) => {
+    if (!storeId) return;
+    storeSelection.set(storeId);
+    setSelectedStoreId(storeId);
+    window.location.reload();
+  };
+
   const toggleTheme = () => {
     const next = !dark;
     setDark(next);
@@ -201,6 +243,20 @@ export function SellerShell({
           <div className="truncate text-sm font-bold text-emerald-950 dark:text-zinc-100">
             {resolvedName || "متاجر داسم"}
           </div>
+          {stores.length > 1 ? (
+            <select
+              value={selectedStoreId}
+              onChange={(event) => handleStoreChange(event.target.value)}
+              className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs font-semibold text-emerald-900 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+              aria-label="اختيار المتجر"
+            >
+              {stores.map((store) => (
+                <option key={String(store.id)} value={String(store.id)}>
+                  {getStoreDisplayName(store) || store.slug || String(store.id)}
+                </option>
+              ))}
+            </select>
+          ) : null}
           {resolvedSlug ? (
             <a
               href={`${SITE.url}/store/${resolvedSlug}`}
@@ -278,6 +334,16 @@ export function SellerShell({
                 إنشاء متجر جديد
               </Link>
             )}
+            {hasStore ? (
+              <Link
+                href="/stores/new"
+                onClick={() => setDrawerOpen(false)}
+                className={navLinkClass(pathname.startsWith("/stores/new"))}
+              >
+                <Plus className="h-4 w-4 shrink-0 opacity-80" />
+                إنشاء متجر إضافي
+              </Link>
+            ) : null}
             <div
               className={`${navLinkClass(false)} cursor-not-allowed opacity-50 pointer-events-none select-none`}
               aria-disabled
