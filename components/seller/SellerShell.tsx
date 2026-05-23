@@ -44,7 +44,7 @@ function getCurrentStoreUserId(): string | null {
   }
 }
 
-function sellerCacheKey(userId: string, field: "slug" | "name") {
+function sellerCacheKey(userId: string, field: "slug" | "name" | "status") {
   return `store_${field}:${userId}`;
 }
 
@@ -104,6 +104,7 @@ export function SellerShell({
   hasStore,
   storeSlug,
   storeName,
+  storeStatus,
 }: {
   title: string;
   subtitle?: string;
@@ -113,6 +114,7 @@ export function SellerShell({
   hasStore?: boolean;
   storeSlug?: string;
   storeName?: string;
+  storeStatus?: string;
 }) {
   const router = useRouter();
   const pathname = router.pathname || "";
@@ -121,8 +123,11 @@ export function SellerShell({
   const [dark, setDark] = useState(false);
   const [cachedSlug, setCachedSlug] = useState("");
   const [cachedName, setCachedName] = useState("");
+  const [cachedStatus, setCachedStatus] = useState("");
   const resolvedSlug = storeSlug || cachedSlug;
   const resolvedName = storeName || cachedName;
+  const resolvedStatus = storeStatus || cachedStatus;
+  const canOpenPublicStore = resolvedSlug && resolvedStatus === "active";
 
   useEffect(() => {
     // Defer theme init to the next microtask so the first paint + hydration settle
@@ -137,17 +142,19 @@ export function SellerShell({
   }, []);
 
   useEffect(() => {
-    if (storeSlug && storeName) return;
+    if (storeSlug && storeName && storeStatus) return;
 
     let cancelled = false;
     queueMicrotask(() => {
       const userId = getCurrentStoreUserId();
       const savedSlug = userId ? sessionStorage.getItem(sellerCacheKey(userId, "slug")) : null;
       const savedName = userId ? sessionStorage.getItem(sellerCacheKey(userId, "name")) : null;
-      if (savedSlug && savedName) {
+      const savedStatus = userId ? sessionStorage.getItem(sellerCacheKey(userId, "status")) : null;
+      if (savedSlug && savedName && savedStatus) {
         if (!cancelled) {
           setCachedSlug(savedSlug);
           setCachedName(savedName);
+          setCachedStatus(savedStatus);
         }
         return;
       }
@@ -157,12 +164,15 @@ export function SellerShell({
         .then(({ data }) => {
           if (cancelled || !data?.store?.slug) return;
           const name = data.store.name || "";
+          const status = data.store.status || "";
           setCachedSlug(data.store.slug);
           setCachedName(name);
+          setCachedStatus(status);
           const resolvedUserId = getCurrentStoreUserId();
           if (resolvedUserId) {
             sessionStorage.setItem(sellerCacheKey(resolvedUserId, "slug"), data.store.slug);
             sessionStorage.setItem(sellerCacheKey(resolvedUserId, "name"), name);
+            sessionStorage.setItem(sellerCacheKey(resolvedUserId, "status"), status);
           }
         })
         .catch(() => {});
@@ -171,7 +181,7 @@ export function SellerShell({
     return () => {
       cancelled = true;
     };
-  }, [storeSlug, storeName]);
+  }, [storeSlug, storeName, storeStatus]);
 
   const toggleTheme = () => {
     const next = !dark;
@@ -240,9 +250,9 @@ export function SellerShell({
             المتجر
           </p>
           <div className="space-y-1">
-            {resolvedSlug && (
+            {canOpenPublicStore ? (
               <a
-                href={`${SITE.url}/store/${resolvedSlug}?preview=true`}
+                href={`${SITE.url}/store/${resolvedSlug}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setDrawerOpen(false)}
@@ -251,7 +261,12 @@ export function SellerShell({
                 <Eye className="h-4 w-4 shrink-0 opacity-80" />
                 معاينة المتجر
               </a>
-            )}
+            ) : resolvedSlug ? (
+              <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-300">
+                <Eye className="h-4 w-4 shrink-0 opacity-70" />
+                المتجر غير منشور بعد
+              </div>
+            ) : null}
             {!hasStore && (
               <Link
                 href="/stores/new"
