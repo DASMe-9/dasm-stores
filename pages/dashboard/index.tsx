@@ -332,7 +332,7 @@ export default function SellerDashboardHome() {
                 <div className="space-y-4">
                   <div className="divide-y divide-zinc-100 dark:divide-zinc-800 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
                     <InfoRow label="اسم المتجر" value={store.name} />
-                    <InfoRow label="الرابط" value={`${STORES_URL}/${store.slug}`} mono />
+                    <InfoRow label="الرابط" value={`${STORES_URL}/store/${store.slug}`} mono />
                     <InfoRow
                       label="الحالة"
                       value={store.status === "active" ? "نشط" : "مسودة"}
