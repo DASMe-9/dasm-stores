@@ -22,6 +22,17 @@ type CheckoutPayload = {
   delivery_option_id?: number;
 };
 type StorePayload = JsonRecord | FormData;
+const SELECTED_STORE_KEY = "dasm_selected_store_id";
+
+export const storeSelection = {
+  get: () => (typeof window === "undefined" ? null : localStorage.getItem(SELECTED_STORE_KEY)),
+  set: (storeId: string) => {
+    if (typeof window !== "undefined") localStorage.setItem(SELECTED_STORE_KEY, storeId);
+  },
+  clear: () => {
+    if (typeof window !== "undefined") localStorage.removeItem(SELECTED_STORE_KEY);
+  },
+};
 
 const api = axios.create({
   baseURL: `${API_URL}/api/stores`,
@@ -41,6 +52,8 @@ const attachToken = (config: InternalAxiosRequestConfig) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("stores_token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
+    const selectedStoreId = storeSelection.get();
+    if (selectedStoreId) config.headers["X-DASM-Store-Id"] = selectedStoreId;
   }
   return config;
 };
@@ -86,6 +99,7 @@ export const checkoutApi = {
 /* ── Seller APIs ── */
 export const sellerApi = {
   // المتجر
+  getMyStores: () => api.get("/my-stores"),
   getMyStore: () => api.get("/my-store"),
   createStore: (data: StorePayload) => api.post("/my-store", data),
   updateStore: (data: StorePayload) => api.put("/my-store", data),
