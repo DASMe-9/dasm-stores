@@ -37,6 +37,7 @@ export function ThemePreviewStorefront({ preset }: { preset: ThemePreset }) {
         <div className="relative z-10 flex h-full flex-col justify-end p-3">
           <p className="text-[10px] font-bold text-white/80">معاينة المتجر</p>
           <p className="text-sm font-extrabold text-white drop-shadow">{preset.nameAr}</p>
+          <p className="mt-0.5 text-[10px] font-semibold text-white/85">قالب مجاني مضمن</p>
         </div>
       </div>
 
@@ -72,9 +73,6 @@ export function ThemePreviewStorefront({ preset }: { preset: ThemePreset }) {
             <div className="store-product-card__body space-y-1 p-2">
               <p className="truncate text-[11px] font-semibold text-[var(--foreground)]">
                 {name}
-              </p>
-              <p className="text-xs font-bold" style={{ color: vars.primary }}>
-                {index === 0 ? "199 ر.س" : "149 ر.س"}
               </p>
             </div>
           </article>
