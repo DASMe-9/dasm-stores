@@ -27,8 +27,10 @@ export type CheckoutPayload = {
 export type ExploreStoreItem = {
   id: number;
   name: string;
+  name_ar?: string | null;
   slug: string;
   description: string | null;
+  category?: string | null;
   logo_url: string | null;
   banner_url: string | null;
   owner_type: string;
@@ -57,8 +59,10 @@ export type StoreShippingConfig = {
 export type StorePublic = {
   id: number;
   name: string;
+  name_ar?: string | null;
   slug: string;
   description: string | null;
+  category?: string | null;
   logo_url: string | null;
   banner_url: string | null;
   contact_phone: string | null;

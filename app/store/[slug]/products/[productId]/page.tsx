@@ -6,6 +6,7 @@ import { ProductReviews } from "@/components/product/ProductReviews";
 import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getProduct, getStore } from "@/lib/api-server";
+import { getStoreDisplayName } from "@/lib/store-display";
 import {
   breadcrumbSchema,
   canonicalUrl,
@@ -26,6 +27,7 @@ export default async function ProductDetailPage({
   if (!storeData || !prod?.product) notFound();
 
   const product = prod.product;
+  const storeName = getStoreDisplayName(storeData.store);
   const gallery =
     product.images && product.images.length > 0
       ? product.images
@@ -34,7 +36,7 @@ export default async function ProductDetailPage({
         : [];
 
   const crumbs = breadcrumbSchema([
-    { name: storeData.store.name, path: `/store/${slug}` },
+    { name: storeName, path: `/store/${slug}` },
     { name: "المنتجات", path: `/store/${slug}/products` },
     { name: product.name, path: `/store/${slug}/products/${productId}` },
   ]);
@@ -57,7 +59,7 @@ export default async function ProductDetailPage({
 
       <nav className="mb-6 text-xs text-[var(--muted-foreground)]">
         <Link href={`/store/${slug}`} className="hover:underline">
-          {storeData.store.name}
+          {storeName}
         </Link>
         <span className="mx-2">/</span>
         <Link href={`/store/${slug}/products`} className="hover:underline">
