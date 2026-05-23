@@ -50,6 +50,8 @@ const STEPS = [
 const FIELD_CLASS =
   "w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500";
 const FIELD_LTR_CLASS = `${FIELD_CLASS} text-left`;
+/** بطاقات المعالج — تعزل النص عن foreground الداكن على html.dark */
+const SURFACE_CLASS = "bg-white text-gray-900 dark:text-gray-900";
 
 function slugify(s: string) {
   return s
@@ -236,8 +238,8 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
   const active = PALETTES.find((p) => p.key === form.palette)!;
 
   return (
-    <div className="min-h-screen bg-gray-50 rtl">
-      <header className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-sm">
+    <div className="min-h-screen bg-gray-50 rtl text-gray-900 dark:text-gray-900">
+      <header className={`${SURFACE_CLASS} border-b border-gray-100 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-sm`}>
         <button
           type="button"
           onClick={() => nav.back()}
@@ -260,7 +262,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
         </div>
       </header>
 
-      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4">
+      <div className={`${SURFACE_CLASS} border-b border-gray-100 px-4 md:px-8 py-4`}>
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-2">
           {STEPS.map((s, i) => {
             const stepDone = i < step;
@@ -300,7 +302,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
       </div>
 
       <main className="max-w-3xl mx-auto px-4 md:px-8 py-6 md:py-10">
-        <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm">
+        <div className={`${SURFACE_CLASS} rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm`}>
           {step === 0 && (
             <div className="space-y-5">
               <div>
@@ -572,7 +574,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                 </p>
               </div>
 
-              <div className="rounded-2xl border border-gray-200 divide-y divide-gray-100">
+              <div className={`rounded-2xl border border-gray-200 divide-y divide-gray-100 ${SURFACE_CLASS}`}>
                 <Row label="الاسم بالعربي" value={form.name_ar} />
                 <Row label="الاسم بالإنجليزي" value={form.name} />
                 <Row label="الرابط" value={`stores.dasm.com.sa/${form.slug}`} />
@@ -647,9 +649,9 @@ function Row({
   swatch?: string;
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3 text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-gray-900 flex items-center gap-2">
+    <div className={`flex items-center justify-between px-4 py-3 text-sm ${SURFACE_CLASS}`}>
+      <span className="text-gray-600 dark:text-gray-600">{label}</span>
+      <span className="font-medium text-gray-900 dark:text-gray-900 flex items-center gap-2">
         {swatch ? <span className="w-4 h-4 rounded-full" style={{ background: swatch }} /> : null}
         {value || "—"}
       </span>
