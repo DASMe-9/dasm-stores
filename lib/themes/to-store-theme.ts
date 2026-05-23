@@ -1,17 +1,32 @@
 import type { StoreThemePayload } from "./types";
 import type { ThemePreset } from "./types";
+import { pickReadableForeground, pickReadableTextColor } from "./color-contrast";
 
 /** Maps preset → API-compatible theme payload (Laravel store_themes shape). */
 export function presetToStoreTheme(preset: ThemePreset): StoreThemePayload {
   const { colors, typography, headerStyle, productCardStyle, heroStyle, enabledSections } =
     preset;
+  const primaryForeground = pickReadableForeground(colors.primary, {
+    dark: "#111827",
+    light: "#ffffff",
+  });
+  const accentForeground = pickReadableForeground(colors.accent, {
+    dark: "#111827",
+    light: "#ffffff",
+  });
+  const primaryText = pickReadableTextColor(
+    [colors.primary, colors.accent, colors.foreground],
+    [colors.card, colors.background],
+    colors.foreground,
+  );
 
   return {
     css_variables: {
       primary: colors.primary,
-      "primary-foreground": "#ffffff",
+      "primary-foreground": primaryForeground,
+      "primary-text": primaryText,
       accent: colors.accent,
-      "accent-foreground": "#ffffff",
+      "accent-foreground": accentForeground,
       background: colors.background,
       foreground: colors.foreground,
       card: colors.card,

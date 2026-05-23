@@ -1,7 +1,6 @@
 import Head from "next/head";
 import { useEffect, useState, useCallback } from "react";
 import { publicApi } from "@/lib/api";
-import { getStoreDisplayName } from "@/lib/store-display";
 import {
   Search,
   MapPin,
@@ -20,7 +19,6 @@ import { AdBanner } from "@/components/ads/AdBanner";
 interface StoreItem {
   id: number;
   name: string;
-  name_ar?: string | null;
   slug: string;
   description: string;
   logo_url: string;
@@ -309,7 +307,6 @@ function StoreSection({
   ownerLabel: (type: string) => string;
 }) {
   const areaName = store.area?.name_ar || store.area?.name;
-  const storeName = getStoreDisplayName(store);
 
   return (
     <section className="space-y-3">
@@ -322,7 +319,7 @@ function StoreSection({
           {store.logo_url ? (
             <img
               src={store.logo_url}
-              alt={storeName}
+              alt={store.name}
               className="h-full w-full object-cover"
             />
           ) : (
@@ -332,7 +329,7 @@ function StoreSection({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition">
-              {storeName}
+              {store.name}
             </h3>
             <span className="shrink-0 rounded-full bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-300">
               {ownerLabel(store.owner_type)}

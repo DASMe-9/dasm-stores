@@ -1,5 +1,6 @@
 import { CheckoutClient } from "@/components/checkout/CheckoutClient";
 import { getStore } from "@/lib/api-server";
+import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import { pickShippingConfigs } from "@/lib/store-utils";
 import { notFound } from "next/navigation";
 
@@ -11,7 +12,8 @@ export default async function CheckoutPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const data = await getStore(slug);
+  const requestContext = await getStorefrontRequestContext();
+  const data = await getStore(slug, requestContext);
   if (!data) notFound();
 
   const shipping = pickShippingConfigs(data.store);

@@ -5,6 +5,7 @@ import { ProductsPagination } from "@/components/product/ProductsPagination";
 import { ProductsToolbar } from "@/components/product/ProductsToolbar";
 import { StoreSidebar } from "@/components/store/StoreSidebar";
 import { getCategories, getProducts, getStore } from "@/lib/api-server";
+import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 
 export const revalidate = 60;
 
@@ -17,8 +18,9 @@ export default async function StoreProductsPage({
 }) {
   const { slug } = await params;
   const sp = await searchParams;
+  const requestContext = await getStorefrontRequestContext();
 
-  const storeData = await getStore(slug);
+  const storeData = await getStore(slug, requestContext);
   if (!storeData) notFound();
 
   const qs = new URLSearchParams();
@@ -36,8 +38,8 @@ export default async function StoreProductsPage({
   qs.set("per_page", "24");
 
   const [cats, products] = await Promise.all([
-    getCategories(slug),
-    getProducts(slug, qs),
+    getCategories(slug, requestContext),
+    getProducts(slug, qs, requestContext),
   ]);
 
   return (

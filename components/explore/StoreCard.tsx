@@ -1,7 +1,6 @@
 import { MapPin, Package, Store } from "lucide-react";
 import Link from "next/link";
 import type { ExploreStoreItem } from "@/lib/api-server";
-import { getStoreDisplayName } from "@/lib/store-display";
 
 function ownerLabel(type: string) {
   return (
@@ -12,7 +11,6 @@ function ownerLabel(type: string) {
 
 export function StoreCard({ store }: { store: ExploreStoreItem }) {
   const areaName = store.area?.name_ar;
-  const storeName = getStoreDisplayName(store);
 
   return (
     <Link
@@ -44,7 +42,7 @@ export function StoreCard({ store }: { store: ExploreStoreItem }) {
           className="text-base font-bold text-[var(--foreground)] group-hover:underline"
           style={{ textDecorationColor: "var(--primary)" }}
         >
-          {storeName}
+          {store.name}
         </h3>
         {store.description ? (
           <p className="mt-1 line-clamp-2 text-xs text-[var(--muted-foreground)]">{store.description}</p>

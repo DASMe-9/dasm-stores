@@ -6,7 +6,7 @@ import { ProductReviews } from "@/components/product/ProductReviews";
 import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getProduct, getStore } from "@/lib/api-server";
-import { getStoreDisplayName } from "@/lib/store-display";
+import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import {
   breadcrumbSchema,
   canonicalUrl,
@@ -22,12 +22,15 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string; productId: string }>;
 }) {
   const { slug, productId } = await params;
+  const requestContext = await getStorefrontRequestContext();
 
-  const [storeData, prod] = await Promise.all([getStore(slug), getProduct(slug, productId)]);
+  const [storeData, prod] = await Promise.all([
+    getStore(slug, requestContext),
+    getProduct(slug, productId, requestContext),
+  ]);
   if (!storeData || !prod?.product) notFound();
 
   const product = prod.product;
-  const storeName = getStoreDisplayName(storeData.store);
   const gallery =
     product.images && product.images.length > 0
       ? product.images
@@ -36,7 +39,7 @@ export default async function ProductDetailPage({
         : [];
 
   const crumbs = breadcrumbSchema([
-    { name: storeName, path: `/store/${slug}` },
+    { name: storeData.store.name, path: `/store/${slug}` },
     { name: "المنتجات", path: `/store/${slug}/products` },
     { name: product.name, path: `/store/${slug}/products/${productId}` },
   ]);
@@ -59,7 +62,7 @@ export default async function ProductDetailPage({
 
       <nav className="mb-6 text-xs text-[var(--muted-foreground)]">
         <Link href={`/store/${slug}`} className="hover:underline">
-          {storeName}
+          {storeData.store.name}
         </Link>
         <span className="mx-2">/</span>
         <Link href={`/store/${slug}/products`} className="hover:underline">

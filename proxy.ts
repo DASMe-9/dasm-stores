@@ -4,6 +4,9 @@ const STORE_SLUG_ALIASES: Record<string, string> = {
   cheerylife: "cheerlylife",
 };
 
+const PREVIEW_SLUG_COOKIE = "stores_preview_slug";
+const PREVIEW_COOKIE_MAX_AGE = 60 * 60;
+
 const RESERVED = new Set([
   "admin",
   "api",
@@ -12,15 +15,46 @@ const RESERVED = new Set([
   "stores",
   "store",
   "explore",
+  "verify-email",
   "_next",
   "favicon.ico",
   "sitemap.xml",
 ]);
 
-export function middleware(request: NextRequest) {
+function nextWithPreviewHeader(request: NextRequest, slug: string) {
+  const preview = request.nextUrl.searchParams.get("preview");
+  const explicitPreview = preview === "true" || preview === "1";
+  const previewCookie = request.cookies.get(PREVIEW_SLUG_COOKIE)?.value;
+  const hasStoresToken = Boolean(request.cookies.get("stores_token")?.value);
+  const cookiePreview = hasStoresToken && previewCookie === slug;
+
+  if (!explicitPreview && !cookiePreview) {
+    return NextResponse.next();
+  }
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-dasm-store-preview", "1");
+
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  if (explicitPreview) {
+    response.cookies.set(PREVIEW_SLUG_COOKIE, slug, {
+      path: "/",
+      sameSite: "lax",
+      maxAge: PREVIEW_COOKIE_MAX_AGE,
+    });
+  }
+
+  return response;
+}
+
+export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  // --- Alias redirect inside /store/... ---
   const storeMatch = pathname.match(/^\/store\/([^/]+)(\/.*)?$/);
   if (storeMatch) {
     const [, slug, rest = ""] = storeMatch;
@@ -31,10 +65,9 @@ export function middleware(request: NextRequest) {
       url.search = search;
       return NextResponse.redirect(url, 308);
     }
-    return NextResponse.next();
+    return nextWithPreviewHeader(request, slug);
   }
 
-  // --- Legacy /[slug] → /store/[slug] redirect ---
   const legacyMatch = pathname.match(/^\/([^/]+)(\/.*)?$/);
   if (legacyMatch) {
     const [, segment, rest = ""] = legacyMatch;
@@ -43,7 +76,6 @@ export function middleware(request: NextRequest) {
 
     const canonical = STORE_SLUG_ALIASES[segment.toLowerCase()] ?? segment;
 
-    // /slug/product/123 → /store/slug/products/123
     const productMatch = rest.match(/^\/product\/(\d+)$/);
     if (productMatch) {
       const url = request.nextUrl.clone();
@@ -52,7 +84,6 @@ export function middleware(request: NextRequest) {
       return NextResponse.redirect(url, 308);
     }
 
-    // /slug/order/ABC → /store/slug/track/ABC
     const orderMatch = rest.match(/^\/order\/([^/]+)$/);
     if (orderMatch) {
       const url = request.nextUrl.clone();

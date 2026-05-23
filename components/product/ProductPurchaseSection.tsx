@@ -48,7 +48,7 @@ export function ProductPurchaseSection({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline gap-2">
-        <span className="text-2xl font-extrabold" style={{ color: "var(--primary)" }}>
+        <span className="text-2xl font-extrabold" style={{ color: "var(--primary-text,var(--primary))" }}>
           {unitPrice.toFixed(0)} ر.س
         </span>
         {product.compare_at_price != null &&

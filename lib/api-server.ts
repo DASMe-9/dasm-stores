@@ -13,6 +13,37 @@ export function getApiBase(): string {
 
 const JSON_HEADERS = { Accept: "application/json", "Content-Type": "application/json" };
 
+type StorefrontFetchContext = {
+  preview?: boolean;
+  token?: string;
+};
+
+function shouldUseOwnerPreview(context?: StorefrontFetchContext): context is StorefrontFetchContext & { token: string } {
+  return Boolean(context?.preview && context.token);
+}
+
+function appendPreviewParam(url: string, context?: StorefrontFetchContext): string {
+  if (!shouldUseOwnerPreview(context)) return url;
+
+  const parsed = new URL(url);
+  parsed.searchParams.set("preview", "true");
+  return parsed.toString();
+}
+
+function storefrontFetchOptions(
+  revalidate: number,
+  context?: StorefrontFetchContext,
+): RequestInit & { next?: { revalidate: number } } {
+  const headers: Record<string, string> = { Accept: "application/json" };
+
+  if (shouldUseOwnerPreview(context)) {
+    headers.Authorization = `Bearer ${context.token}`;
+    return { headers, cache: "no-store" };
+  }
+
+  return { headers, next: { revalidate } };
+}
+
 export type CheckoutPayload = {
   customer_name: string;
   customer_email?: string;
@@ -27,10 +58,8 @@ export type CheckoutPayload = {
 export type ExploreStoreItem = {
   id: number;
   name: string;
-  name_ar?: string | null;
   slug: string;
   description: string | null;
-  category?: string | null;
   logo_url: string | null;
   banner_url: string | null;
   owner_type: string;
@@ -59,10 +88,10 @@ export type StoreShippingConfig = {
 export type StorePublic = {
   id: number;
   name: string;
-  name_ar?: string | null;
   slug: string;
+  theme_id?: number | null;
+  theme_config?: Record<string, unknown> | null;
   description: string | null;
-  category?: string | null;
   logo_url: string | null;
   banner_url: string | null;
   contact_phone: string | null;
@@ -262,11 +291,12 @@ export async function getExploreProducts(params?: {
 }
 
 /** ISR 300s — store shell */
-export async function getStore(slug: string): Promise<StoreShowResponse | null> {
-  const res = await fetch(`${getApiBase()}/api/stores/public/${encodeURIComponent(slug)}`, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 300 },
-  });
+export async function getStore(
+  slug: string,
+  context?: StorefrontFetchContext,
+): Promise<StoreShowResponse | null> {
+  const url = appendPreviewParam(`${getApiBase()}/api/stores/public/${encodeURIComponent(slug)}`, context);
+  const res = await fetch(url, storefrontFetchOptions(300, context));
   if (!res.ok) return null;
   const body = await parseJson<StoreShowResponse>(res);
   if (!body?.store) return null;
@@ -277,6 +307,7 @@ export async function getStore(slug: string): Promise<StoreShowResponse | null> 
 export async function getProducts(
   slug: string,
   params?: URLSearchParams | Record<string, string | undefined>,
+  context?: StorefrontFetchContext,
 ): Promise<Paginated<StoreProductCard>> {
   const qs =
     params instanceof URLSearchParams
@@ -285,11 +316,11 @@ export async function getProducts(
           Object.entries(params ?? {}).filter(([, v]) => v != null && v !== "") as [string, string][],
         );
 
-  const url = `${getApiBase()}/api/stores/public/${encodeURIComponent(slug)}/products?${qs}`;
-  const res = await fetch(url, {
-    headers: { Accept: "application/json" },
-    next: { revalidate: 60 },
-  });
+  const url = appendPreviewParam(
+    `${getApiBase()}/api/stores/public/${encodeURIComponent(slug)}/products?${qs}`,
+    context,
+  );
+  const res = await fetch(url, storefrontFetchOptions(60, context));
   if (!res.ok) return { data: [], current_page: 1, last_page: 1, per_page: 20, total: 0 };
   return parseJson<Paginated<StoreProductCard>>(res);
 }
@@ -298,27 +329,27 @@ export async function getProducts(
 export async function getProduct(
   slug: string,
   productId: string,
+  context?: StorefrontFetchContext,
 ): Promise<{ product: StoreProductDetail } | null> {
-  const res = await fetch(
+  const url = appendPreviewParam(
     `${getApiBase()}/api/stores/public/${encodeURIComponent(slug)}/products/${encodeURIComponent(productId)}`,
-    {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 120 },
-    },
+    context,
   );
+  const res = await fetch(url, storefrontFetchOptions(120, context));
   if (!res.ok) return null;
   return parseJson(res);
 }
 
 /** ISR 600s — categories */
-export async function getCategories(slug: string): Promise<{ categories: StoreCategory[] }> {
-  const res = await fetch(
+export async function getCategories(
+  slug: string,
+  context?: StorefrontFetchContext,
+): Promise<{ categories: StoreCategory[] }> {
+  const url = appendPreviewParam(
     `${getApiBase()}/api/stores/public/${encodeURIComponent(slug)}/categories`,
-    {
-      headers: { Accept: "application/json" },
-      next: { revalidate: 600 },
-    },
+    context,
   );
+  const res = await fetch(url, storefrontFetchOptions(600, context));
   if (!res.ok) return { categories: [] };
   return parseJson(res);
 }

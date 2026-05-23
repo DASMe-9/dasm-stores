@@ -1,10 +1,48 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Package, Upload, X as XIcon } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi, uploadApi } from "@/lib/api";
+
+type ApiErrorShape = {
+  response?: {
+    status?: number;
+    data?: {
+      message?: string;
+      errors?: Record<string, string[]>;
+    };
+  };
+  message?: string;
+};
+
+function firstErrorMessage(error: unknown, fallback: string): string {
+  const err = error as ApiErrorShape;
+  const fieldErrors = err.response?.data?.errors;
+  if (fieldErrors) {
+    const firstField = Object.values(fieldErrors).find((items) => Array.isArray(items) && items.length > 0);
+    if (firstField?.[0]) return firstField[0];
+  }
+  return err.response?.data?.message ?? err.message ?? fallback;
+}
+
+function hasTabValidationError(error: unknown): boolean {
+  const err = error as ApiErrorShape;
+  if (err.response?.status !== 422) return false;
+
+  const fieldErrors = err.response?.data?.errors;
+  if (fieldErrors?.tab_id?.length) return true;
+
+  const msg = (err.response?.data?.message ?? "").toLowerCase();
+  return msg.includes("tab");
+}
+
+function revokeIfObjectUrl(url: string | null) {
+  if (url?.startsWith("blob:")) {
+    URL.revokeObjectURL(url);
+  }
+}
 
 export default function NewProductPage() {
   const router = useRouter();
@@ -28,6 +66,35 @@ export default function NewProductPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  useEffect(() => () => revokeIfObjectUrl(imagePreview), [imagePreview]);
+
+  const init = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const storeRes = await sellerApi.getMyStore();
+      if (!storeRes.data?.store) {
+        router.replace("/stores/new");
+        return;
+      }
+      try {
+        const tabsRes = await sellerApi.getTabs();
+        const raw = (tabsRes.data as { tabs?: { id: number; name: string }[] })?.tabs ?? [];
+        const mapped = raw.map((x) => ({ id: x.id, name: x.name }));
+        setTabs(mapped);
+        if (mapped.length) {
+          setForm((f) => ({ ...f, tab_id: f.tab_id || String(mapped[0].id) }));
+        }
+      } catch {
+        setTabs([]);
+      }
+    } catch {
+      setError("تعذّر تحميل بيانات المتجر حالياً. حاول مرة أخرى بعد قليل.");
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
   useEffect(() => {
     const t = localStorage.getItem("stores_token");
     if (!t) {
@@ -36,29 +103,7 @@ export default function NewProductPage() {
     }
     setReady(true);
     init();
-  }, [router]);
-
-  const init = async () => {
-    setLoading(true);
-    try {
-      const storeRes = await sellerApi.getMyStore();
-      if (!storeRes.data?.store) {
-        router.replace("/stores/new");
-        return;
-      }
-      const tabsRes = await sellerApi.getTabs();
-      const raw = (tabsRes.data as { tabs?: { id: number; name: string }[] })?.tabs ?? [];
-      const mapped = raw.map((x) => ({ id: x.id, name: x.name }));
-      setTabs(mapped);
-      if (mapped.length) {
-        setForm((f) => ({ ...f, tab_id: f.tab_id || String(mapped[0].id) }));
-      }
-    } catch {
-      setError("تعذّر تحميل التابات — أنشئ تاباً من الـ API أو من لوحة لاحقة.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [init, router]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,15 +114,22 @@ export default function NewProductPage() {
       return;
     }
 
-    setImagePreview(URL.createObjectURL(file));
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview((current) => {
+      revokeIfObjectUrl(current);
+      return objectUrl;
+    });
     setUploading(true);
     setError(null);
     try {
-      const { data } = await uploadApi.uploadMedia(file, "store_product_image");
+      const { data } = await uploadApi.uploadStoreProductImage(file);
       setForm((f) => ({ ...f, primary_image_url: data.secure_url }));
-    } catch {
-      setError("فشل رفع الصورة — تأكد من اتصال الإنترنت وحاول مجدداً");
-      setImagePreview(null);
+    } catch (e: unknown) {
+      setError(firstErrorMessage(e, "تعذّر رفع الصورة حالياً. حاول مرة أخرى."));
+      setImagePreview((current) => {
+        revokeIfObjectUrl(current);
+        return null;
+      });
     } finally {
       setUploading(false);
     }
@@ -85,7 +137,10 @@ export default function NewProductPage() {
 
   const removeImage = () => {
     setForm((f) => ({ ...f, primary_image_url: "" }));
-    setImagePreview(null);
+    setImagePreview((current) => {
+      revokeIfObjectUrl(current);
+      return null;
+    });
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
@@ -99,32 +154,50 @@ export default function NewProductPage() {
         return;
       }
 
-      const payload: Record<string, unknown> = {
-        name: form.name.trim(),
-        description: form.description.trim() || undefined,
-        sku: form.sku.trim() || undefined,
-        price: Number(form.price),
-        weight: Number(form.weight_kg) > 0 ? Number(form.weight_kg) : 1,
-        status: form.status,
-        product_type: "physical",
-      };
-
-      if (form.tab_id) payload.tab_id = parseInt(form.tab_id, 10);
-
-      if (form.primary_image_url.trim()) {
-        payload.images = [
-          {
-            url: form.primary_image_url.trim(),
-            is_primary: true,
-          },
-        ];
+      const numericPrice = Number(form.price);
+      if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+        setError("يرجى إدخال سعر صحيح.");
+        setSaving(false);
+        return;
       }
 
-      await sellerApi.createProduct(payload);
-      router.push("/dashboard");
+      const buildPayload = (withTab: boolean): Record<string, unknown> => {
+        const payload: Record<string, unknown> = {
+          name: form.name.trim(),
+          description: form.description.trim() || undefined,
+          sku: form.sku.trim() || undefined,
+          price: numericPrice,
+          weight: Number(form.weight_kg) > 0 ? Number(form.weight_kg) : 1,
+          status: form.status,
+          product_type: "physical",
+        };
+
+        if (withTab && form.tab_id) payload.tab_id = parseInt(form.tab_id, 10);
+
+        if (form.primary_image_url.trim()) {
+          payload.images = [
+            {
+              url: form.primary_image_url.trim(),
+              is_primary: true,
+            },
+          ];
+        }
+
+        return payload;
+      };
+
+      try {
+        await sellerApi.createProduct(buildPayload(true));
+      } catch (e: unknown) {
+        if (!form.tab_id || !hasTabValidationError(e)) throw e;
+
+        // قد يكون التبويب غير متاح حالياً (تم حذفه مثلاً) — نكمل الإضافة بدون تبويب.
+        await sellerApi.createProduct(buildPayload(false));
+      }
+
+      router.push("/dashboard/products");
     } catch (e: unknown) {
-      const err = e as { response?: { data?: { message?: string } } };
-      setError(err.response?.data?.message ?? "فشل إنشاء المنتج");
+      setError(firstErrorMessage(e, "تعذّر إنشاء المنتج حالياً."));
     } finally {
       setSaving(false);
     }
@@ -147,7 +220,7 @@ export default function NewProductPage() {
 
       <SellerShell
         title="إضافة منتج"
-        subtitle="يُستخدم وزن المنتج مع Tryoto لعرض تكلفة الشحن في الدفع"
+        subtitle="أضف بيانات المنتج وحدد الوزن ليظهر الشحن للعميل بشكل تلقائي أثناء الطلب"
         icon={Package}
         hasStore
         actions={
@@ -203,15 +276,12 @@ export default function NewProductPage() {
                 onChange={(e) => setForm((f) => ({ ...f, tab_id: e.target.value }))}
                 className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
               >
-                {tabs.length === 0 ? (
-                  <option value="">— لا توجد تبويبات — أنشئ tab عبر API أولاً</option>
-                ) : (
-                  tabs.map((t) => (
-                    <option key={t.id} value={t.id}>
-                      {t.name}
-                    </option>
-                  ))
-                )}
+                <option value="">بدون تبويب (اختياري)</option>
+                {tabs.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -293,6 +363,12 @@ export default function NewProductPage() {
               />
             </div>
 
+            {tabs.length === 0 ? (
+              <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
+                يمكنك إضافة المنتج الآن بدون تبويب، ثم تنظيم المنتجات داخل تبويبات لاحقاً.
+              </p>
+            ) : null}
+
             {error ? <p className="text-xs text-red-600">{error}</p> : null}
 
             <button
@@ -303,14 +379,6 @@ export default function NewProductPage() {
             >
               {saving ? "جاري الحفظ..." : "حفظ المنتج"}
             </button>
-
-            {tabs.length === 0 ? (
-              <p className="text-[11px] text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border border-amber-100 dark:border-amber-800 rounded-xl p-3">
-                لا توجد تبويبات للمتجر بعد. أنشئ تاباً واحداً على الأقل عبر{" "}
-                <code className="rounded bg-amber-100 dark:bg-amber-900/30 px-1">POST /api/stores/my-store/tabs</code> ثم أعد
-                فتح الصفحة، أو استخدم أداة مثل Postman بتوكنك.
-              </p>
-            ) : null}
           </div>
         </div>
       </SellerShell>

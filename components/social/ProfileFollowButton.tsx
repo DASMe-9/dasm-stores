@@ -111,7 +111,7 @@ export function ProfileFollowButton({
   return (
     <div className="flex flex-col gap-2">
       <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted-foreground)]">
-        <a href={profileHref} className="font-bold text-[var(--primary)] hover:underline">
+        <a href={profileHref} className="font-bold text-[var(--primary-text,var(--primary))] hover:underline">
           {owner.handle || owner.display_name}
         </a>
         <span>{followers.toLocaleString("ar-SA")} متابع</span>

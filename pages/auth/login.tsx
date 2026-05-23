@@ -1,8 +1,10 @@
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import Link from "next/link";
 import axios from "axios";
 import { platformApiOrigin } from "@/lib/platform-api-url";
+import { persistStoresToken } from "@/lib/auth-token";
 
 const API_URL = platformApiOrigin();
 
@@ -30,7 +32,7 @@ export default function LoginPage() {
         res.data?.access_token ||
         res.data?.token;
       if (!token) throw new Error("لم يُرجع الخادم توكن");
-      localStorage.setItem("stores_token", token);
+      persistStoresToken(token);
       router.replace(returnUrl);
     } catch (err: unknown) {
       const resp = (err as { response?: { status?: number; data?: { message?: string; error?: string } } })?.response;
@@ -192,12 +194,12 @@ export default function LoginPage() {
                   <label className="text-xs font-medium text-gray-600 dark:text-gray-400">
                     كلمة المرور
                   </label>
-                  <a
-                    href="https://www.dasm.com.sa/auth/forgot-password"
+                  <Link
+                    href="/auth/reset-password"
                     className="text-xs text-emerald-600 hover:underline"
                   >
                     نسيت كلمة المرور؟
-                  </a>
+                  </Link>
                 </div>
                 <div className="relative">
                   <input
@@ -249,9 +251,9 @@ export default function LoginPage() {
 
             <p className="text-center text-xs text-gray-400 dark:text-gray-600">
               ليس لديك حساب؟{" "}
-              <a href="https://www.dasm.com.sa/auth/register" className="text-emerald-600 font-medium hover:underline">
+              <Link href="/auth/signup" className="text-emerald-600 font-medium hover:underline">
                 أنشئه الآن
-              </a>
+              </Link>
             </p>
 
             <div className="border-t border-gray-100 dark:border-gray-800 pt-4 text-center">

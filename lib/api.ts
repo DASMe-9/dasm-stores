@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
+import { clearStoresToken } from "./auth-token";
 import { DEFAULT_PLATFORM_API_ORIGIN } from "./platform-api-url";
 
 const API_URL = DEFAULT_PLATFORM_API_ORIGIN;
@@ -21,17 +22,6 @@ type CheckoutPayload = {
   delivery_option_id?: number;
 };
 type StorePayload = JsonRecord | FormData;
-const SELECTED_STORE_KEY = "dasm_selected_store_id";
-
-export const storeSelection = {
-  get: () => (typeof window === "undefined" ? null : localStorage.getItem(SELECTED_STORE_KEY)),
-  set: (storeId: string) => {
-    if (typeof window !== "undefined") localStorage.setItem(SELECTED_STORE_KEY, storeId);
-  },
-  clear: () => {
-    if (typeof window !== "undefined") localStorage.removeItem(SELECTED_STORE_KEY);
-  },
-};
 
 const api = axios.create({
   baseURL: `${API_URL}/api/stores`,
@@ -42,25 +32,28 @@ const platformApi = axios.create({
   baseURL: `${API_URL}/api`,
 });
 
+const localApi = axios.create({
+  baseURL: "/",
+});
+
 // أضف التوكن تلقائياً لكل طلب
 const attachToken = (config: InternalAxiosRequestConfig) => {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("stores_token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
-    const selectedStoreId = storeSelection.get();
-    if (selectedStoreId) config.headers["X-DASM-Store-Id"] = selectedStoreId;
   }
   return config;
 };
 api.interceptors.request.use(attachToken);
 platformApi.interceptors.request.use(attachToken);
+localApi.interceptors.request.use(attachToken);
 
 // لو 401 → وجّه لتسجيل الدخول
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("stores_token");
+      clearStoresToken();
       window.location.href = "/auth/login";
     }
     return Promise.reject(err);
@@ -93,7 +86,6 @@ export const checkoutApi = {
 /* ── Seller APIs ── */
 export const sellerApi = {
   // المتجر
-  getMyStores: () => api.get("/my-stores"),
   getMyStore: () => api.get("/my-store"),
   createStore: (data: StorePayload) => api.post("/my-store", data),
   updateStore: (data: StorePayload) => api.put("/my-store", data),
@@ -143,16 +135,41 @@ export const sellerApi = {
 };
 
 /* ── Upload (goes to platform API, not stores API) ── */
+type UploadResponse = {
+  status: string;
+  secure_url: string;
+  context?: string;
+  source?: string;
+};
+
+function buildUploadFormData(file: File, context: string): FormData {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("context", context);
+  return formData;
+}
+
+function uploadViaPlatform(file: File, context: string) {
+  return platformApi.post<UploadResponse>("/upload/media", buildUploadFormData(file, context), {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}
+
+function uploadViaLocalFallback(file: File, context: string) {
+  return localApi.post<UploadResponse>("/api/upload/local-media", buildUploadFormData(file, context), {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}
+
 export const uploadApi = {
-  uploadMedia: (file: File, context: string) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("context", context);
-    return platformApi.post<{ status: string; secure_url: string; context: string }>(
-      "/upload/media",
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+  uploadMedia: uploadViaPlatform,
+  uploadMediaLocal: uploadViaLocalFallback,
+  async uploadStoreProductImage(file: File) {
+    try {
+      return await uploadViaPlatform(file, "store_product_image");
+    } catch {
+      return uploadViaLocalFallback(file, "store_product_image");
+    }
   },
 };
 
