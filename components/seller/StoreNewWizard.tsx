@@ -46,6 +46,11 @@ const STEPS = [
   { key: "launch", title: "الإطلاق", icon: Rocket },
 ];
 
+/** حقول على بطاقات بيضاء — تبقى مقروءة حتى مع html.dark من لوحة التاجر */
+const FIELD_CLASS =
+  "w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500";
+const FIELD_LTR_CLASS = `${FIELD_CLASS} text-left`;
+
 function slugify(s: string) {
   return s
     .toLowerCase()
@@ -314,7 +319,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="مثال: متجر الهلال"
                   value={form.name_ar}
                   onChange={(e) => setField("name_ar", e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className={FIELD_CLASS}
                 />
               </div>
 
@@ -329,7 +334,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="e.g. Al-Hilal Store"
                   value={form.name}
                   onChange={(e) => setField("name", e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left placeholder:text-right"
+                  className={`${FIELD_LTR_CLASS} placeholder:text-right`}
                   dir="ltr"
                 />
               </div>
@@ -351,7 +356,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                     placeholder="al-hilal"
                     value={form.slug}
                     onChange={(e) => setField("slug", slugify(e.target.value))}
-                    className="flex-1 px-3 py-2.5 text-sm bg-transparent focus:outline-none text-left"
+                    className="flex-1 px-3 py-2.5 text-sm bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none text-left"
                     dir="ltr"
                   />
                 </div>
@@ -387,7 +392,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="ماذا يبيع متجرك؟"
                   value={form.description}
                   onChange={(e) => setField("description", e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  className={`${FIELD_CLASS} resize-none`}
                 />
               </div>
             </div>
@@ -409,7 +414,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="https://..."
                   value={form.logo_url}
                   onChange={(e) => setField("logo_url", e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
+                  className={FIELD_LTR_CLASS}
                   dir="ltr"
                 />
                 <p className="text-[11px] text-gray-400">سنضيف رفع مباشر بعد التفعيل.</p>
@@ -422,7 +427,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="https://..."
                   value={form.banner_url}
                   onChange={(e) => setField("banner_url", e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
+                  className={FIELD_LTR_CLASS}
                   dir="ltr"
                 />
               </div>
@@ -516,7 +521,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   onChange={(e) =>
                     setField("first_product", { ...form.first_product, name: e.target.value })
                   }
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className={FIELD_CLASS}
                 />
               </div>
 
@@ -531,7 +536,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   onChange={(e) =>
                     setField("first_product", { ...form.first_product, price: e.target.value })
                   }
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className={FIELD_CLASS}
                 />
               </div>
 
@@ -544,7 +549,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   onChange={(e) =>
                     setField("first_product", { ...form.first_product, image_url: e.target.value })
                   }
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
+                  className={FIELD_LTR_CLASS}
                   dir="ltr"
                 />
               </div>
