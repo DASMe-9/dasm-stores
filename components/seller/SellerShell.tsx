@@ -33,6 +33,21 @@ function navLinkClass(active: boolean): string {
   ].join(" ");
 }
 
+function getCurrentStoreUserId(): string | null {
+  try {
+    const raw = localStorage.getItem("stores_user");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { id?: string | number | null };
+    return parsed.id == null ? null : String(parsed.id);
+  } catch {
+    return null;
+  }
+}
+
+function sellerCacheKey(userId: string, field: "slug" | "name") {
+  return `store_${field}:${userId}`;
+}
+
 type NavItem = {
   href: string;
   label: string;
@@ -126,8 +141,9 @@ export function SellerShell({
 
     let cancelled = false;
     queueMicrotask(() => {
-      const savedSlug = sessionStorage.getItem("store_slug");
-      const savedName = sessionStorage.getItem("store_name");
+      const userId = getCurrentStoreUserId();
+      const savedSlug = userId ? sessionStorage.getItem(sellerCacheKey(userId, "slug")) : null;
+      const savedName = userId ? sessionStorage.getItem(sellerCacheKey(userId, "name")) : null;
       if (savedSlug && savedName) {
         if (!cancelled) {
           setCachedSlug(savedSlug);
@@ -143,8 +159,11 @@ export function SellerShell({
           const name = data.store.name || "";
           setCachedSlug(data.store.slug);
           setCachedName(name);
-          sessionStorage.setItem("store_slug", data.store.slug);
-          sessionStorage.setItem("store_name", name);
+          const resolvedUserId = getCurrentStoreUserId();
+          if (resolvedUserId) {
+            sessionStorage.setItem(sellerCacheKey(resolvedUserId, "slug"), data.store.slug);
+            sessionStorage.setItem(sellerCacheKey(resolvedUserId, "name"), name);
+          }
         })
         .catch(() => {});
     });
