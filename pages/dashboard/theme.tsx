@@ -12,7 +12,6 @@ import {
   detectPresetFromThemeConfig,
   findPresetById,
   presetToThemeConfig,
-  resolveLegacyThemeId,
   resolvePresetIdFromLegacyThemeId,
 } from "@/lib/themes";
 import type { ThemeMarket, ThemePreset } from "@/lib/themes/types";
@@ -75,9 +74,7 @@ export default function StoreThemePage() {
     setError(null);
     setSuccess(null);
     try {
-      const themeId = resolveLegacyThemeId(selected.id);
       await sellerApi.updateStore({
-        theme_id: themeId,
         theme_config: presetToThemeConfig(selected),
       });
       setSuccess("تم حفظ تصميم المتجر. قد يستغرق ظهوره على الواجهة دقيقة واحدة.");
