@@ -26,7 +26,7 @@ import { platformApiOrigin } from "@/lib/platform-api-url";
 const API_URL = platformApiOrigin();
 const ARABIC_NAME_RE = /^[\u0600-\u06FF\s]+$/;
 
-type AccountType = "user" | "dealer" | "venue_owner" | "investor";
+type AccountType = "user" | "venue_owner";
 
 type Region = {
   id: number | string;
@@ -79,9 +79,7 @@ const initialForm: SignupFormState = {
 
 const accountTypeLabels: Record<AccountType, string> = {
   user: "مستخدم",
-  dealer: "تاجر سيارات",
   venue_owner: "صاحب متجر / مالك معرض",
-  investor: "مستثمر",
 };
 
 const errorPriority = [
@@ -111,8 +109,7 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const businessAccount =
-    form.account_type === "venue_owner" || form.account_type === "investor";
+  const businessAccount = form.account_type === "venue_owner";
 
   const selectedRegion = useMemo(
     () => regions.find((region) => String(region.id) === form.area_id),
@@ -214,9 +211,7 @@ export default function SignupPage() {
       return "كلمتا المرور غير متطابقتين.";
     }
     if (businessAccount && form.company_name.trim().length < 3) {
-      return form.account_type === "venue_owner"
-        ? "اسم المتجر أو المعرض مطلوب ويجب أن يكون 3 أحرف على الأقل."
-        : "اسم الشركة الاستثمارية مطلوب ويجب أن يكون 3 أحرف على الأقل.";
+      return "اسم المتجر أو المعرض مطلوب ويجب أن يكون 3 أحرف على الأقل.";
     }
     if (businessAccount && form.commercial_registry.trim().length < 5) {
       return "رقم السجل التجاري مطلوب ويجب أن يكون 5 أحرف على الأقل.";
@@ -517,7 +512,7 @@ export default function SignupPage() {
                   <div className="grid gap-4 md:grid-cols-2">
                     <Field
                       id="company_name"
-                      label={form.account_type === "venue_owner" ? "اسم المتجر / المعرض" : "اسم الشركة الاستثمارية"}
+                      label="اسم المتجر / المعرض"
                       icon={<Building2 className="h-4 w-4" />}
                     >
                       <input
