@@ -38,35 +38,12 @@ function navLinkClass(active: boolean): string {
   ].join(" ");
 }
 
-function getCurrentStoreUserId(): string | null {
-  try {
-    const raw = localStorage.getItem("stores_user");
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { id?: string | number | null };
-    return parsed.id == null ? null : String(parsed.id);
-  } catch {
-    return null;
-  }
-}
-
-function sellerCacheKey(userId: string, field: "slug" | "name" | "status") {
-  return `store_${field}:${userId}`;
-}
-
 type NavItem = {
   href: string;
   label: string;
   icon: ElementType;
   match?: (path: string) => boolean;
   badge?: string;
-};
-
-type SellerStoreOption = {
-  id: string | number;
-  name?: string | null;
-  name_ar?: string | null;
-  slug?: string | null;
-  status?: string | null;
 };
 
 const MAIN_NAV: NavItem[] = [
@@ -117,7 +94,6 @@ export function SellerShell({
   hasStore,
   storeSlug,
   storeName,
-  storeStatus,
 }: {
   title: string;
   subtitle?: string;
@@ -127,7 +103,6 @@ export function SellerShell({
   hasStore?: boolean;
   storeSlug?: string;
   storeName?: string;
-  storeStatus?: string;
 }) {
   const router = useRouter();
   const pathname = router.pathname || "";
@@ -139,8 +114,6 @@ export function SellerShell({
   const [storeOrigin, setStoreOrigin] = useState(STOREFRONT_ORIGIN);
   const resolvedSlug = storeSlug || cachedSlug;
   const resolvedName = storeName || cachedName;
-  const resolvedStatus = storeStatus || cachedStatus;
-  const canOpenPublicStore = resolvedSlug && resolvedStatus === "active";
 
   useEffect(() => {
     // Defer theme init to the next microtask so the first paint + hydration settle
@@ -157,19 +130,16 @@ export function SellerShell({
   }, []);
 
   useEffect(() => {
-    if (storeSlug && storeName && storeStatus) return;
+    if (storeSlug && storeName) return;
 
     let cancelled = false;
     queueMicrotask(() => {
-      const userId = getCurrentStoreUserId();
-      const savedSlug = userId ? sessionStorage.getItem(sellerCacheKey(userId, "slug")) : null;
-      const savedName = userId ? sessionStorage.getItem(sellerCacheKey(userId, "name")) : null;
-      const savedStatus = userId ? sessionStorage.getItem(sellerCacheKey(userId, "status")) : null;
-      if (savedSlug && savedName && savedStatus) {
+      const savedSlug = sessionStorage.getItem("store_slug");
+      const savedName = sessionStorage.getItem("store_name");
+      if (savedSlug && savedName) {
         if (!cancelled) {
           setCachedSlug(savedSlug);
           setCachedName(savedName);
-          setCachedStatus(savedStatus);
         }
         return;
       }
@@ -178,17 +148,11 @@ export function SellerShell({
         .getMyStore()
         .then(({ data }) => {
           if (cancelled || !data?.store?.slug) return;
-          const name = getStoreDisplayName(data.store);
-          const status = data.store.status || "";
+          const name = data.store.name || "";
           setCachedSlug(data.store.slug);
           setCachedName(name);
-          setCachedStatus(status);
-          const resolvedUserId = getCurrentStoreUserId();
-          if (resolvedUserId) {
-            sessionStorage.setItem(sellerCacheKey(resolvedUserId, "slug"), data.store.slug);
-            sessionStorage.setItem(sellerCacheKey(resolvedUserId, "name"), name);
-            sessionStorage.setItem(sellerCacheKey(resolvedUserId, "status"), status);
-          }
+          sessionStorage.setItem("store_slug", data.store.slug);
+          sessionStorage.setItem("store_name", name);
         })
         .catch(() => {});
     });
@@ -196,39 +160,7 @@ export function SellerShell({
     return () => {
       cancelled = true;
     };
-  }, [storeSlug, storeName, storeStatus]);
-
-  useEffect(() => {
-    let cancelled = false;
-    sellerApi
-      .getMyStores()
-      .then(({ data }) => {
-        if (cancelled) return;
-        const list = Array.isArray(data?.stores) ? (data.stores as SellerStoreOption[]) : [];
-        setStores(list);
-        const stored = storeSelection.get();
-        const selected =
-          stored && list.some((store) => String(store.id) === stored)
-            ? stored
-            : list[0]?.id != null
-              ? String(list[0].id)
-              : "";
-        setSelectedStoreId(selected);
-        if (!stored && selected) storeSelection.set(selected);
-      })
-      .catch(() => {});
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const handleStoreChange = (storeId: string) => {
-    if (!storeId) return;
-    storeSelection.set(storeId);
-    setSelectedStoreId(storeId);
-    window.location.reload();
-  };
+  }, [storeSlug, storeName]);
 
   const toggleTheme = () => {
     const next = !dark;
@@ -249,20 +181,6 @@ export function SellerShell({
           <div className="truncate text-sm font-bold text-emerald-950 dark:text-zinc-100">
             {resolvedName || "متاجر داسم"}
           </div>
-          {stores.length > 1 ? (
-            <select
-              value={selectedStoreId}
-              onChange={(event) => handleStoreChange(event.target.value)}
-              className="mt-2 w-full rounded-lg border border-emerald-200 bg-white px-2 py-1 text-xs font-semibold text-emerald-900 outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-              aria-label="اختيار المتجر"
-            >
-              {stores.map((store) => (
-                <option key={String(store.id)} value={String(store.id)}>
-                  {getStoreDisplayName(store) || store.slug || String(store.id)}
-                </option>
-              ))}
-            </select>
-          ) : null}
           {resolvedSlug ? (
             <a
               href={previewStorePath}
@@ -313,7 +231,7 @@ export function SellerShell({
             المتجر
           </p>
           <div className="space-y-1">
-            {canOpenPublicStore ? (
+            {resolvedSlug && (
               <a
                 href={previewStorePath}
                 target="_blank"
@@ -324,12 +242,7 @@ export function SellerShell({
                 <Eye className="h-4 w-4 shrink-0 opacity-80" />
                 معاينة المتجر
               </a>
-            ) : resolvedSlug ? (
-              <div className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-amber-700 dark:text-amber-300">
-                <Eye className="h-4 w-4 shrink-0 opacity-70" />
-                المتجر غير منشور بعد
-              </div>
-            ) : null}
+            )}
             {!hasStore && (
               <Link
                 href="/stores/new"
@@ -340,16 +253,6 @@ export function SellerShell({
                 إنشاء متجر جديد
               </Link>
             )}
-            {hasStore ? (
-              <Link
-                href="/stores/new"
-                onClick={() => setDrawerOpen(false)}
-                className={navLinkClass(pathname.startsWith("/stores/new"))}
-              >
-                <Plus className="h-4 w-4 shrink-0 opacity-80" />
-                إنشاء متجر إضافي
-              </Link>
-            ) : null}
             <div
               className={`${navLinkClass(false)} cursor-not-allowed opacity-50 pointer-events-none select-none`}
               aria-disabled

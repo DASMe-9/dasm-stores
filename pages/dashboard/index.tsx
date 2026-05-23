@@ -48,11 +48,9 @@ interface StoreProduct {
 interface StoreData {
   id: number;
   name: string;
-  name_ar?: string | null;
   slug: string;
   status: string;
   description: string | null;
-  category?: string | null;
   logo_url: string | null;
   owner_type: string;
   contact_phone: string | null;
@@ -137,7 +135,6 @@ export default function SellerDashboardHome() {
   }
 
   const headerActions = null;
-  const storeDisplayName = getStoreDisplayName(store);
 
   return (
     <>
@@ -153,7 +150,7 @@ export default function SellerDashboardHome() {
         actions={headerActions}
         hasStore={!!store}
         storeSlug={store?.slug}
-        storeName={storeDisplayName}
+        storeName={store?.name}
       >
         <div className="mx-auto max-w-6xl space-y-6">
           {/* ─── Ad Banner ─── */}
@@ -338,9 +335,8 @@ export default function SellerDashboardHome() {
               {activeTab === "info" && (
                 <div className="space-y-4">
                   <div className="divide-y divide-zinc-100 dark:divide-zinc-800 overflow-hidden rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
-                    <InfoRow label="اسم المتجر" value={storeDisplayName} />
-                    {store.category ? <InfoRow label="تصنيف المتجر" value={store.category} /> : null}
-                    <InfoRow label="الرابط" value={`${STORES_URL}/store/${store.slug}`} mono />
+                    <InfoRow label="اسم المتجر" value={store.name} />
+                    <InfoRow label="الرابط" value={`${STORES_URL}/${store.slug}`} mono />
                     <InfoRow
                       label="الحالة"
                       value={store.status === "active" ? "نشط" : "مسودة"}

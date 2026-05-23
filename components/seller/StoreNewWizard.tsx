@@ -12,7 +12,7 @@ import {
   Rocket,
   Check,
 } from "lucide-react";
-import { sellerApi, storeSelection } from "@/lib/api";
+import { sellerApi } from "@/lib/api";
 
 export type SellerNavHandlers = {
   replace: (path: string) => void;
@@ -45,13 +45,6 @@ const STEPS = [
   { key: "product", title: "أول منتج", icon: Package },
   { key: "launch", title: "الإطلاق", icon: Rocket },
 ];
-
-/** حقول على بطاقات بيضاء — تبقى مقروءة حتى مع html.dark من لوحة التاجر */
-const FIELD_CLASS =
-  "w-full rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500";
-const FIELD_LTR_CLASS = `${FIELD_CLASS} text-left`;
-/** بطاقات المعالج — تعزل النص عن foreground الداكن على html.dark */
-const SURFACE_CLASS = "bg-white text-gray-900 dark:text-gray-900";
 
 function slugify(s: string) {
   return s
@@ -162,10 +155,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
           accent: palette.accent,
         },
       };
-      const { data } = await sellerApi.createStore(payload);
-      if (data?.store?.id) {
-        storeSelection.set(String(data.store.id));
-      }
+      await sellerApi.createStore(payload);
 
       if (form.first_product.name && form.first_product.price) {
         try {
@@ -241,8 +231,8 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
   const active = PALETTES.find((p) => p.key === form.palette)!;
 
   return (
-    <div className="min-h-screen bg-gray-50 rtl text-gray-900 dark:text-gray-900">
-      <header className={`${SURFACE_CLASS} border-b border-gray-100 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-sm`}>
+    <div className="min-h-screen bg-gray-50 rtl">
+      <header className="bg-white border-b border-gray-100 px-4 md:px-8 py-4 flex items-center gap-3 sticky top-0 z-10 shadow-sm">
         <button
           type="button"
           onClick={() => nav.back()}
@@ -265,7 +255,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
         </div>
       </header>
 
-      <div className={`${SURFACE_CLASS} border-b border-gray-100 px-4 md:px-8 py-4`}>
+      <div className="bg-white border-b border-gray-100 px-4 md:px-8 py-4">
         <div className="max-w-3xl mx-auto flex items-center justify-between gap-2">
           {STEPS.map((s, i) => {
             const stepDone = i < step;
@@ -305,7 +295,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
       </div>
 
       <main className="max-w-3xl mx-auto px-4 md:px-8 py-6 md:py-10">
-        <div className={`${SURFACE_CLASS} rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm`}>
+        <div className="bg-white rounded-2xl border border-gray-100 p-6 md:p-8 shadow-sm">
           {step === 0 && (
             <div className="space-y-5">
               <div>
@@ -324,7 +314,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="مثال: متجر الهلال"
                   value={form.name_ar}
                   onChange={(e) => setField("name_ar", e.target.value)}
-                  className={FIELD_CLASS}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -339,7 +329,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="e.g. Al-Hilal Store"
                   value={form.name}
                   onChange={(e) => setField("name", e.target.value)}
-                  className={`${FIELD_LTR_CLASS} placeholder:text-right`}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left placeholder:text-right"
                   dir="ltr"
                 />
               </div>
@@ -361,7 +351,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                     placeholder="al-hilal"
                     value={form.slug}
                     onChange={(e) => setField("slug", slugify(e.target.value))}
-                    className="flex-1 px-3 py-2.5 text-sm bg-transparent text-gray-900 placeholder:text-gray-400 focus:outline-none text-left"
+                    className="flex-1 px-3 py-2.5 text-sm bg-transparent focus:outline-none text-left"
                     dir="ltr"
                   />
                 </div>
@@ -397,7 +387,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="ماذا يبيع متجرك؟"
                   value={form.description}
                   onChange={(e) => setField("description", e.target.value)}
-                  className={`${FIELD_CLASS} resize-none`}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
                 />
               </div>
             </div>
@@ -419,7 +409,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="https://..."
                   value={form.logo_url}
                   onChange={(e) => setField("logo_url", e.target.value)}
-                  className={FIELD_LTR_CLASS}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
                   dir="ltr"
                 />
                 <p className="text-[11px] text-gray-400">سنضيف رفع مباشر بعد التفعيل.</p>
@@ -432,7 +422,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   placeholder="https://..."
                   value={form.banner_url}
                   onChange={(e) => setField("banner_url", e.target.value)}
-                  className={FIELD_LTR_CLASS}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
                   dir="ltr"
                 />
               </div>
@@ -526,7 +516,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   onChange={(e) =>
                     setField("first_product", { ...form.first_product, name: e.target.value })
                   }
-                  className={FIELD_CLASS}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -541,7 +531,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   onChange={(e) =>
                     setField("first_product", { ...form.first_product, price: e.target.value })
                   }
-                  className={FIELD_CLASS}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -554,7 +544,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   onChange={(e) =>
                     setField("first_product", { ...form.first_product, image_url: e.target.value })
                   }
-                  className={FIELD_LTR_CLASS}
+                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
                   dir="ltr"
                 />
               </div>
@@ -577,7 +567,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                 </p>
               </div>
 
-              <div className={`rounded-2xl border border-gray-200 divide-y divide-gray-100 ${SURFACE_CLASS}`}>
+              <div className="rounded-2xl border border-gray-200 divide-y divide-gray-100">
                 <Row label="الاسم بالعربي" value={form.name_ar} />
                 <Row label="الاسم بالإنجليزي" value={form.name} />
                 <Row label="الرابط" value={`stores.dasm.com.sa/${form.slug}`} />
@@ -652,9 +642,9 @@ function Row({
   swatch?: string;
 }) {
   return (
-    <div className={`flex items-center justify-between px-4 py-3 text-sm ${SURFACE_CLASS}`}>
-      <span className="text-gray-600 dark:text-gray-600">{label}</span>
-      <span className="font-medium text-gray-900 dark:text-gray-900 flex items-center gap-2">
+    <div className="flex items-center justify-between px-4 py-3 text-sm">
+      <span className="text-gray-500">{label}</span>
+      <span className="font-medium text-gray-900 flex items-center gap-2">
         {swatch ? <span className="w-4 h-4 rounded-full" style={{ background: swatch }} /> : null}
         {value || "—"}
       </span>

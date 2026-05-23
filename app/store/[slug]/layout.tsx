@@ -21,15 +21,14 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!data) return { title: "متجر غير موجود" };
 
   const s = data.store;
-  const storeName = getStoreDisplayName(s);
-  const title = `${s.meta_title || storeName} — متاجر داسم`;
+  const title = `${s.meta_title || s.name} — متاجر داسم`;
   const description = clip(s.meta_description || s.description || "", 160);
 
   return {
     title: clip(title, 65),
     description,
     openGraph: {
-      title: storeName,
+      title: s.name,
       description,
       images: s.banner_url ? [s.banner_url] : s.logo_url ? [s.logo_url] : undefined,
     },
@@ -66,7 +65,7 @@ export default async function StoreLayout({ children, params }: Props) {
         <StoreTabsNav slug={slug} tabs={store.tabs ?? []} />
         <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
         <footer className="border-t border-[var(--border)] bg-[var(--card)] py-8 text-center text-xs text-[var(--muted-foreground)]">
-        {storeName} — مدعوم بواسطة{" "}
+        {store.name} — مدعوم بواسطة{" "}
         <a
           href="https://dasm.com.sa"
           className="hover:underline"

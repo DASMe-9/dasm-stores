@@ -71,7 +71,7 @@ export function StoreHeader({
             متاجر داسم
           </Link>
           <span className="text-[var(--muted-foreground)]">/</span>
-          <span className="text-[var(--foreground)] font-medium">{storeName}</span>
+          <span className="text-[var(--foreground)] font-medium">{store.name}</span>
         </div>
       </div>
       <div
@@ -134,7 +134,7 @@ export function StoreHeader({
           </div>
 
           <div className="order-2 min-w-0 flex-1 md:order-none">
-            <h1 className="text-2xl font-extrabold text-[var(--foreground)] md:text-3xl">{storeName}</h1>
+            <h1 className="text-2xl font-extrabold text-[var(--foreground)] md:text-3xl">{store.name}</h1>
             {store.description ? (
               <p className="mt-1 line-clamp-2 text-sm text-[var(--muted-foreground)]">
                 {store.description}
@@ -174,7 +174,7 @@ export function StoreHeader({
                 <Grid2X2 className="h-4 w-4" />
                 تصفح المنتجات
               </Link>
-              <ShareButton title={storeName} url={canonicalUrl(`/store/${slug}`)} />
+              <ShareButton title={store.name} url={canonicalUrl(`/store/${slug}`)} />
               <WhatsAppButton phone={store.contact_whatsapp} />
             </div>
             <div className="mt-4">
