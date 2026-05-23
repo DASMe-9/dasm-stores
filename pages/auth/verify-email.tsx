@@ -109,7 +109,7 @@ export default function VerifyEmailPage() {
     try {
       const response = await axios.post(
         `${API_URL}/api/resend-verification`,
-        { email: normalizedEmail },
+        { email: normalizedEmail, product_context: "stores" },
         { timeout: 15000, headers: { Accept: "application/json" } },
       );
 
