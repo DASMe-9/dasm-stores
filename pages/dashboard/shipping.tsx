@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Truck } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi } from "@/lib/api";
@@ -24,17 +24,7 @@ export default function DashboardShippingSettingsPage() {
     parcel_height_cm: "",
   });
 
-  useEffect(() => {
-    const t = localStorage.getItem("stores_token");
-    if (!t) {
-      router.replace("/auth/login?returnUrl=/dashboard/shipping");
-      return;
-    }
-    setReady(true);
-    load();
-  }, [router]);
-
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const res = await sellerApi.getMyStore();
@@ -57,7 +47,17 @@ export default function DashboardShippingSettingsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    const t = localStorage.getItem("stores_token");
+    if (!t) {
+      router.replace("/auth/login?returnUrl=/dashboard/shipping");
+      return;
+    }
+    setReady(true);
+    load();
+  }, [load, router]);
 
   const save = async () => {
     setSaving(true);
@@ -104,8 +104,8 @@ export default function DashboardShippingSettingsPage() {
       </Head>
 
       <SellerShell
-        title="شحن Tryoto (أوتو)"
-        subtitle="التجميع من ship.dasm.com.sa — يظهر للعميل في الدفع"
+        title="إعدادات الشحن"
+        subtitle="حدّث مدينة الإرسال ورسوم الشحن لتظهر للعميل أثناء الطلب"
         icon={Truck}
         hasStore
         actions={
@@ -212,10 +212,7 @@ export default function DashboardShippingSettingsPage() {
             </button>
 
             <p className="text-[11px] leading-relaxed text-gray-500 dark:text-zinc-400">
-              الأسعار تُجلب من <strong>dasm-shipping</strong> (Tryoto). تأكّد أن المتغير{" "}
-              <code className="rounded bg-gray-100 dark:bg-zinc-800 px-1">DASM_SHIPPING_URL</code> مضبوطاً على الخادم.
-              لا يزال بإمكانك استخدام طرق الشحن الثابتة من لوحة الـ API{" "}
-              <code className="rounded bg-gray-100 dark:bg-zinc-800 px-1">shipping-config</code> إلى جانب Tryoto أو بدله.
+              تُطبَّق هذه الإعدادات مباشرة على خيارات الشحن التي تظهر للعميل في صفحة الدفع.
             </p>
           </div>
         </div>

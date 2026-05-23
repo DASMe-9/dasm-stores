@@ -6,6 +6,7 @@ import { ProductReviews } from "@/components/product/ProductReviews";
 import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getProduct, getStore } from "@/lib/api-server";
+import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import {
   breadcrumbSchema,
   canonicalUrl,
@@ -21,8 +22,12 @@ export default async function ProductDetailPage({
   params: Promise<{ slug: string; productId: string }>;
 }) {
   const { slug, productId } = await params;
+  const requestContext = await getStorefrontRequestContext();
 
-  const [storeData, prod] = await Promise.all([getStore(slug), getProduct(slug, productId)]);
+  const [storeData, prod] = await Promise.all([
+    getStore(slug, requestContext),
+    getProduct(slug, productId, requestContext),
+  ]);
   if (!storeData || !prod?.product) notFound();
 
   const product = prod.product;

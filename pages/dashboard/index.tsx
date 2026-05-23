@@ -21,9 +21,10 @@ import {
 import { SellerShell } from "@/components/seller/SellerShell";
 import { AdBanner } from "@/components/ads/AdBanner";
 import { sellerApi } from "@/lib/api";
-
-const STORES_URL =
-  process.env.NEXT_PUBLIC_STORES_URL || "https://stores.dasm.com.sa";
+import {
+  STOREFRONT_ORIGIN,
+  browserStorefrontOrigin,
+} from "@/lib/storefront-url";
 
 interface StoreStats {
   total_products: number;
@@ -70,8 +71,11 @@ export default function SellerDashboardHome() {
   const [loading, setLoading] = useState(true);
   const [activating, setActivating] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
+  const [storeOrigin, setStoreOrigin] = useState(STOREFRONT_ORIGIN);
+  const STORES_URL = `${storeOrigin.replace(/\/+$/, "")}/store`;
 
   useEffect(() => {
+    setStoreOrigin(browserStorefrontOrigin());
     const t = localStorage.getItem("stores_token");
     if (!t) {
       router.replace("/auth/login?returnUrl=/dashboard");

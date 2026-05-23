@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PackageCheck, Search, ShoppingCart, Tags } from "lucide-react";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { getCategories, getProducts, getStore } from "@/lib/api-server";
+import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import { notFound } from "next/navigation";
 
 export const revalidate = 300;
@@ -12,12 +13,13 @@ export default async function StoreHomePage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const data = await getStore(slug);
+  const requestContext = await getStorefrontRequestContext();
+  const data = await getStore(slug, requestContext);
   if (!data) notFound();
 
   const [featured, categories] = await Promise.all([
-    getProducts(slug, new URLSearchParams({ sort: "featured", per_page: "8" })),
-    getCategories(slug),
+    getProducts(slug, new URLSearchParams({ sort: "featured", per_page: "8" }), requestContext),
+    getCategories(slug, requestContext),
   ]);
   const visibleCategories = categories.categories.slice(0, 6);
 
@@ -34,7 +36,7 @@ export default async function StoreHomePage({
               تصفح كامل كتالوج المتجر مع البحث والترتيب.
             </p>
           </div>
-          <Search className="h-7 w-7 shrink-0 text-[var(--primary)]" />
+          <Search className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
         </Link>
         <Link
           href={`/store/${slug}/products?sort=featured`}
@@ -46,7 +48,7 @@ export default async function StoreHomePage({
               عرض المنتجات التي فعلها صاحب المتجر كواجهة أولى.
             </p>
           </div>
-          <PackageCheck className="h-7 w-7 shrink-0 text-[var(--primary)]" />
+          <PackageCheck className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
         </Link>
         <Link
           href={`/store/${slug}/cart`}
@@ -58,7 +60,7 @@ export default async function StoreHomePage({
               راجع منتجات هذا المتجر قبل إكمال الطلب.
             </p>
           </div>
-          <ShoppingCart className="h-7 w-7 shrink-0 text-[var(--primary)]" />
+          <ShoppingCart className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
         </Link>
         <Link
           href={`/store/${slug}/products`}
@@ -70,7 +72,7 @@ export default async function StoreHomePage({
               انتقل للتصنيفات عندما تكون متاحة في المتجر.
             </p>
           </div>
-          <Tags className="h-7 w-7 shrink-0 text-[var(--primary)]" />
+          <Tags className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
         </Link>
       </section>
 

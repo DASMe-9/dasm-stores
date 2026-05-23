@@ -1,3 +1,5 @@
+import { STOREFRONT_ORIGIN } from "./storefront-url";
+
 /**
  * SEO helpers — single source of truth for meta tags, canonical URLs,
  * OpenGraph, Twitter Cards, and Schema.org JSON-LD across dasm-stores.
@@ -7,12 +9,7 @@
  */
 
 export const SITE = {
-  url:
-    process.env.NEXT_PUBLIC_STORE_DOMAIN?.startsWith("http")
-      ? process.env.NEXT_PUBLIC_STORE_DOMAIN!
-      : process.env.NEXT_PUBLIC_STORE_DOMAIN
-        ? `https://${process.env.NEXT_PUBLIC_STORE_DOMAIN.replace(/^https?:\/\//, "")}`
-        : process.env.NEXT_PUBLIC_SITE_URL || "https://stores.dasm.com.sa",
+  url: STOREFRONT_ORIGIN,
   name: "متاجر داسم",
   nameEn: "DASM Stores",
   defaultTitle: "متاجر داسم — منصة المتاجر من داسم",

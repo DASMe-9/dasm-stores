@@ -53,7 +53,7 @@ export function ProductCard({
           </h3>
         </Link>
         <div className="flex flex-wrap items-center gap-2">
-          <span className="text-base font-bold" style={{ color: "var(--primary)" }}>
+          <span className="text-base font-bold" style={{ color: "var(--primary-text,var(--primary))" }}>
             {price.toFixed(0)} ر.س
           </span>
           {compare && compare > price ? (

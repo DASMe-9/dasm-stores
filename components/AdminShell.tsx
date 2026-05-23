@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { ReactNode, useState } from "react";
+import { clearStoresToken } from "@/lib/auth-token";
 
 const NAV = [
   { href: "/dashboard",             label: "الرئيسية",      icon: Home },
@@ -122,7 +123,7 @@ export default function AdminShell({ children, title, storeName = "متجري", 
           <div className="p-3 border-t border-gray-100">
             <button
               onClick={() => {
-                localStorage.removeItem("stores_token");
+                clearStoresToken();
                 router.push("/auth/login");
               }}
               className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-gray-500 hover:bg-gray-50 transition"

@@ -7,6 +7,7 @@ export {
   resolvePresetIdFromLegacyThemeId,
 } from "./resolve-theme-id";
 export { productCardClassName } from "./product-card-class";
+export { resolveStoreCssVariables, resolveStoreTemplateConfig } from "./resolve-store-theme";
 
 import type { ThemeMarket, ThemePreset } from "./types";
 import { THEME_PRESETS } from "./presets";

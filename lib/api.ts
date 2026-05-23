@@ -1,5 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 
+import { clearStoresToken } from "./auth-token";
 import { DEFAULT_PLATFORM_API_ORIGIN } from "./platform-api-url";
 
 const API_URL = DEFAULT_PLATFORM_API_ORIGIN;
@@ -31,6 +32,10 @@ const platformApi = axios.create({
   baseURL: `${API_URL}/api`,
 });
 
+const localApi = axios.create({
+  baseURL: "/",
+});
+
 // أضف التوكن تلقائياً لكل طلب
 const attachToken = (config: InternalAxiosRequestConfig) => {
   if (typeof window !== "undefined") {
@@ -41,13 +46,14 @@ const attachToken = (config: InternalAxiosRequestConfig) => {
 };
 api.interceptors.request.use(attachToken);
 platformApi.interceptors.request.use(attachToken);
+localApi.interceptors.request.use(attachToken);
 
 // لو 401 → وجّه لتسجيل الدخول
 api.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401 && typeof window !== "undefined") {
-      localStorage.removeItem("stores_token");
+      clearStoresToken();
       window.location.href = "/auth/login";
     }
     return Promise.reject(err);
@@ -129,16 +135,41 @@ export const sellerApi = {
 };
 
 /* ── Upload (goes to platform API, not stores API) ── */
+type UploadResponse = {
+  status: string;
+  secure_url: string;
+  context?: string;
+  source?: string;
+};
+
+function buildUploadFormData(file: File, context: string): FormData {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("context", context);
+  return formData;
+}
+
+function uploadViaPlatform(file: File, context: string) {
+  return platformApi.post<UploadResponse>("/upload/media", buildUploadFormData(file, context), {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}
+
+function uploadViaLocalFallback(file: File, context: string) {
+  return localApi.post<UploadResponse>("/api/upload/local-media", buildUploadFormData(file, context), {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+}
+
 export const uploadApi = {
-  uploadMedia: (file: File, context: string) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("context", context);
-    return platformApi.post<{ status: string; secure_url: string; context: string }>(
-      "/upload/media",
-      formData,
-      { headers: { "Content-Type": "multipart/form-data" } }
-    );
+  uploadMedia: uploadViaPlatform,
+  uploadMediaLocal: uploadViaLocalFallback,
+  async uploadStoreProductImage(file: File) {
+    try {
+      return await uploadViaPlatform(file, "store_product_image");
+    } catch {
+      return uploadViaLocalFallback(file, "store_product_image");
+    }
   },
 };
 

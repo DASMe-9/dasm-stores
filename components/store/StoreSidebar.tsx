@@ -157,7 +157,7 @@ export function StoreSidebar({
               <Link
                 href={clearHref}
                 className="block text-center text-sm font-medium hover:underline"
-                style={{ color: "var(--primary)" }}
+                style={{ color: "var(--primary-text,var(--primary))" }}
                 onClick={() => setMobileOpen(false)}
               >
                 عرض كل المنتجات

@@ -112,7 +112,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     market: "automotive",
     category: "cars_classic",
     previewStyle: "luxury-dark",
-    colors: colors({ primary: "#422006", accent: "#ca8a04", background: "#1c1917", foreground: "#fafaf9", card: "#292524", border: "#57534e", muted: "#44403c", mutedForeground: "#a8a29e" }),
+    colors: colors({ primary: "#d97706", accent: "#fbbf24", background: "#1c1917", foreground: "#fafaf9", card: "#292524", border: "#57534e", muted: "#44403c", mutedForeground: "#a8a29e" }),
     typography: baseTypography("display"),
     headerStyle: "boutique-compact",
     productCardStyle: "luxury-tall",

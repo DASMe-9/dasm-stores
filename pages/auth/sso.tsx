@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import axios from "axios";
 import { platformApiOrigin } from "@/lib/platform-api-url";
+import { persistStoresToken } from "@/lib/auth-token";
 
 const API_URL = platformApiOrigin();
 
@@ -80,7 +81,7 @@ export default function SsoHandoff() {
           return;
         }
 
-        localStorage.setItem("stores_token", token);
+        persistStoresToken(token);
         localStorage.setItem("stores_user", JSON.stringify({
           id: user?.id,
           name: user?.display_name ?? user?.name,

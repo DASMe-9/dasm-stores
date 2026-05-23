@@ -20,6 +20,7 @@ import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { ProfileFollowButton } from "@/components/social/ProfileFollowButton";
 import { canonicalUrl } from "@/lib/seo";
 import type { OwnerPublicProfile, ProfileViewerState, SocialSummary, StorePublic } from "@/lib/api-server";
+import { resolveStoreCssVariables, resolveStoreTemplateConfig } from "@/lib/themes";
 
 type HeroTemplateConfig = {
   hero_video_url?: string | null;
@@ -51,8 +52,8 @@ export function StoreHeader({
   viewerState?: ProfileViewerState | null;
 }) {
   const areaName = store.area?.name_ar;
-  const vars = store.theme?.css_variables ?? undefined;
-  const templateConfig = (store.theme?.template_config ?? null) as HeroTemplateConfig | null;
+  const vars = resolveStoreCssVariables(store);
+  const templateConfig = (resolveStoreTemplateConfig(store) ?? null) as HeroTemplateConfig | null;
   const heroVideoUrl = templateConfig?.hero_video_url ?? templateConfig?.heroVideoUrl ?? null;
   const motion = heroMotion(templateConfig?.hero_motion ?? templateConfig?.heroMotion);
   const primary = cssColor(vars, "primary", "#0f766e");
@@ -64,7 +65,7 @@ export function StoreHeader({
         <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 text-sm">
           <Link
             href="/"
-            className="flex items-center gap-1.5 font-semibold text-[var(--primary)] hover:underline"
+            className="flex items-center gap-1.5 font-semibold text-[var(--primary-text,var(--primary))] hover:underline"
           >
             <ArrowRight className="h-4 w-4" />
             متاجر داسم
@@ -124,12 +125,12 @@ export function StoreHeader({
       <div className="relative z-10 mx-auto max-w-6xl px-4 pb-4 pt-0">
         <div className="-mt-20 flex flex-col gap-5 rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 p-5 shadow-xl shadow-black/5 backdrop-blur md:-mt-24 md:flex-row md:items-center md:p-6">
           <div className="order-1 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-3xl border-4 border-[var(--card)] bg-[var(--muted)] shadow md:order-none">
-            {store.logo_url ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={store.logo_url} alt="" className="h-full w-full object-cover" />
-            ) : (
-              <StoreIcon className="h-11 w-11" style={{ color: "var(--primary)" }} />
-            )}
+              {store.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={store.logo_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <StoreIcon className="h-11 w-11" style={{ color: "var(--primary-text,var(--primary))" }} />
+              )}
           </div>
 
           <div className="order-2 min-w-0 flex-1 md:order-none">
@@ -158,7 +159,7 @@ export function StoreHeader({
                 <a
                   href={`tel:${store.contact_phone}`}
                   className="flex items-center gap-1 hover:underline"
-                  style={{ color: "var(--primary)" }}
+                  style={{ color: "var(--primary-text,var(--primary))" }}
                 >
                   <Phone className="h-3.5 w-3.5" />
                   {store.contact_phone}

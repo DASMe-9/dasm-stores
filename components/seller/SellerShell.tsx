@@ -20,8 +20,13 @@ import {
   Truck,
   X,
 } from "lucide-react";
-import { SITE } from "@/lib/seo";
+import { syncStoresTokenCookie } from "@/lib/auth-token";
 import { sellerApi } from "@/lib/api";
+import {
+  STOREFRONT_ORIGIN,
+  browserStorefrontOrigin,
+  storePath,
+} from "@/lib/storefront-url";
 import { NationalAddressCard } from "./NationalAddressCard";
 
 function navLinkClass(active: boolean): string {
@@ -106,6 +111,7 @@ export function SellerShell({
   const [dark, setDark] = useState(false);
   const [cachedSlug, setCachedSlug] = useState("");
   const [cachedName, setCachedName] = useState("");
+  const [storeOrigin, setStoreOrigin] = useState(STOREFRONT_ORIGIN);
   const resolvedSlug = storeSlug || cachedSlug;
   const resolvedName = storeName || cachedName;
 
@@ -113,6 +119,8 @@ export function SellerShell({
     // Defer theme init to the next microtask so the first paint + hydration settle
     // before we sync React state and the document `dark` class (avoids brief mismatch flicker).
     queueMicrotask(() => {
+      syncStoresTokenCookie();
+      setStoreOrigin(browserStorefrontOrigin());
       const saved = localStorage.getItem("stores_theme");
       const isDark =
         saved === "dark" || (!saved && window.matchMedia("(prefers-color-scheme: dark)").matches);
@@ -161,6 +169,8 @@ export function SellerShell({
     localStorage.setItem("stores_theme", next ? "dark" : "light");
   };
 
+  const previewStorePath = resolvedSlug ? storePath(resolvedSlug, { preview: true }) : "";
+
   const sidebarInner = (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 border-b border-emerald-200/40 dark:border-zinc-800 px-4 py-5">
@@ -173,13 +183,13 @@ export function SellerShell({
           </div>
           {resolvedSlug ? (
             <a
-              href={`${SITE.url}/store/${resolvedSlug}`}
+              href={previewStorePath}
               target="_blank"
               rel="noopener noreferrer"
-              className="block truncate text-[11px] text-emerald-600 dark:text-emerald-400 hover:underline"
-              dir="ltr"
+              className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:underline"
             >
-              {SITE.url}/store/{resolvedSlug}
+              <ExternalLink className="h-3 w-3" />
+              زيارة المتجر
             </a>
           ) : (
             <div className="text-[11px] text-emerald-700/50 dark:text-zinc-400">لوحة التاجر</div>
@@ -187,7 +197,7 @@ export function SellerShell({
         </div>
       </div>
 
-      <nav className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
+      <nav className="seller-sidebar-scroll flex-1 space-y-6 overflow-y-auto px-3 py-5">
         <div>
           <p className="mb-2 px-3 text-[10px] font-bold uppercase tracking-wider text-emerald-800/40 dark:text-zinc-500">
             القائمة
@@ -223,7 +233,7 @@ export function SellerShell({
           <div className="space-y-1">
             {resolvedSlug && (
               <a
-                href={`${SITE.url}/store/${resolvedSlug}?preview=true`}
+                href={previewStorePath}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => setDrawerOpen(false)}
@@ -271,7 +281,7 @@ export function SellerShell({
           {dark ? "الوضع النهاري" : "الوضع الليلي"}
         </button>
         <a
-          href={SITE.url}
+          href={storeOrigin}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-emerald-700 dark:text-emerald-400 hover:bg-white/60 dark:hover:bg-emerald-950 transition-colors"

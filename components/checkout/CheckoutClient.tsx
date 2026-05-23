@@ -282,7 +282,7 @@ export function CheckoutClient({
         <Link
           href={`/store/${slug}/products`}
           className="mt-4 inline-block text-sm font-semibold hover:underline"
-          style={{ color: "var(--primary)" }}
+          style={{ color: "var(--primary-text,var(--primary))" }}
         >
           تصفّح المنتجات
         </Link>

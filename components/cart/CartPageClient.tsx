@@ -66,7 +66,7 @@ export function CartPageClient({ slug }: { slug: string }) {
         >
           <ArrowRight className="h-5 w-5" />
         </Link>
-        <ShoppingCart className="h-5 w-5" style={{ color: "var(--primary)" }} />
+        <ShoppingCart className="h-5 w-5" style={{ color: "var(--primary-text,var(--primary))" }} />
         <h1 className="text-lg font-bold">سلة التسوق</h1>
       </header>
 
@@ -105,7 +105,7 @@ export function CartPageClient({ slug }: { slug: string }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold">{p?.name ?? item.name}</p>
-                    <p className="mt-1 text-sm font-bold" style={{ color: "var(--primary)" }}>
+                    <p className="mt-1 text-sm font-bold" style={{ color: "var(--primary-text,var(--primary))" }}>
                       {Number(p?.price ?? item.price).toFixed(0)} ر.س
                     </p>
                     <div className="mt-2 flex items-center gap-2">

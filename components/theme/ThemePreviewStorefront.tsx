@@ -47,7 +47,7 @@ export function ThemePreviewStorefront({ preset }: { preset: ThemePreset }) {
             </div>
             <span className="text-xs font-bold text-[var(--foreground)]">متجر داسم</span>
           </div>
-          <ShoppingBag className="h-4 w-4 text-[var(--primary)]" />
+          <ShoppingBag className="h-4 w-4 text-[var(--primary-text,var(--primary))]" />
         </div>
       </div>
 
@@ -57,7 +57,7 @@ export function ThemePreviewStorefront({ preset }: { preset: ThemePreset }) {
             <div className="store-product-card__media aspect-[4/5] bg-[var(--muted)]" />
             <div className="store-product-card__body space-y-1 p-2">
               <div className="h-2 w-4/5 rounded bg-[var(--muted)]" />
-              <p className="text-xs font-bold" style={{ color: vars.primary }}>
+              <p className="text-xs font-bold" style={{ color: "var(--primary-text,var(--primary))" }}>
                 199 ر.س
               </p>
             </div>
