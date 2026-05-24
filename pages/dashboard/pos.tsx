@@ -1,7 +1,7 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Minus, Plus, Search, ShoppingCart, Trash2 } from "lucide-react";
+import { Minus, Plus, Search, ShoppingCart, Trash2, Webhook } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi } from "@/lib/api";
 
@@ -38,6 +38,16 @@ function lineKey(productId: number, variantId?: number) {
   return variantId ? `${productId}:${variantId}` : String(productId);
 }
 
+type PosIntegration = {
+  provider?: string;
+  is_enabled?: boolean;
+  secret_prefix?: string | null;
+  label?: string | null;
+  last_used_at?: string | null;
+  webhook_url?: string;
+  has_secret?: boolean;
+};
+
 function DashboardPosPage() {
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -48,6 +58,19 @@ function DashboardPosPage() {
   const [cart, setCart] = useState<CartLine[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<"cash" | "card">("cash");
   const [lastOrder, setLastOrder] = useState<string | null>(null);
+  const [integration, setIntegration] = useState<PosIntegration | null>(null);
+  const [plainSecret, setPlainSecret] = useState<string | null>(null);
+  const [integrationBusy, setIntegrationBusy] = useState(false);
+
+  const loadIntegration = useCallback(async () => {
+    try {
+      const res = await sellerApi.getPosIntegration();
+      const row = (res.data as { integration?: PosIntegration | null }).integration ?? null;
+      setIntegration(row);
+    } catch {
+      setIntegration(null);
+    }
+  }, []);
 
   const loadProducts = useCallback(async (q?: string) => {
     setLoading(true);
@@ -70,7 +93,8 @@ function DashboardPosPage() {
       return;
     }
     void loadProducts();
-  }, [loadProducts, router]);
+    void loadIntegration();
+  }, [loadProducts, loadIntegration, router]);
 
   useEffect(() => {
     const t = setTimeout(() => void loadProducts(query.trim() || undefined), 300);
@@ -167,6 +191,38 @@ function DashboardPosPage() {
       setFlash(String(msg));
     } finally {
       setBusy(false);
+    }
+  }
+
+  async function regenerateIntegration() {
+    if (!window.confirm("إنشاء مفتاح جديد؟ المفتاح الحالي سيتوقف عن العمل.")) return;
+    setIntegrationBusy(true);
+    setPlainSecret(null);
+    try {
+      const res = await sellerApi.regeneratePosIntegration({
+        provider: integration?.provider ?? "generic",
+        label: integration?.label ?? undefined,
+      });
+      const payload = res.data as { integration?: PosIntegration; plain_secret?: string };
+      setIntegration(payload.integration ?? null);
+      setPlainSecret(payload.plain_secret ?? null);
+      setFlash("تم إنشاء مفتاح POS خارجي — انسخه الآن");
+    } catch {
+      setFlash("تعذّر إنشاء المفتاح");
+    } finally {
+      setIntegrationBusy(false);
+    }
+  }
+
+  async function toggleIntegration(enabled: boolean) {
+    setIntegrationBusy(true);
+    try {
+      const res = await sellerApi.updatePosIntegration({ is_enabled: enabled });
+      setIntegration((res.data as { integration?: PosIntegration }).integration ?? null);
+    } catch {
+      setFlash("تعذّر تحديث الإعداد");
+    } finally {
+      setIntegrationBusy(false);
     }
   }
 
@@ -311,6 +367,79 @@ function DashboardPosPage() {
             ) : null}
           </aside>
         </div>
+
+        <section className="mt-8 rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <div className="flex items-start gap-3">
+            <Webhook className="mt-0.5 h-5 w-5 text-emerald-600" />
+            <div className="min-w-0 flex-1">
+              <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">POS خارجي (M5.1)</h2>
+              <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                اربط كاشير Zid أو Foodics أو أي نظام يرسل مبيعات عبر HTTP — يخصم المخزون مثل POS داسم.
+              </p>
+
+              {integration?.webhook_url ? (
+                <div className="mt-4 space-y-3">
+                  <div>
+                    <p className="text-xs font-semibold text-zinc-500">Webhook URL</p>
+                    <code className="mt-1 block break-all rounded-lg bg-zinc-100 px-3 py-2 text-xs dark:bg-zinc-800">
+                      {integration.webhook_url}
+                    </code>
+                  </div>
+                  <p className="text-xs text-zinc-500">
+                    المفتاح: {integration.has_secret ? integration.secret_prefix ?? "مُفعّل" : "غير مُنشأ"}
+                    {integration.last_used_at ? ` · آخر استخدام ${integration.last_used_at}` : ""}
+                  </p>
+                  {plainSecret ? (
+                    <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-950/30">
+                      <p className="text-xs font-semibold text-amber-900 dark:text-amber-100">انسخ المفتاح الآن (لن يُعرض مرة أخرى)</p>
+                      <code className="mt-1 block break-all text-xs">{plainSecret}</code>
+                    </div>
+                  ) : null}
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      disabled={integrationBusy}
+                      onClick={() => void regenerateIntegration()}
+                      className="rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {integration.has_secret ? "تجديد المفتاح" : "إنشاء مفتاح"}
+                    </button>
+                    {integration.has_secret ? (
+                      <button
+                        type="button"
+                        disabled={integrationBusy}
+                        onClick={() => void toggleIntegration(!integration.is_enabled)}
+                        className="rounded-xl border border-zinc-200 px-4 py-2 text-sm font-medium dark:border-zinc-700"
+                      >
+                        {integration.is_enabled ? "تعطيل" : "تفعيل"}
+                      </button>
+                    ) : null}
+                  </div>
+                  <pre className="overflow-x-auto rounded-lg bg-zinc-100 p-3 text-[11px] leading-relaxed dark:bg-zinc-800">
+{`POST ${integration.webhook_url}
+X-DASM-POS-Key: YOUR_DPOS_KEY
+Content-Type: application/json
+
+{
+  "external_ref": "ZID-12345",
+  "items": [{ "sku": "SKU-1", "quantity": 1 }],
+  "payment_method": "cash"
+}`}
+                  </pre>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  disabled={integrationBusy}
+                  onClick={() => void regenerateIntegration()}
+                  className="mt-4 rounded-xl bg-emerald-600 px-4 py-2 text-sm font-semibold text-white"
+                >
+                  إعداد POS خارجي
+                </button>
+              )}
+            </div>
+          </div>
+        </section>
       </SellerShell>
     </>
   );

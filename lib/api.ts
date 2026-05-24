@@ -250,9 +250,12 @@ export const sellerApi = {
   getMarketingConfig: () => api.get("/my-store/marketing"),
   updateMarketingConfig: (data: JsonRecord) => api.put("/my-store/marketing", data),
 
-  // نقطة البيع (M5.0)
+  // نقطة البيع (M5.0 / M5.1)
   searchPosProducts: (params?: QueryParams) => api.get("/my-store/pos/products", { params }),
   recordPosSale: (data: JsonRecord) => api.post("/my-store/pos/sale", data),
+  getPosIntegration: () => api.get("/my-store/pos/integration"),
+  updatePosIntegration: (data: JsonRecord) => api.put("/my-store/pos/integration", data),
+  regeneratePosIntegration: (data?: JsonRecord) => api.post("/my-store/pos/integration/regenerate", data ?? {}),
 };
 
 /* ── Upload (goes to platform API, not stores API) ── */
