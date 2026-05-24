@@ -4,8 +4,8 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
 export type CartItem = {
-  productId: number;
-  variantId?: number;
+  productId: string | number;
+  variantId?: string | number;
   name: string;
   price: number;
   quantity: number;
@@ -16,7 +16,7 @@ type CartState = {
   storeSlug: string | null;
   items: CartItem[];
   coupon: string | null;
-  selectedShippingId: number | null;
+  selectedShippingId: string | number | null;
   drawerOpen: boolean;
   /** يُعرّض مرة عند الانتقال لمتجر مختلف مع إفراغ السلة (لا يُخزَّن في localStorage) */
   storeSwitchNotice: boolean;
@@ -25,11 +25,11 @@ type CartState = {
   openDrawer: () => void;
   closeDrawer: () => void;
   addItem: (item: CartItem) => void;
-  removeItem: (productId: number, variantId?: number) => void;
-  updateQty: (productId: number, variantId: number | undefined, qty: number) => void;
+  removeItem: (productId: string | number, variantId?: string | number) => void;
+  updateQty: (productId: string | number, variantId: string | number | undefined, qty: number) => void;
   clearCart: () => void;
   setCoupon: (code: string | null) => void;
-  setShipping: (id: number | null) => void;
+  setShipping: (id: string | number | null) => void;
   total: () => number;
   count: () => number;
 };

@@ -68,7 +68,7 @@ export async function GET(
 }
 
 /**
- * POST proxy — أسعار الشحن (Tryoto / shipping-quote) من المتصفّح بدون CORS على اللارافيل.
+ * POST proxy — أسعار الشحن (Tryoto / shipping-rates) من المتصفّح بدون CORS على اللارافيل.
  */
 export async function POST(
   request: Request,

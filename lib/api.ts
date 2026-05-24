@@ -7,8 +7,8 @@ const API_URL = DEFAULT_PLATFORM_API_ORIGIN;
 type JsonRecord = Record<string, unknown>;
 type QueryParams = Record<string, string | number | boolean | undefined>;
 type CheckoutItem = {
-  product_id: number;
-  variant_id?: number;
+  product_id: string | number;
+  variant_id?: string | number;
   quantity: number;
 };
 type CheckoutPayload = {
@@ -140,6 +140,7 @@ export const sellerApi = {
     platformApi.post("/user/national-address", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     }),
+  getVerificationStatus: () => platformApi.get("/user/verification-status"),
 
   // الشحن
   getShippingConfigs: () => api.get("/my-store/shipping-config"),

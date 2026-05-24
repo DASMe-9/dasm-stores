@@ -17,7 +17,7 @@ export function ProductPurchaseSection({
     [product.variants],
   );
   const basePrice = Number(product.price);
-  const [variantId, setVariantId] = useState<number | undefined>(active[0]?.id);
+  const [variantId, setVariantId] = useState<string | number | undefined>(active[0]?.id);
 
   const selected = active.find((v) => v.id === variantId);
   const unitPrice =

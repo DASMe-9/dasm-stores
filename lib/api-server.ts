@@ -48,11 +48,22 @@ export type CheckoutPayload = {
   customer_name: string;
   customer_email?: string;
   customer_phone: string;
-  shipping_address: { city: string; street: string; zip?: string };
-  items: Array<{ product_id: number; variant_id?: number; quantity: number }>;
+  shipping_address: {
+    city: string;
+    district?: string;
+    street: string;
+    zip?: string;
+    short_address?: string;
+    gps_lat?: number;
+    gps_lng?: number;
+    gps_accuracy_m?: number;
+  };
+  items: Array<{ product_id: string | number; variant_id?: string | number; quantity: number }>;
   coupon_code?: string;
-  shipping_config_id?: number;
-  tryoto_delivery_option_id?: string;
+  shipping_config_id?: string | number;
+  shipping_rate_id?: string;
+  shipping_cost?: number;
+  delivery_option_id?: number;
 };
 
 export type ExploreStoreItem = {

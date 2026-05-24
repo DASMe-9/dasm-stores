@@ -13,7 +13,7 @@ export function CartPageClient({ slug }: { slug: string }) {
   const removeItem = useCartStore((s) => s.removeItem);
   const total = useCartStore((s) => s.total());
 
-  const [products, setProducts] = useState<Record<number, StoreProductDetail>>({});
+  const [products, setProducts] = useState<Record<string, StoreProductDetail>>({});
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,14 +29,14 @@ export function CartPageClient({ slug }: { slug: string }) {
         return;
       }
       setLoading(true);
-      const map: Record<number, StoreProductDetail> = {};
+      const map: Record<string, StoreProductDetail> = {};
       try {
         await Promise.all(
           items.map(async (item) => {
             const res = await fetch(`/api/public-store/${slug}/products/${item.productId}`);
             if (!res.ok) return;
             const body = (await res.json()) as { product?: StoreProductDetail };
-            if (body.product) map[item.productId] = body.product;
+            if (body.product) map[String(item.productId)] = body.product;
           }),
         );
       } finally {
@@ -87,7 +87,7 @@ export function CartPageClient({ slug }: { slug: string }) {
         <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
           <ul className="space-y-3">
             {items.map((item) => {
-              const p = products[item.productId];
+              const p = products[String(item.productId)];
               return (
                 <li
                   key={`${item.productId}-${item.variantId ?? "x"}`}
