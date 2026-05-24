@@ -249,6 +249,10 @@ export const sellerApi = {
   // التتبع التسويقي (M4.1)
   getMarketingConfig: () => api.get("/my-store/marketing"),
   updateMarketingConfig: (data: JsonRecord) => api.put("/my-store/marketing", data),
+
+  // نقطة البيع (M5.0)
+  searchPosProducts: (params?: QueryParams) => api.get("/my-store/pos/products", { params }),
+  recordPosSale: (data: JsonRecord) => api.post("/my-store/pos/sale", data),
 };
 
 /* ── Upload (goes to platform API, not stores API) ── */
