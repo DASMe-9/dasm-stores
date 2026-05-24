@@ -151,7 +151,7 @@ export default function SellerDashboardHome() {
         subtitle="إدارة متجرك ومنتجاتك وطلباتك"
         icon={LayoutDashboard}
         actions={headerActions}
-        hasStore={!!store}
+        hasStore={loading ? undefined : !!store}
         storeSlug={store?.slug}
         storeName={storeDisplayName}
         storeStatus={store?.status}

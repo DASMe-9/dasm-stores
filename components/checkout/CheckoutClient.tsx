@@ -29,7 +29,8 @@ type TryotoRateRow = {
 function legacyShipPreview(cfg: StoreShippingConfig, subtotal: number): number {
   const freeAbove = Number(cfg.free_above_amount ?? 0);
   if (freeAbove > 0 && subtotal >= freeAbove) return 0;
-  return Number(cfg.flat_rate ?? 0);
+  const baseRate = Number(cfg.flat_rate ?? 0);
+  return baseRate > 0 ? baseRate + 10 : 0;
 }
 
 export function CheckoutClient({
@@ -562,7 +563,7 @@ export function CheckoutClient({
                       </span>
                     ) : null}
                     <span className="mt-1 block text-xs text-[var(--muted-foreground)]">
-                      سعر ثابت: {Number(s.flat_rate ?? 0).toFixed(0)} ر.س
+                      سعر ثابت: {Number(s.flat_rate ?? 0).toFixed(0)} ر.س + 10 ر.س رسوم منصة
                       {s.free_above_amount != null && Number(s.free_above_amount) > 0 ? (
                         <> — مجاني فوق {Number(s.free_above_amount).toFixed(0)} ر.س</>
                       ) : null}

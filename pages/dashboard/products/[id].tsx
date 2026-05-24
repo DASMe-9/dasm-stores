@@ -35,10 +35,8 @@ interface ProductData {
   weight: number | null;
   status: string;
   is_featured: boolean;
-  tab_id: number | null;
   category_id: number | null;
   images: ProductImage[];
-  tab: { id: number; name: string } | null;
   category: { id: number; name: string } | null;
 }
 
@@ -47,7 +45,6 @@ export default function EditProductPage() {
   const { id } = router.query;
   const [ready, setReady] = useState(false);
   const [product, setProduct] = useState<ProductData | null>(null);
-  const [tabs, setTabs] = useState<{ id: number; name: string }[]>([]);
   const [categories, setCategories] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -62,7 +59,6 @@ export default function EditProductPage() {
     price: "",
     compare_at_price: "",
     weight: "",
-    tab_id: "",
     category_id: "",
     status: "active" as string,
     is_featured: false,
@@ -91,9 +87,8 @@ export default function EditProductPage() {
   const loadProduct = async () => {
     setLoading(true);
     try {
-      const [prodRes, tabsRes, catsRes] = await Promise.allSettled([
+      const [prodRes, catsRes] = await Promise.allSettled([
         sellerApi.getProduct(Number(id)),
-        sellerApi.getTabs(),
         sellerApi.getCategories(),
       ]);
 
@@ -110,16 +105,10 @@ export default function EditProductPage() {
           price: String(p.price),
           compare_at_price: p.compare_at_price ? String(p.compare_at_price) : "",
           weight: p.weight ? String(p.weight) : "",
-          tab_id: p.tab_id ? String(p.tab_id) : "",
           category_id: p.category_id ? String(p.category_id) : "",
           status: p.status,
           is_featured: p.is_featured,
         });
-      }
-
-      if (tabsRes.status === "fulfilled") {
-        const raw = (tabsRes.value.data as { tabs?: { id: number; name: string }[] })?.tabs ?? [];
-        setTabs(raw.map((x) => ({ id: x.id, name: x.name })));
       }
 
       if (catsRes.status === "fulfilled") {
@@ -145,7 +134,7 @@ export default function EditProductPage() {
           setError("حجم الصورة يجب أن يكون أقل من 8 ميقابايت");
           continue;
         }
-        const { data } = await uploadApi.uploadMedia(file, "store_product_image");
+        const { data } = await uploadApi.uploadStoreProductImage(file);
         setImages((prev) => [
           ...prev,
           {
@@ -212,7 +201,6 @@ export default function EditProductPage() {
         weight: form.weight ? Number(form.weight) : null,
         status: form.status,
         is_featured: form.is_featured,
-        tab_id: form.tab_id ? parseInt(form.tab_id, 10) : null,
         category_id: form.category_id ? parseInt(form.category_id, 10) : null,
       };
 
@@ -483,22 +471,6 @@ export default function EditProductPage() {
                     <option value="draft">مسودة</option>
                   </select>
                 </div>
-
-                {tabs.length > 0 && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">التبويب</label>
-                    <select
-                      value={form.tab_id}
-                      onChange={(e) => setForm((f) => ({ ...f, tab_id: e.target.value }))}
-                      className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
-                    >
-                      <option value="">بدون تبويب</option>
-                      {tabs.map((t) => (
-                        <option key={t.id} value={t.id}>{t.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
 
                 {categories.length > 0 && (
                   <div className="space-y-1.5">

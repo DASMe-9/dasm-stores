@@ -1,4 +1,4 @@
-import { useState, FormEvent } from "react";
+import { useEffect, useState, FormEvent } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import Link from "next/link";
@@ -20,6 +20,14 @@ export default function LoginPage() {
     typeof router.query.returnUrl === "string"
       ? safeInternalReturnUrl(router.query.returnUrl)
       : "/dashboard";
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const token = localStorage.getItem("stores_token");
+    if (token) {
+      router.replace(returnUrl);
+    }
+  }, [returnUrl, router]);
 
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -60,19 +68,19 @@ export default function LoginPage() {
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
-      <div className="min-h-screen flex" dir="rtl">
+      <div className="min-h-screen flex lg:grid lg:grid-cols-[0.9fr_1.1fr]" dir="rtl">
         {/* ── Right: Brand panel ──────────────────────────── */}
         <div
-          className="hidden lg:flex flex-col justify-between w-1/2 p-12"
+          className="hidden lg:flex flex-col justify-between w-full p-12"
           style={{
-            background: "linear-gradient(145deg, #071c12 0%, #0d3320 40%, #0f4a2a 100%)",
+            background: "linear-gradient(145deg, #062015 0%, #0b3b25 48%, #0f5132 100%)",
           }}
         >
           {/* Logo */}
           <div className="flex items-center gap-3">
             <div
               className="w-11 h-11 rounded-2xl flex items-center justify-center text-white font-extrabold text-xl"
-              style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}
+              style={{ background: "linear-gradient(135deg, #059669, #047857)" }}
             >
               م
             </div>
@@ -88,15 +96,15 @@ export default function LoginPage() {
             <div className="relative w-64 h-48 mx-auto">
               <div
                 className="absolute inset-0 rounded-3xl opacity-20"
-                style={{ background: "radial-gradient(circle at 50% 50%, #16a34a, transparent)" }}
+                style={{ background: "radial-gradient(circle at 50% 50%, #059669, transparent)" }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <svg viewBox="0 0 200 160" className="w-56 h-44 opacity-80">
                   {/* Storefront */}
-                  <rect x="30" y="60" width="140" height="90" rx="6" fill="#16a34a" opacity="0.3" />
+                  <rect x="30" y="60" width="140" height="90" rx="6" fill="#059669" opacity="0.3" />
                   <rect x="30" y="60" width="140" height="90" rx="6" stroke="#4ade80" strokeWidth="2" fill="none" />
                   {/* Awning */}
-                  <path d="M20 60 Q100 30 180 60" stroke="#4ade80" strokeWidth="3" fill="#16a34a" opacity="0.5" />
+                  <path d="M20 60 Q100 30 180 60" stroke="#4ade80" strokeWidth="3" fill="#059669" opacity="0.5" />
                   {/* Door */}
                   <rect x="80" y="105" width="40" height="45" rx="4" fill="#052e16" stroke="#4ade80" strokeWidth="1.5" />
                   <circle cx="115" cy="130" r="3" fill="#4ade80" />
@@ -108,7 +116,7 @@ export default function LoginPage() {
                   <rect x="54" y="83" width="8" height="12" rx="2" fill="#4ade80" opacity="0.7" />
                   <rect x="65" y="78" width="6" height="17" rx="2" fill="#86efac" opacity="0.5" />
                   {/* Sign */}
-                  <rect x="65" y="35" width="70" height="18" rx="4" fill="#16a34a" opacity="0.8" />
+                  <rect x="65" y="35" width="70" height="18" rx="4" fill="#059669" opacity="0.8" />
                   <text x="100" y="48" textAnchor="middle" fill="#f0fdf4" fontSize="10" fontWeight="bold">DASM</text>
                   {/* Stars / sparkles */}
                   <circle cx="165" cy="45" r="3" fill="#fbbf24" opacity="0.9" />
@@ -153,7 +161,7 @@ export default function LoginPage() {
           <div className="lg:hidden flex items-center gap-3 mb-10">
             <div
               className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-extrabold"
-              style={{ background: "linear-gradient(135deg, #16a34a, #15803d)" }}
+              style={{ background: "linear-gradient(135deg, #059669, #047857)" }}
             >
               م
             </div>
@@ -236,7 +244,7 @@ export default function LoginPage() {
                 type="submit"
                 disabled={busy}
                 className="w-full py-3 rounded-xl font-bold text-white text-sm transition disabled:opacity-60 flex items-center justify-center gap-2"
-                style={{ background: busy ? "#15803d" : "linear-gradient(135deg, #16a34a, #15803d)" }}
+                style={{ background: busy ? "#047857" : "linear-gradient(135deg, #059669, #047857)" }}
               >
                 {busy ? (
                   <>

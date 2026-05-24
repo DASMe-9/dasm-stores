@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type RefObject } from "react";
 import {
   Store,
   ArrowRight,
@@ -11,8 +11,9 @@ import {
   Package,
   Rocket,
   Check,
+  X,
 } from "lucide-react";
-import { sellerApi } from "@/lib/api";
+import { sellerApi, storeSelection, uploadApi } from "@/lib/api";
 
 export type SellerNavHandlers = {
   replace: (path: string) => void;
@@ -78,12 +79,58 @@ const RESERVED_SLUGS = new Set([
   "privacy",
 ]);
 
+const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif";
+const MAX_IMAGE_BYTES = {
+  logo: 5 * 1024 * 1024,
+  banner: 8 * 1024 * 1024,
+  product: 8 * 1024 * 1024,
+};
+const ALLOWED_IMAGE_TYPES = new Set([
+  "image/jpeg",
+  "image/pjpeg",
+  "image/png",
+  "image/webp",
+  "image/heic",
+  "image/heif",
+  "image/heic-sequence",
+  "image/heif-sequence",
+]);
+const ALLOWED_IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif"]);
+
+type UploadSlot = "logo" | "banner" | "product";
+
+function revokeIfObjectUrl(url: string | null | undefined) {
+  if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
+}
+
+function uploadErrorMessage(error: unknown) {
+  const err = error as { response?: { data?: { message?: string } }; message?: string };
+  return err.response?.data?.message ?? err.message ?? "تعذّر رفع الصورة حالياً.";
+}
+
+function isAllowedImageFile(file: File) {
+  if (ALLOWED_IMAGE_TYPES.has(file.type)) return true;
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return ALLOWED_IMAGE_EXTENSIONS.has(extension);
+}
+
 export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
   const [token, setToken] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
+  const objectUrlsRef = useRef<string[]>([]);
+  const logoInputRef = useRef<HTMLInputElement>(null);
+  const bannerInputRef = useRef<HTMLInputElement>(null);
+  const productImageInputRef = useRef<HTMLInputElement>(null);
+  const [previews, setPreviews] = useState<Partial<Record<UploadSlot, string>>>({});
+  const [uploading, setUploading] = useState<Record<UploadSlot, boolean>>({
+    logo: false,
+    banner: false,
+    product: false,
+  });
+  const [uploadErrors, setUploadErrors] = useState<Partial<Record<UploadSlot, string>>>({});
 
   const [form, setForm] = useState({
     name_ar: "",
@@ -96,6 +143,10 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
     palette: "emerald",
     first_product: { name: "", price: "", image_url: "" },
   });
+
+  useEffect(() => () => {
+    objectUrlsRef.current.forEach(revokeIfObjectUrl);
+  }, []);
 
   useEffect(() => {
     const t = localStorage.getItem("stores_token");
@@ -116,6 +167,9 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
   };
 
   const canNext = () => {
+    const uploadInProgress = uploading.logo || uploading.banner || uploading.product;
+    if (uploadInProgress) return false;
+
     if (step === 0) {
       return (
         Boolean(form.name_ar.trim()) &&
@@ -125,7 +179,12 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
       );
     }
     if (step === 1) return true;
-    if (step === 2) return true;
+    if (step === 2) {
+      const productName = form.first_product.name.trim();
+      const productPrice = Number(form.first_product.price);
+      const hasProductDraft = Boolean(productName || form.first_product.price.trim());
+      return !hasProductDraft || (Boolean(productName) && Number.isFinite(productPrice) && productPrice > 0);
+    }
     return true;
   };
 
@@ -137,10 +196,27 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
         : null;
 
   const handleSubmit = async () => {
+    if (uploading.logo || uploading.banner || uploading.product) {
+      setError("انتظر اكتمال رفع الصور أولاً.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
     try {
       const palette = PALETTES.find((p) => p.key === form.palette)!;
+      const themeVars = {
+        primary: palette.primary,
+        accent: palette.accent,
+        background: "#fafafa",
+        foreground: "#18181b",
+        card: "#ffffff",
+        border: "#e4e4e7",
+        muted: "#f4f4f5",
+        "muted-foreground": "#71717a",
+        "product-card-style": "rounded-shadow",
+        "header-style": "centered-logo",
+      };
       const payload = {
         name: form.name,
         name_ar: form.name_ar,
@@ -151,11 +227,21 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
         banner_url: form.banner_url || null,
         theme_config: {
           palette: form.palette,
+          custom_palette: true,
           primary: palette.primary,
           accent: palette.accent,
+          css_variables: themeVars,
+          header_style: "centered-logo",
+          product_card_style: "rounded-shadow",
+          hero_motion: "silk",
+          enabled_sections: ["hero", "featured_products", "categories", "promo_banner"],
+          preset_version: 1,
         },
       };
-      await sellerApi.createStore(payload);
+      const { data: createdStoreData } = await sellerApi.createStore(payload);
+      if (createdStoreData?.store?.id != null) {
+        storeSelection.set(String(createdStoreData.store.id));
+      }
 
       if (form.first_product.name && form.first_product.price) {
         try {
@@ -200,6 +286,84 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
       setError(msg);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const uploadImage = async (slot: UploadSlot, file: File) => {
+    if (!isAllowedImageFile(file)) {
+      setUploadErrors((current) => ({
+        ...current,
+        [slot]: "نوع الصورة غير مدعوم. استخدم JPG أو PNG أو WebP أو HEIC.",
+      }));
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_BYTES[slot]) {
+      setUploadErrors((current) => ({
+        ...current,
+        [slot]: `حجم الصورة أكبر من الحد المسموح (${slot === "logo" ? "5" : "8"}MB).`,
+      }));
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    objectUrlsRef.current.push(objectUrl);
+    setPreviews((current) => {
+      revokeIfObjectUrl(current[slot]);
+      return { ...current, [slot]: objectUrl };
+    });
+    setUploading((current) => ({ ...current, [slot]: true }));
+    setUploadErrors((current) => ({ ...current, [slot]: undefined }));
+
+    try {
+      const response =
+        slot === "logo"
+          ? await uploadApi.uploadStoreLogo(file)
+          : slot === "banner"
+            ? await uploadApi.uploadStoreBanner(file)
+            : await uploadApi.uploadStoreProductImage(file);
+      const secureUrl = response.data?.secure_url;
+      if (!secureUrl) throw new Error("لم يرجع الخادم رابط الصورة.");
+
+      if (slot === "logo") {
+        setField("logo_url", secureUrl);
+      } else if (slot === "banner") {
+        setField("banner_url", secureUrl);
+      } else {
+        setForm((current) => ({
+          ...current,
+          first_product: { ...current.first_product, image_url: secureUrl },
+        }));
+      }
+    } catch (caughtError: unknown) {
+      setUploadErrors((current) => ({ ...current, [slot]: uploadErrorMessage(caughtError) }));
+      if (slot === "logo") setField("logo_url", "");
+      if (slot === "banner") setField("banner_url", "");
+      if (slot === "product") {
+        setForm((current) => ({
+          ...current,
+          first_product: { ...current.first_product, image_url: "" },
+        }));
+      }
+    } finally {
+      setUploading((current) => ({ ...current, [slot]: false }));
+    }
+  };
+
+  const removeUploadedImage = (slot: UploadSlot) => {
+    setPreviews((current) => {
+      revokeIfObjectUrl(current[slot]);
+      return { ...current, [slot]: undefined };
+    });
+    setUploadErrors((current) => ({ ...current, [slot]: undefined }));
+
+    if (slot === "logo") setField("logo_url", "");
+    if (slot === "banner") setField("banner_url", "");
+    if (slot === "product") {
+      setForm((current) => ({
+        ...current,
+        first_product: { ...current.first_product, image_url: "" },
+      }));
     }
   };
 
@@ -403,27 +567,33 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">شعار المتجر (Logo URL)</label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={form.logo_url}
-                  onChange={(e) => setField("logo_url", e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
-                  dir="ltr"
+                <MediaUploadField
+                  label="شعار المتجر"
+                  hint="ارفع شعاراً واضحاً يظهر في واجهة المتجر."
+                  inputRef={logoInputRef}
+                  accept={IMAGE_ACCEPT}
+                  previewUrl={previews.logo || form.logo_url}
+                  uploading={uploading.logo}
+                  error={uploadErrors.logo}
+                  buttonLabel="اختيار شعار"
+                  onSelect={(file) => void uploadImage("logo", file)}
+                  onRemove={() => removeUploadedImage("logo")}
                 />
-                <p className="text-[11px] text-gray-400">سنضيف رفع مباشر بعد التفعيل.</p>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">غلاف المتجر (Banner URL)</label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={form.banner_url}
-                  onChange={(e) => setField("banner_url", e.target.value)}
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
-                  dir="ltr"
+                <MediaUploadField
+                  label="غلاف المتجر"
+                  hint="يفضل صورة أفقية عريضة لواجهة المتجر."
+                  inputRef={bannerInputRef}
+                  accept={IMAGE_ACCEPT}
+                  previewUrl={previews.banner || form.banner_url}
+                  uploading={uploading.banner}
+                  error={uploadErrors.banner}
+                  buttonLabel="اختيار غلاف"
+                  wide
+                  onSelect={(file) => void uploadImage("banner", file)}
+                  onRemove={() => removeUploadedImage("banner")}
                 />
               </div>
 
@@ -536,23 +706,24 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">صورة المنتج (URL)</label>
-                <input
-                  type="url"
-                  placeholder="https://..."
-                  value={form.first_product.image_url}
-                  onChange={(e) =>
-                    setField("first_product", { ...form.first_product, image_url: e.target.value })
-                  }
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 text-left"
-                  dir="ltr"
+                <MediaUploadField
+                  label="صورة المنتج"
+                  hint="يمكنك رفع صورة المنتج الآن أو تركها وإضافتها لاحقاً."
+                  inputRef={productImageInputRef}
+                  accept={IMAGE_ACCEPT}
+                  previewUrl={previews.product || form.first_product.image_url}
+                  uploading={uploading.product}
+                  error={uploadErrors.product}
+                  buttonLabel="اختيار صورة المنتج"
+                  onSelect={(file) => void uploadImage("product", file)}
+                  onRemove={() => removeUploadedImage("product")}
                 />
               </div>
 
-              <div className="rounded-xl bg-amber-50 border border-amber-100 p-3 flex gap-2 items-start">
-                <Upload className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-amber-800">
-                  رفع الصور المباشر سيُضاف لاحقاً. الآن استخدم روابط جاهزة.
+              <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3 flex gap-2 items-start">
+                <Upload className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                <p className="text-xs text-emerald-800">
+                  يتم حفظ صورة المنتج مباشرة، ويمكنك استبدالها لاحقاً من لوحة المنتجات.
                 </p>
               </div>
             </div>
@@ -573,11 +744,16 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                 <Row label="الرابط" value={`stores.dasm.com.sa/${form.slug}`} />
                 <Row label="التصنيف" value={CATEGORIES.find((c) => c.value === form.category)?.label} />
                 <Row label="اللون الأساسي" value={active.label} swatch={active.primary} />
+                <Row label="الشعار" value={form.logo_url ? "تم رفع الشعار" : "لم يتم رفع شعار"} />
+                <Row label="الغلاف" value={form.banner_url ? "تم رفع الغلاف" : "لم يتم رفع غلاف"} />
                 {form.first_product.name ? (
                   <Row
                     label="أول منتج"
                     value={`${form.first_product.name} — ${form.first_product.price || 0} ر.س`}
                   />
+                ) : null}
+                {form.first_product.image_url ? (
+                  <Row label="صورة أول منتج" value="تم رفع صورة المنتج" />
                 ) : null}
               </div>
 
@@ -619,7 +795,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
             <button
               type="button"
               onClick={() => void handleSubmit()}
-              disabled={loading}
+              disabled={loading || uploading.logo || uploading.banner || uploading.product}
               className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 disabled:opacity-60 transition"
             >
               {loading ? "جاري الإرسال..." : "إطلاق المتجر"}
@@ -628,6 +804,107 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
           )}
         </div>
       </main>
+    </div>
+  );
+}
+
+function MediaUploadField({
+  label,
+  hint,
+  inputRef,
+  accept,
+  previewUrl,
+  uploading,
+  error,
+  buttonLabel,
+  wide,
+  onSelect,
+  onRemove,
+}: {
+  label: string;
+  hint?: string;
+  inputRef: RefObject<HTMLInputElement | null>;
+  accept: string;
+  previewUrl?: string;
+  uploading?: boolean;
+  error?: string;
+  buttonLabel: string;
+  wide?: boolean;
+  onSelect: (file: File) => void;
+  onRemove: () => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <label className="text-sm font-medium text-gray-700">{label}</label>
+          {hint ? <p className="mt-1 text-[11px] leading-5 text-gray-400">{hint}</p> : null}
+        </div>
+        {previewUrl ? (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="grid h-8 w-8 place-items-center rounded-lg text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+            aria-label="إزالة الصورة"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        ) : null}
+      </div>
+
+      <input
+        ref={inputRef}
+        type="file"
+        accept={accept}
+        className="hidden"
+        onChange={(event) => {
+          const file = event.target.files?.[0];
+          event.currentTarget.value = "";
+          if (file) onSelect(file);
+        }}
+      />
+
+      {previewUrl ? (
+        <div
+          className={`relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50 ${
+            wide ? "aspect-[5/2]" : "aspect-square max-w-[180px]"
+          }`}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element -- supports blob previews before upload */}
+          <img src={previewUrl} alt={label} className="h-full w-full object-cover" />
+          {uploading ? (
+            <div className="absolute inset-0 grid place-items-center bg-white/75">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent" />
+            </div>
+          ) : null}
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          className={`flex w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-gray-400 transition hover:border-emerald-400 hover:bg-emerald-50/60 hover:text-emerald-700 ${
+            wide ? "aspect-[5/2]" : "min-h-32"
+          }`}
+        >
+          <Upload className="h-7 w-7" />
+          <span className="text-sm font-semibold">{uploading ? "جاري الرفع..." : buttonLabel}</span>
+          <span className="text-[10px]">JPG, PNG, WebP, HEIC</span>
+        </button>
+      )}
+
+      {previewUrl ? (
+        <button
+          type="button"
+          onClick={() => inputRef.current?.click()}
+          disabled={uploading}
+          className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 px-3 py-2 text-xs font-semibold text-gray-600 transition hover:border-emerald-200 hover:text-emerald-700 disabled:opacity-60"
+        >
+          <Upload className="h-3.5 w-3.5" />
+          {uploading ? "جاري الرفع..." : "استبدال الصورة"}
+        </button>
+      ) : null}
+
+      {error ? <p className="text-xs text-red-600">{error}</p> : null}
     </div>
   );
 }

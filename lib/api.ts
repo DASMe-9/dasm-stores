@@ -1,4 +1,4 @@
-import axios, { type InternalAxiosRequestConfig } from "axios";
+import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 
 import { clearStoresToken } from "./auth-token";
 import { DEFAULT_PLATFORM_API_ORIGIN } from "./platform-api-url";
@@ -23,6 +23,11 @@ type CheckoutPayload = {
 };
 type StorePayload = JsonRecord | FormData;
 const SELECTED_STORE_KEY = "dasm_selected_store_id";
+const STORE_HEADER = "X-DASM-Store-Id";
+
+type StoreSelectionConfig = InternalAxiosRequestConfig & {
+  _retryWithoutStoreSelection?: boolean;
+};
 
 export const storeSelection = {
   get: () => (typeof window === "undefined" ? null : localStorage.getItem(SELECTED_STORE_KEY)),
@@ -48,23 +53,88 @@ const localApi = axios.create({
 });
 
 // أضف التوكن تلقائياً لكل طلب
-const attachToken = (config: InternalAxiosRequestConfig) => {
+function attachAuthToken(config: InternalAxiosRequestConfig) {
   if (typeof window !== "undefined") {
     const token = localStorage.getItem("stores_token");
     if (token) config.headers.Authorization = `Bearer ${token}`;
-    const selectedStoreId = storeSelection.get();
-    if (selectedStoreId) config.headers["X-DASM-Store-Id"] = selectedStoreId;
   }
   return config;
-};
-api.interceptors.request.use(attachToken);
-platformApi.interceptors.request.use(attachToken);
-localApi.interceptors.request.use(attachToken);
+}
+
+function attachStoreContext(config: InternalAxiosRequestConfig) {
+  attachAuthToken(config);
+  if (typeof window !== "undefined") {
+    const selectedStoreId = storeSelection.get();
+    if (selectedStoreId) config.headers[STORE_HEADER] = selectedStoreId;
+  }
+  return config;
+}
+
+function isSellerStoreEndpoint(url: string | undefined) {
+  return !!url && (url.startsWith("/my-store") || url.startsWith("/my-stores"));
+}
+
+function syncSelectionFromSellerResponse(response: AxiosResponse) {
+  if (typeof window === "undefined" || !isSellerStoreEndpoint(response.config.url)) return;
+
+  const data = response.data as {
+    store?: { id?: string | number | null } | null;
+    stores?: Array<{ id?: string | number | null }>;
+    selected_store_id?: string | number | null;
+  };
+
+  if (data?.store?.id != null) {
+    storeSelection.set(String(data.store.id));
+    return;
+  }
+
+  if (Array.isArray(data?.stores)) {
+    const selected = data.selected_store_id == null ? null : String(data.selected_store_id);
+    const first = data.stores.find((store) => store.id != null)?.id;
+    const next =
+      selected && data.stores.some((store) => String(store.id) === selected)
+        ? selected
+        : first != null
+          ? String(first)
+          : "";
+
+    if (next) storeSelection.set(next);
+    else storeSelection.clear();
+    return;
+  }
+
+  if (response.config.url?.startsWith("/my-store") && data?.store === null) {
+    storeSelection.clear();
+  }
+}
+
+api.interceptors.request.use(attachStoreContext);
+platformApi.interceptors.request.use(attachAuthToken);
+localApi.interceptors.request.use(attachAuthToken);
 
 // لو 401 → وجّه لتسجيل الدخول
 api.interceptors.response.use(
-  (res) => res,
-  (err) => {
+  (res) => {
+    syncSelectionFromSellerResponse(res);
+    return res;
+  },
+  async (err) => {
+    const config = err.config as StoreSelectionConfig | undefined;
+    if (
+      err.response?.status === 404 &&
+      config &&
+      !config._retryWithoutStoreSelection &&
+      isSellerStoreEndpoint(config.url) &&
+      typeof window !== "undefined" &&
+      storeSelection.get()
+    ) {
+      storeSelection.clear();
+      config._retryWithoutStoreSelection = true;
+      delete config.headers?.[STORE_HEADER];
+      delete config.headers?.["x-dasm-store-id"];
+      return api(config);
+    }
+
     if (err.response?.status === 401 && typeof window !== "undefined") {
       clearStoresToken();
       window.location.href = "/auth/login";
@@ -156,6 +226,7 @@ type UploadResponse = {
   context?: string;
   source?: string;
 };
+type UploadContext = "store_product_image" | "store_logo" | "store_banner";
 
 function buildUploadFormData(file: File, context: string): FormData {
   const formData = new FormData();
@@ -176,16 +247,20 @@ function uploadViaLocalFallback(file: File, context: string) {
   });
 }
 
+async function uploadWithFallback(file: File, context: UploadContext) {
+  try {
+    return await uploadViaPlatform(file, context);
+  } catch {
+    return uploadViaLocalFallback(file, context);
+  }
+}
+
 export const uploadApi = {
   uploadMedia: uploadViaPlatform,
   uploadMediaLocal: uploadViaLocalFallback,
-  async uploadStoreProductImage(file: File) {
-    try {
-      return await uploadViaPlatform(file, "store_product_image");
-    } catch {
-      return uploadViaLocalFallback(file, "store_product_image");
-    }
-  },
+  uploadStoreLogo: (file: File) => uploadWithFallback(file, "store_logo"),
+  uploadStoreBanner: (file: File) => uploadWithFallback(file, "store_banner"),
+  uploadStoreProductImage: (file: File) => uploadWithFallback(file, "store_product_image"),
 };
 
 export { platformApi };

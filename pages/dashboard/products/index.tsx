@@ -23,6 +23,8 @@ export default function ProductsListPage() {
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [storeSlug, setStoreSlug] = useState("");
 
   useEffect(() => {
     const t = localStorage.getItem("stores_token");
@@ -36,12 +38,22 @@ export default function ProductsListPage() {
 
   const load = async () => {
     setLoading(true);
+    setError(null);
     try {
+      const storeRes = await sellerApi.getMyStore();
+      const store = storeRes.data?.store;
+      if (!store) {
+        router.replace("/stores/new");
+        return;
+      }
+      setStoreSlug(store.slug || "");
+
       const res = await sellerApi.getProducts();
       const d = res.data;
       setProducts((d?.products ?? d?.data ?? []) as StoreProduct[]);
-    } catch {
-      /* skip */
+    } catch (e: unknown) {
+      const err = e as { response?: { data?: { message?: string } }; message?: string };
+      setError(err.response?.data?.message ?? err.message ?? "تعذر تحميل المنتجات حالياً.");
     } finally {
       setLoading(false);
     }
@@ -80,6 +92,7 @@ export default function ProductsListPage() {
         subtitle="عرض وإدارة جميع منتجاتك"
         icon={Package}
         hasStore
+        storeSlug={storeSlug}
         actions={
           <Link
             href="/dashboard/products/new"
@@ -91,6 +104,12 @@ export default function ProductsListPage() {
         }
       >
         <div className="mx-auto max-w-4xl space-y-6">
+          {error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+              {error}
+            </div>
+          ) : null}
+
           {loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map((i) => (
@@ -173,6 +192,22 @@ export default function ProductsListPage() {
                       </div>
 
                       <div className="flex items-center gap-1 shrink-0">
+                        <Link
+                          href={`/dashboard/products/${product.id}`}
+                          className="rounded-lg p-2 text-gray-400 dark:text-zinc-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+                          title="تعديل"
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Link>
+                        {storeSlug ? (
+                          <Link
+                            href={`/store/${storeSlug}/products/${product.id}?preview=true`}
+                            className="rounded-lg p-2 text-gray-400 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200 transition"
+                            title="معاينة"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Link>
+                        ) : null}
                         <button
                           type="button"
                           onClick={() => handleDelete(product.id)}
