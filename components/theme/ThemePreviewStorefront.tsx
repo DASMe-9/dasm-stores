@@ -33,6 +33,7 @@ export function ThemePreviewStorefront({ preset }: { preset: ThemePreset }) {
         <div className="relative z-10 flex h-full flex-col justify-end p-3">
           <p className="text-[10px] font-bold text-white/80">معاينة المتجر</p>
           <p className="text-sm font-extrabold text-white drop-shadow">{preset.nameAr}</p>
+          <p className="mt-0.5 text-[10px] font-semibold text-white/85">قالب مجاني مضمن</p>
         </div>
       </div>
 

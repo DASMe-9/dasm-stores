@@ -30,6 +30,19 @@ function getErrorMessage(error: unknown, fallback: string) {
   return axiosError.response?.data?.message ?? fallback;
 }
 
+function clearSellerSessionCache() {
+  sessionStorage.removeItem("store_slug");
+  sessionStorage.removeItem("store_name");
+  sessionStorage.removeItem("store_user_id");
+  Object.keys(sessionStorage)
+    .filter((key) => key.startsWith("store_slug:") || key.startsWith("store_name:") || key.startsWith("store_status:"))
+    .forEach((key) => sessionStorage.removeItem(key));
+}
+
+function normalizeReturnUrl(value: string) {
+  return value.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
+}
+
 /**
  * SSO handoff from the main DASM platform.
  *
@@ -52,10 +65,14 @@ export default function SsoHandoff() {
       (typeof window !== "undefined" ? new URL(window.location.href).hash.match(/token=([^&]+)/)?.[1] ?? "" : "");
 
     const returnUrl =
-      typeof router.query.return_url === "string" ? router.query.return_url : "/dashboard";
+      typeof router.query.return_url === "string"
+        ? normalizeReturnUrl(router.query.return_url)
+        : "/dashboard";
 
     if (!token) {
       queueMicrotask(() => {
+        localStorage.removeItem("stores_token");
+        clearSellerSessionCache();
         setError("لم يصل توكن صالح من المنصة.");
         redirectTimer = setTimeout(() => router.replace("/auth/login"), 2000);
       });
@@ -65,6 +82,7 @@ export default function SsoHandoff() {
     }
 
     window.history.replaceState({}, "", "/auth/sso");
+    clearSellerSessionCache();
 
     (async () => {
       try {
@@ -77,6 +95,8 @@ export default function SsoHandoff() {
         const allowed = ["venue_owner", "dealer", "admin", "super_admin"];
 
         if (!allowed.includes(role)) {
+          localStorage.removeItem("stores_token");
+          clearSellerSessionCache();
           setError("حسابك ليس مخوّلاً لفتح متجر. يجب أن تكون صاحب معرض أو تاجر.");
           return;
         }
@@ -88,10 +108,15 @@ export default function SsoHandoff() {
           email: user?.email,
           role,
         }));
+        if (user?.id != null) {
+          sessionStorage.setItem("store_user_id", String(user.id));
+        }
 
         setStatus("تم التحقق، جاري التحويل...");
         router.replace(returnUrl);
       } catch (e: unknown) {
+        localStorage.removeItem("stores_token");
+        clearSellerSessionCache();
         setError(getErrorMessage(e, "فشل التحقق من الجلسة."));
         redirectTimer = setTimeout(() => router.replace("/auth/login"), 2500);
       }

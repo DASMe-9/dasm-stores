@@ -20,6 +20,7 @@ import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { ProfileFollowButton } from "@/components/social/ProfileFollowButton";
 import { canonicalUrl } from "@/lib/seo";
 import type { OwnerPublicProfile, ProfileViewerState, SocialSummary, StorePublic } from "@/lib/api-server";
+import { getStoreDisplayName } from "@/lib/store-display";
 import { resolveStoreCssVariables, resolveStoreTemplateConfig } from "@/lib/themes";
 
 type HeroTemplateConfig = {
@@ -52,6 +53,7 @@ export function StoreHeader({
   viewerState?: ProfileViewerState | null;
 }) {
   const areaName = store.area?.name_ar;
+  const storeName = getStoreDisplayName(store);
   const vars = resolveStoreCssVariables(store);
   const templateConfig = (resolveStoreTemplateConfig(store) ?? null) as HeroTemplateConfig | null;
   const heroVideoUrl = templateConfig?.hero_video_url ?? templateConfig?.heroVideoUrl ?? null;
@@ -71,7 +73,7 @@ export function StoreHeader({
             متاجر داسم
           </Link>
           <span className="text-[var(--muted-foreground)]">/</span>
-          <span className="text-[var(--foreground)] font-medium">{store.name}</span>
+          <span className="text-[var(--foreground)] font-medium">{storeName}</span>
         </div>
       </div>
       <div
@@ -134,7 +136,7 @@ export function StoreHeader({
           </div>
 
           <div className="order-2 min-w-0 flex-1 md:order-none">
-            <h1 className="text-2xl font-extrabold text-[var(--foreground)] md:text-3xl">{store.name}</h1>
+            <h1 className="text-2xl font-extrabold text-[var(--foreground)] md:text-3xl">{storeName}</h1>
             {store.description ? (
               <p className="mt-1 line-clamp-2 text-sm text-[var(--muted-foreground)]">
                 {store.description}
@@ -174,7 +176,7 @@ export function StoreHeader({
                 <Grid2X2 className="h-4 w-4" />
                 تصفح المنتجات
               </Link>
-              <ShareButton title={store.name} url={canonicalUrl(`/store/${slug}`)} />
+              <ShareButton title={storeName} url={canonicalUrl(`/store/${slug}`)} />
               <WhatsAppButton phone={store.contact_whatsapp} />
             </div>
             <div className="mt-4">
