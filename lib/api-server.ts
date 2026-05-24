@@ -58,6 +58,7 @@ export type CheckoutPayload = {
 export type ExploreStoreItem = {
   id: number;
   name: string;
+  name_ar?: string | null;
   slug: string;
   description: string | null;
   logo_url: string | null;
@@ -88,6 +89,7 @@ export type StoreShippingConfig = {
 export type StorePublic = {
   id: number;
   name: string;
+  name_ar?: string | null;
   slug: string;
   theme_id?: number | null;
   theme_config?: Record<string, unknown> | null;

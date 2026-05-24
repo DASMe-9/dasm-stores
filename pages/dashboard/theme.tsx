@@ -7,6 +7,7 @@ import { SellerShell } from "@/components/seller/SellerShell";
 import { ThemePicker } from "@/components/theme/ThemePicker";
 import { ThemePreviewStorefront } from "@/components/theme/ThemePreviewStorefront";
 import { sellerApi } from "@/lib/api";
+import { getStoreDisplayName } from "@/lib/store-display";
 import { storePath } from "@/lib/storefront-url";
 import {
   detectPresetFromThemeConfig,
@@ -26,6 +27,7 @@ export default function StoreThemePage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [storeSlug, setStoreSlug] = useState("");
   const [storeName, setStoreName] = useState("");
+  const [storeStatus, setStoreStatus] = useState("");
   const [marketFilter, setMarketFilter] = useState<ThemeMarket | "all">("all");
   const [selected, setSelected] = useState<ThemePreset | null>(null);
 
@@ -40,7 +42,8 @@ export default function StoreThemePage() {
         return;
       }
       setStoreSlug(store.slug || "");
-      setStoreName(store.name || store.name_ar || "");
+      setStoreName(getStoreDisplayName(store));
+      setStoreStatus(store.status || "");
       const themeConfig = (store.theme_config || {}) as Record<string, unknown>;
       const fromConfig = detectPresetFromThemeConfig(themeConfig);
       const fromThemeId = findPresetById(resolvePresetIdFromLegacyThemeId(store.theme_id));
@@ -101,17 +104,25 @@ export default function StoreThemePage() {
         hasStore
         storeSlug={storeSlug}
         storeName={storeName}
+        storeStatus={storeStatus}
         actions={
           storeSlug ? (
-            <a
-              href={storePath(storeSlug, { preview: true })}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
-            >
-              <ExternalLink className="h-3.5 w-3.5" />
-              معاينة حية
-            </a>
+            <div className="flex flex-wrap items-center gap-2">
+              <a
+                href={storePath(storeSlug, { preview: true })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+              >
+                <ExternalLink className="h-3.5 w-3.5" />
+                معاينة حية
+              </a>
+              {storeStatus && storeStatus !== "active" ? (
+                <span className="inline-flex items-center gap-1 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+                  المتجر غير منشور بعد
+                </span>
+              ) : null}
+            </div>
           ) : null
         }
       >
@@ -125,8 +136,8 @@ export default function StoreThemePage() {
             <div className="rounded-2xl border border-emerald-200/60 bg-gradient-to-l from-emerald-50 to-white p-5 dark:border-emerald-900/40 dark:from-emerald-950/40 dark:to-zinc-900">
               <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">معرض القوالب</h1>
               <p className="mt-1 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                20 قالباً جاهزاً لقطاعات السيارات والتجزئة. اختر القالب المناسب لعلامتك ثم احفظه ليظهر مباشرة في
-                واجهة متجرك.
+                20 قالباً مجانياً جاهزاً لقطاعات السيارات والتجزئة. التغييرات تُحفظ عبر API المنصة وتنعكس على واجهة
+                المتجر العامة فوراً بعد الحفظ.
               </p>
             </div>
 
