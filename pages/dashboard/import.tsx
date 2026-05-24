@@ -26,6 +26,7 @@ type ImportConnection = {
   settings?: {
     external_name?: string | null;
     external_domain?: string | null;
+    shop_domain?: string | null;
   } | null;
   recent_runs?: ImportRun[];
 };
@@ -33,6 +34,7 @@ type ImportConnection = {
 type ImportStatusResponse = {
   connections?: ImportConnection[];
   salla_configured?: boolean;
+  shopify_configured?: boolean;
 };
 
 function statusLabel(status?: string | null): string {
@@ -70,8 +72,11 @@ function DashboardImportPage() {
   const [flash, setFlash] = useState<string | null>(null);
   const [data, setData] = useState<ImportStatusResponse | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
+  const [shopDomain, setShopDomain] = useState("");
+  const [shopifyPreview, setShopifyPreview] = useState<ImportPreview | null>(null);
 
   const sallaConnection = data?.connections?.find((c) => c.provider === "salla");
+  const shopifyConnection = data?.connections?.find((c) => c.provider === "shopify");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -98,6 +103,7 @@ function DashboardImportPage() {
   useEffect(() => {
     if (!router.isReady) return;
     const salla = router.query.salla;
+    const shopify = router.query.shopify;
     const message = router.query.message;
     if (typeof salla === "string") {
       if (salla === "connected") {
@@ -105,6 +111,16 @@ function DashboardImportPage() {
         void load();
       } else if (salla === "error") {
         setFlash(typeof message === "string" ? message : "فشل ربط Salla");
+      }
+      router.replace("/dashboard/import", undefined, { shallow: true });
+      return;
+    }
+    if (typeof shopify === "string") {
+      if (shopify === "connected") {
+        setFlash(typeof message === "string" ? message : "تم ربط Shopify بنجاح");
+        void load();
+      } else if (shopify === "error") {
+        setFlash(typeof message === "string" ? message : "فشل ربط Shopify");
       }
       router.replace("/dashboard/import", undefined, { shallow: true });
     }
@@ -155,7 +171,7 @@ function DashboardImportPage() {
 
   async function disconnectSalla() {
     if (!window.confirm("فصل Salla؟ لن يُحذف المنتجات المستوردة.")) return;
-    setBusy("disconnect");
+    setBusy("disconnect-salla");
     setFlash(null);
     try {
       await sellerApi.disconnectSalla();
@@ -168,14 +184,77 @@ function DashboardImportPage() {
     }
   }
 
+  async function connectShopify() {
+    const shop = shopDomain.trim();
+    if (!shop) {
+      setFlash("أدخل نطاق متجر Shopify (مثل mystore.myshopify.com)");
+      return;
+    }
+    setBusy("connect-shopify");
+    setFlash(null);
+    try {
+      const res = await sellerApi.getShopifyAuthorizeUrl({ shop });
+      const url = (res.data as { authorize_url?: string }).authorize_url;
+      if (!url) throw new Error("missing authorize_url");
+      window.location.href = url;
+    } catch {
+      setFlash("تعذّر بدء ربط Shopify. تأكد من النطاق وأن الخدمة مفعّلة على المنصة.");
+      setBusy(null);
+    }
+  }
+
+  async function runShopifyPreview() {
+    setBusy("preview-shopify");
+    setFlash(null);
+    setShopifyPreview(null);
+    try {
+      const res = await sellerApi.previewShopifyImport({ limit: 200 });
+      const payload = (res.data as { data?: ImportPreview }).data;
+      setShopifyPreview(payload ?? null);
+    } catch {
+      setFlash("تعذّرت معاينة منتجات Shopify. تأكد أن المتجر مربوط.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function runShopifyImport() {
+    setBusy("import-shopify");
+    setFlash(null);
+    try {
+      await sellerApi.runShopifyImport({ limit: 200 });
+      setFlash("بدأ استيراد منتجات Shopify في الخلفية. حدّث الصفحة بعد دقيقة.");
+      await load();
+    } catch {
+      setFlash("تعذّر بدء استيراد Shopify. تأكد أن المتجر مربوط.");
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  async function disconnectShopify() {
+    if (!window.confirm("فصل Shopify؟ لن تُحذف المنتجات المستوردة.")) return;
+    setBusy("disconnect-shopify");
+    setFlash(null);
+    try {
+      await sellerApi.disconnectShopify();
+      setFlash("تم فصل Shopify");
+      await load();
+    } catch {
+      setFlash("تعذّر فصل Shopify");
+    } finally {
+      setBusy(null);
+    }
+  }
+
   return (
     <>
       <Head>
-        <title>استيراد من Salla — متاجر داسم</title>
+        <title>استيراد المنتجات — متاجر داسم</title>
       </Head>
       <SellerShell
         title="استيراد المنتجات"
-        subtitle="اربط متجر Salla واستورد الكatalog إلى متجر داسم"
+        subtitle="اربط Salla أو Shopify واستورد الكatalog إلى متجر داسم"
         icon={Download}
         hasStore
         actions={
@@ -333,6 +412,156 @@ function DashboardImportPage() {
                   </thead>
                   <tbody>
                     {sallaConnection.recent_runs.map((run) => (
+                      <tr key={run.id} className="border-b border-zinc-100 dark:border-zinc-800">
+                        <td className="py-2 pe-4">{statusLabel(run.status)}</td>
+                        <td className="py-2 pe-4">{run.products_imported ?? 0}</td>
+                        <td className="py-2 pe-4">{run.products_skipped ?? 0}</td>
+                        <td className="py-2">
+                          {run.finished_at
+                            ? new Date(run.finished_at).toLocaleString("ar-SA")
+                            : run.started_at
+                              ? new Date(run.started_at).toLocaleString("ar-SA")
+                              : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Shopify</h2>
+                <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+                  OAuth على نطاق متجرك — استيراد المنتجات عبر Admin REST API.
+                </p>
+              </div>
+              <span
+                className={[
+                  "rounded-full px-3 py-1 text-xs font-semibold",
+                  shopifyConnection?.connected
+                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
+                    : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
+                ].join(" ")}
+              >
+                {loading ? "…" : shopifyConnection?.connected ? "متصل" : "غير مربوط"}
+              </span>
+            </div>
+
+            {!loading && data?.shopify_configured === false && (
+              <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+                ربط Shopify غير مفعّل على الخادم بعد. أضف SHOPIFY_CLIENT_ID/SECRET على Render ثم أعد المحاولة.
+              </p>
+            )}
+
+            {shopifyConnection?.connected && (
+              <dl className="mt-4 grid gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                {shopifyConnection.settings?.shop_domain && (
+                  <div>
+                    <dt className="inline font-medium">النطاق: </dt>
+                    <dd className="inline font-mono">{shopifyConnection.settings.shop_domain}</dd>
+                  </div>
+                )}
+                {shopifyConnection.settings?.external_name && (
+                  <div>
+                    <dt className="inline font-medium">المتجر: </dt>
+                    <dd className="inline">{shopifyConnection.settings.external_name}</dd>
+                  </div>
+                )}
+                {shopifyConnection.last_sync_at && (
+                  <div>
+                    <dt className="inline font-medium">آخر مزامنة: </dt>
+                    <dd className="inline">
+                      {new Date(shopifyConnection.last_sync_at).toLocaleString("ar-SA")} —{" "}
+                      {statusLabel(shopifyConnection.last_sync_status)}
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            )}
+
+            <div className="mt-6 flex flex-wrap gap-3">
+              {!shopifyConnection?.connected ? (
+                <>
+                  <input
+                    type="text"
+                    value={shopDomain}
+                    onChange={(e) => setShopDomain(e.target.value)}
+                    placeholder="mystore.myshopify.com"
+                    className="min-w-[220px] flex-1 rounded-xl border border-zinc-200 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
+                    aria-label="نطاق Shopify"
+                  />
+                  <button
+                    type="button"
+                    disabled={busy !== null || data?.shopify_configured === false}
+                    onClick={() => void connectShopify()}
+                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    <Link2 className="h-4 w-4" />
+                    {busy === "connect-shopify" ? "جاري التحويل…" : "ربط Shopify"}
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    onClick={() => void runShopifyPreview()}
+                    className="inline-flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  >
+                    <Eye className="h-4 w-4" />
+                    {busy === "preview-shopify" ? "جاري المعاينة…" : "معاينة قبل الاستيراد"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    onClick={() => void runShopifyImport()}
+                    className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    <Download className="h-4 w-4" />
+                    {busy === "import-shopify" ? "جاري البدء…" : "استيراد المنتجات"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy !== null}
+                    onClick={() => void disconnectShopify()}
+                    className="inline-flex items-center gap-2 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-900/50 dark:text-red-300"
+                  >
+                    <Unplug className="h-4 w-4" />
+                    فصل
+                  </button>
+                </>
+              )}
+            </div>
+
+            {shopifyPreview && (
+              <div className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">معاينة Shopify</h3>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                  في Shopify: <strong>{shopifyPreview.total_remote ?? 0}</strong> — جديد:{" "}
+                  <strong>{shopifyPreview.would_import ?? 0}</strong> — موجود:{" "}
+                  <strong>{shopifyPreview.would_skip ?? 0}</strong>
+                </p>
+              </div>
+            )}
+
+            {shopifyConnection?.recent_runs && shopifyConnection.recent_runs.length > 0 && (
+              <div className="mt-8 overflow-x-auto">
+                <h3 className="mb-3 text-sm font-semibold text-zinc-800 dark:text-zinc-200">آخر عمليات Shopify</h3>
+                <table className="min-w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-zinc-200 text-right dark:border-zinc-700">
+                      <th className="py-2 pe-4">الحالة</th>
+                      <th className="py-2 pe-4">مستورد</th>
+                      <th className="py-2 pe-4">متخطّى</th>
+                      <th className="py-2">الوقت</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shopifyConnection.recent_runs.map((run) => (
                       <tr key={run.id} className="border-b border-zinc-100 dark:border-zinc-800">
                         <td className="py-2 pe-4">{statusLabel(run.status)}</td>
                         <td className="py-2 pe-4">{run.products_imported ?? 0}</td>
