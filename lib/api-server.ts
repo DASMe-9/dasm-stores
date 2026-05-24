@@ -167,6 +167,7 @@ export type StoreShowResponse = {
   viewer_state?: ProfileViewerState | null;
   has_payment: boolean;
   shipping?: StoreShippingSummary;
+  marketing_tracking?: import("@/lib/marketing-tracking").MarketingTrackingConfig | null;
 };
 
 export type StoreTab = {

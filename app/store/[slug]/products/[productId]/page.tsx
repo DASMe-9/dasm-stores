@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductPurchaseSection } from "@/components/product/ProductPurchaseSection";
 import { ProductReviews } from "@/components/product/ProductReviews";
+import { ProductViewTracker } from "@/components/store/ProductViewTracker";
 import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getProduct, getStore } from "@/lib/api-server";
@@ -59,6 +60,12 @@ export default async function ProductDetailPage({
 
   return (
     <>
+      <ProductViewTracker
+        config={storeData.marketing_tracking}
+        productId={product.id}
+        productName={product.name}
+        price={Number(product.price)}
+      />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(crumbs) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(pSchema) }} />
 
@@ -81,7 +88,11 @@ export default async function ProductDetailPage({
           {product.sku ? (
             <p className="text-xs text-[var(--muted-foreground)]">SKU: {product.sku}</p>
           ) : null}
-          <ProductPurchaseSection slug={slug} product={product} />
+          <ProductPurchaseSection
+            slug={slug}
+            product={product}
+            trackingConfig={storeData.marketing_tracking}
+          />
           <div className="flex flex-wrap gap-2">
             <WhatsAppButton phone={storeData.store.contact_whatsapp} label="استفسر عبر واتساب" />
             <ShareButton

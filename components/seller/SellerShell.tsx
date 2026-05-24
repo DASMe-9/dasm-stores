@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Eye,
   LayoutDashboard,
+  Megaphone,
   Menu,
   Moon,
   Palette,
@@ -103,9 +104,16 @@ const MAIN_NAV: NavItem[] = [
   },
   {
     href: "/dashboard/import",
-    label: "استيراد Salla",
+    label: "استيراد وترحيل",
     icon: Download,
     match: (p) => p.startsWith("/dashboard/import"),
+    requiresStore: true,
+  },
+  {
+    href: "/dashboard/marketing",
+    label: "التتبع التسويقي",
+    icon: Megaphone,
+    match: (p) => p.startsWith("/dashboard/marketing"),
     requiresStore: true,
   },
   {

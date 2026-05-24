@@ -1,4 +1,7 @@
 import Link from "next/link";
+import { CheckoutSuccessTracker } from "@/components/store/CheckoutSuccessTracker";
+import { getStore } from "@/lib/api-server";
+import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 
 export default async function CheckoutSuccessPage({
   params,
@@ -10,9 +13,16 @@ export default async function CheckoutSuccessPage({
   const { slug } = await params;
   const sp = await searchParams;
   const order = sp.order;
+  const requestContext = await getStorefrontRequestContext();
+  const storeData = await getStore(slug, requestContext);
 
   return (
     <div className="mx-auto max-w-lg rounded-2xl border border-[var(--border)] bg-[var(--card)] p-8 text-center space-y-4">
+      <CheckoutSuccessTracker
+        slug={slug}
+        orderNumber={order}
+        config={storeData?.marketing_tracking}
+      />
       <h1 className="text-xl font-bold">تم استلام الطلب</h1>
       <p className="text-sm text-[var(--muted-foreground)]">
         شكراً لثقتك. إن وُجد رابط دفع فقد تم توجيهك إليه؛ ويمكنك متابعة حالة الطلب من صفحة التتبع.
