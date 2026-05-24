@@ -217,6 +217,12 @@ export const sellerApi = {
   createShippingConfig: (data: JsonRecord) => api.post("/my-store/shipping-config", data),
   updateShippingConfig: (id: number, data: JsonRecord) => api.put(`/my-store/shipping-config/${id}`, data),
   deleteShippingConfig: (id: number) => api.delete(`/my-store/shipping-config/${id}`),
+
+  // استيراد Salla (M2)
+  getImportStatus: () => api.get("/my-store/import"),
+  getSallaAuthorizeUrl: () => api.get("/my-store/import/salla/authorize"),
+  disconnectSalla: () => api.delete("/my-store/import/salla"),
+  runSallaImport: (data?: JsonRecord) => api.post("/my-store/import/salla/run", data ?? {}),
 };
 
 /* ── Upload (goes to platform API, not stores API) ── */
