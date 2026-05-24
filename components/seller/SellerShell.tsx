@@ -14,6 +14,7 @@ import {
   Palette,
   Package,
   Plus,
+  Settings,
   ShoppingCart,
   Store,
   Sun,
@@ -76,6 +77,12 @@ const MAIN_NAV: NavItem[] = [
     label: "لوحة التحكم",
     icon: LayoutDashboard,
     match: (p) => p === "/dashboard",
+  },
+  {
+    href: "/dashboard/settings",
+    label: "إعدادات المتجر",
+    icon: Settings,
+    match: (p) => p === "/dashboard/settings",
   },
   {
     href: "/dashboard/theme",

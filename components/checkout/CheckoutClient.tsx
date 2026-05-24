@@ -14,13 +14,16 @@ import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { PaymentLogos } from "@/components/shared/PaymentLogos";
 
 type TryotoRateRow = {
-  delivery_option_id: string;
-  carrier: string;
+  id: string;
+  delivery_option_id?: number | string | null;
+  provider: string;
+  carrier?: string;
   service_name: string;
-  oto_base_sar: number;
-  platform_markup_sar: number;
-  weight_adjustment_sar: number;
-  buyer_shipping_sar: number;
+  total_price: number;
+  carrier_price?: number;
+  platform_fee?: number;
+  seller_markup?: number;
+  buyer_shipping_sar?: number;
 };
 
 function legacyShipPreview(cfg: StoreShippingConfig, subtotal: number): number {
@@ -63,7 +66,16 @@ export function CheckoutClient({
       customer_name: "",
       customer_email: "",
       customer_phone: "",
-      shipping_address: { city: "", district: "", street: "", zip: "", short_address: "" },
+      shipping_address: {
+        city: "",
+        district: "",
+        street: "",
+        zip: "",
+        short_address: "",
+        gps_lat: undefined,
+        gps_lng: undefined,
+        gps_accuracy_m: undefined,
+      },
     };
   });
 
@@ -82,6 +94,8 @@ export function CheckoutClient({
   const [tryotoLoading, setTryotoLoading] = useState(false);
   const [tryotoError, setTryotoError] = useState<string | null>(null);
   const [selectedTryotoId, setSelectedTryotoId] = useState<string | null>(null);
+  const [gpsLoading, setGpsLoading] = useState(false);
+  const [gpsMessage, setGpsMessage] = useState<string | null>(null);
 
   const tryotoOn = Boolean(shippingSummary?.tryoto_enabled);
   const legacyOn = shippingConfigs.length > 0;
@@ -118,18 +132,13 @@ export function CheckoutClient({
     setTryotoError(null);
     try {
       const res = await fetch(
-        `/api/public-store/${encodeURIComponent(slug)}/shipping-quote`,
+        `/api/public-store/${encodeURIComponent(slug)}/shipping-rates`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json", Accept: "application/json" },
           body: JSON.stringify({
             destination_city: city,
-            estimated_order_subtotal: Math.round(subtotal * 100) / 100,
-            items: items.map((i) => ({
-              product_id: i.productId,
-              variant_id: i.variantId,
-              quantity: i.quantity,
-            })),
+            weight_kg: Math.max(1, items.reduce((sum, i) => sum + i.quantity, 0)),
           }),
           cache: "no-store",
         },
@@ -155,7 +164,7 @@ export function CheckoutClient({
     } finally {
       setTryotoLoading(false);
     }
-  }, [form.shipping_address.city, items, slug, subtotal]);
+  }, [form.shipping_address.city, items, slug]);
 
   /* تحديث تلقائي للأسعار عند تعديل المدينة أو السلة (مع تأخير بسيط) */
   useEffect(() => {
@@ -182,13 +191,44 @@ export function CheckoutClient({
 
   const tryotoShippingPreview = useMemo(() => {
     if (!selectedTryotoId) return 0;
-    const row = tryotoRates.find((r) => r.delivery_option_id === selectedTryotoId);
-    return row ? Number(row.buyer_shipping_sar) : 0;
+    const row = tryotoRates.find((r) => r.id === selectedTryotoId);
+    return row ? Number(row.buyer_shipping_sar ?? row.total_price ?? 0) : 0;
   }, [selectedTryotoId, tryotoRates]);
 
   const shippingPreview = tryotoShippingPreview || legacyShippingPreview;
   const vat = subtotal * 0.15;
   const grand = subtotal + vat + shippingPreview;
+
+  function captureGps() {
+    setGpsMessage(null);
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGpsMessage("المتصفح لا يدعم تحديد الموقع.");
+      return;
+    }
+
+    setGpsLoading(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude, accuracy } = position.coords;
+        setForm({
+          ...form,
+          shipping_address: {
+            ...form.shipping_address,
+            gps_lat: Number(latitude.toFixed(7)),
+            gps_lng: Number(longitude.toFixed(7)),
+            gps_accuracy_m: Math.round(accuracy),
+          },
+        });
+        setGpsMessage("تم التقاط الموقع وسيُرسل مع عنوان الشحن.");
+        setGpsLoading(false);
+      },
+      () => {
+        setGpsMessage("تعذّر التقاط الموقع. تأكد من سماح المتصفح.");
+        setGpsLoading(false);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 },
+    );
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -221,9 +261,18 @@ export function CheckoutClient({
       };
 
       if (selectedTryotoId) {
-        payload.tryoto_delivery_option_id = selectedTryotoId;
+        const selectedRate = tryotoRates.find((rate) => rate.id === selectedTryotoId);
+        payload.shipping_rate_id = selectedTryotoId;
+        payload.shipping_cost = selectedRate
+          ? Number(selectedRate.buyer_shipping_sar ?? selectedRate.total_price ?? 0)
+          : undefined;
+        const optionId = selectedRate?.delivery_option_id;
+        if (optionId != null && !Number.isNaN(Number(optionId))) {
+          payload.delivery_option_id = Number(optionId);
+        }
       } else if (selectedShippingId != null) {
         payload.shipping_config_id = selectedShippingId;
+        payload.shipping_rate_id = `flat_${selectedShippingId}`;
       }
 
       const result = await submitCheckout(slug, payload);
@@ -376,6 +425,31 @@ export function CheckoutClient({
             className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
           />
         </div>
+        <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/20 p-3">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <p className="text-sm font-semibold">تحديد الموقع GPS</p>
+              <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">
+                اختياري، ويساعد الشحن على مطابقة العنوان عند إنشاء الطلب.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={captureGps}
+              disabled={gpsLoading}
+              className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs font-bold hover:bg-[var(--card)] disabled:opacity-60"
+            >
+              {gpsLoading ? "جاري التحديد..." : "استخدام موقعي"}
+            </button>
+          </div>
+          {form.shipping_address.gps_lat != null && form.shipping_address.gps_lng != null ? (
+            <p className="mt-2 text-xs text-[var(--muted-foreground)]" dir="ltr">
+              {form.shipping_address.gps_lat}, {form.shipping_address.gps_lng}
+              {form.shipping_address.gps_accuracy_m ? ` +/-${form.shipping_address.gps_accuracy_m}m` : ""}
+            </p>
+          ) : null}
+          {gpsMessage ? <p className="mt-2 text-xs text-[var(--muted-foreground)]">{gpsMessage}</p> : null}
+        </div>
 
         {tryotoOn ? (
           <fieldset className="space-y-3 rounded-xl border border-[var(--border)] bg-[var(--muted)]/20 p-4">
@@ -421,27 +495,27 @@ export function CheckoutClient({
               <div className="space-y-2">
                 {tryotoRates.map((r) => (
                   <label
-                    key={r.delivery_option_id}
+                    key={r.id}
                     className="flex cursor-pointer items-start gap-3 rounded-xl border border-[var(--border)] bg-[var(--card)] p-3"
                   >
                     <input
                       type="radio"
                       name="tryoto_ship"
-                      checked={selectedTryotoId === r.delivery_option_id}
+                      checked={selectedTryotoId === r.id}
                       onChange={() => {
-                        setSelectedTryotoId(r.delivery_option_id);
+                        setSelectedTryotoId(r.id);
                         setShipping(null);
                       }}
                     />
                     <span className="text-sm leading-relaxed">
-                      <span className="font-semibold">{r.carrier}</span>
+                      <span className="font-semibold">{r.carrier ?? r.provider}</span>
                       {r.service_name ? (
                         <span className="text-[var(--muted-foreground)]"> — {r.service_name}</span>
                       ) : null}
                       <span className="mt-1 block text-xs text-[var(--muted-foreground)]">
                         شحن للعميل:{" "}
                         <strong className="text-[var(--foreground)]">
-                          {Number(r.buyer_shipping_sar).toFixed(2)}
+                          {Number(r.buyer_shipping_sar ?? r.total_price ?? 0).toFixed(2)}
                         </strong>{" "}
                         ر.س (يشمل رسوم المنصة والطبقة الثانية للوزن إن وُجدت)
                       </span>

@@ -50,4 +50,3 @@ This change does not read or change env files, migrations, payment/banking code,
 - Add a global featured-products API so the home page does not need to sample products per store.
 - Add a global tracking resolver if DASM wants order tracking without choosing a store first.
 - Add admin-controlled ad inventory records for the slots above.
-- Add paid third-party theme marketplace support after the free theme/ad surface is stable.
