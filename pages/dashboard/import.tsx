@@ -26,6 +26,7 @@ type ImportConnection = {
   settings?: {
     external_name?: string | null;
     external_domain?: string | null;
+    shop_domain?: string | null;
   } | null;
   recent_runs?: ImportRun[];
 };
