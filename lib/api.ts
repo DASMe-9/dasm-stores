@@ -218,12 +218,16 @@ export const sellerApi = {
   updateShippingConfig: (id: number, data: JsonRecord) => api.put(`/my-store/shipping-config/${id}`, data),
   deleteShippingConfig: (id: number) => api.delete(`/my-store/shipping-config/${id}`),
 
-  // استيراد Salla (M2)
+  // استيراد Salla (M2) + Shopify (M4)
   getImportStatus: () => api.get("/my-store/import"),
   getSallaAuthorizeUrl: () => api.get("/my-store/import/salla/authorize"),
   previewSallaImport: (params?: QueryParams) => api.get("/my-store/import/salla/preview", { params }),
   disconnectSalla: () => api.delete("/my-store/import/salla"),
   runSallaImport: (data?: JsonRecord) => api.post("/my-store/import/salla/run", data ?? {}),
+  getShopifyAuthorizeUrl: (params: QueryParams) => api.get("/my-store/import/shopify/authorize", { params }),
+  previewShopifyImport: (params?: QueryParams) => api.get("/my-store/import/shopify/preview", { params }),
+  disconnectShopify: () => api.delete("/my-store/import/shopify"),
+  runShopifyImport: (data?: JsonRecord) => api.post("/my-store/import/shopify/run", data ?? {}),
 };
 
 /* ── Upload (goes to platform API, not stores API) ── */
