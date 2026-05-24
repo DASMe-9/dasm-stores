@@ -4,6 +4,7 @@ import { StoreChrome } from "@/components/store/StoreChrome";
 import { StoreHeader } from "@/components/store/StoreHeader";
 import { StoreTabsNav } from "@/components/store/StoreTabsNav";
 import { StoreThemeApplier } from "@/components/store/StoreThemeApplier";
+import { StoreTrackingPixels } from "@/components/store/StoreTrackingPixels";
 import { getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import { clip } from "@/lib/seo";
@@ -55,6 +56,7 @@ export default async function StoreLayout({ children, params }: Props) {
 
   return (
     <>
+      <StoreTrackingPixels config={data.marketing_tracking} />
       <StoreThemeApplier vars={vars} />
       <div data-product-card-style={productCardStyle} className="store-front-root">
         <StoreChrome slug={slug} whatsapp={store.contact_whatsapp} />

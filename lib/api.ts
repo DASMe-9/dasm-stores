@@ -228,6 +228,27 @@ export const sellerApi = {
   previewShopifyImport: (params?: QueryParams) => api.get("/my-store/import/shopify/preview", { params }),
   disconnectShopify: () => api.delete("/my-store/import/shopify"),
   runShopifyImport: (data?: JsonRecord) => api.post("/my-store/import/shopify/run", data ?? {}),
+  getMigrationStats: () => api.get("/my-store/import/migration-stats"),
+  importOrdersCsv: (file: File, provider = "shopify") => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("provider", provider);
+    return api.post("/my-store/import/orders-csv", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+  importCustomersCsv: (file: File, provider = "shopify") => {
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("provider", provider);
+    return api.post("/my-store/import/customers-csv", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+  },
+
+  // التتبع التسويقي (M4.1)
+  getMarketingConfig: () => api.get("/my-store/marketing"),
+  updateMarketingConfig: (data: JsonRecord) => api.put("/my-store/marketing", data),
 };
 
 /* ── Upload (goes to platform API, not stores API) ── */

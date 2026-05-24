@@ -3,14 +3,18 @@
 import { useMemo, useState } from "react";
 import { ShoppingBag } from "lucide-react";
 import type { StoreProductDetail, StoreProductVariant } from "@/lib/api-server";
+import type { MarketingTrackingConfig } from "@/lib/marketing-tracking";
+import { trackAddToCart } from "@/lib/marketing-tracking";
 import { useCartStore } from "@/store/cartStore";
 
 export function ProductPurchaseSection({
   slug,
   product,
+  trackingConfig,
 }: {
   slug: string;
   product: StoreProductDetail & { variants?: StoreProductVariant[] };
+  trackingConfig?: MarketingTrackingConfig | null;
 }) {
   const active = useMemo(
     () => (product.variants ?? []).filter((v) => v.is_active !== false),
@@ -41,6 +45,12 @@ export function ProductPurchaseSection({
       price: unitPrice,
       quantity: 1,
       image: primaryImage,
+    });
+    trackAddToCart(trackingConfig, {
+      content_id: String(product.id),
+      content_name: product.name,
+      value: unitPrice,
+      quantity: 1,
     });
     openDrawer();
   }

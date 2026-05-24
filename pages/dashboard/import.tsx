@@ -74,6 +74,8 @@ function DashboardImportPage() {
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [shopDomain, setShopDomain] = useState("");
   const [shopifyPreview, setShopifyPreview] = useState<ImportPreview | null>(null);
+  const [migrationStats, setMigrationStats] = useState<{ imported_orders?: number; marketing_contacts?: number } | null>(null);
+  const [csvResult, setCsvResult] = useState<string | null>(null);
 
   const sallaConnection = data?.connections?.find((c) => c.provider === "salla");
   const shopifyConnection = data?.connections?.find((c) => c.provider === "shopify");
@@ -83,6 +85,12 @@ function DashboardImportPage() {
     try {
       const res = await sellerApi.getImportStatus();
       setData(res.data as ImportStatusResponse);
+      try {
+        const statsRes = await sellerApi.getMigrationStats();
+        setMigrationStats(statsRes.data as { imported_orders?: number; marketing_contacts?: number });
+      } catch {
+        setMigrationStats(null);
+      }
     } catch {
       setFlash("تعذّر تحميل حالة الاستيراد");
     } finally {
@@ -580,6 +588,68 @@ function DashboardImportPage() {
               </div>
             )}
           </section>
+
+          <section className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">ترحيل CSV (طلبات + عملاء)</h2>
+            <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+              بعد إعادة تفعيل Shopify (1 يونيو): صدّر Orders وCustomers من لوحة Shopify وارفع الملفات هنا. الطلبات تظهر للقراءة في لوحتك؛ جهات الاتصال للتسويق فقط (بدون كلمات مرور).
+            </p>
+            {migrationStats ? (
+              <p className="mt-3 text-sm text-zinc-700 dark:text-zinc-300">
+                مستورد: <strong>{migrationStats.imported_orders ?? 0}</strong> طلب —{" "}
+                <strong>{migrationStats.marketing_contacts ?? 0}</strong> جهة اتصال
+              </p>
+            ) : null}
+            {csvResult ? (
+              <p className="mt-3 rounded-xl bg-emerald-50 px-4 py-2 text-sm text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">
+                {csvResult}
+              </p>
+            ) : null}
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <CsvUploadCard
+                label="طلبات Shopify (orders_export.csv)"
+                busy={busy === "orders-csv"}
+                onFile={async (file) => {
+                  setBusy("orders-csv");
+                  setCsvResult(null);
+                  try {
+                    const res = await sellerApi.importOrdersCsv(file, "shopify");
+                    const body = res.data as { imported?: number; skipped?: number; errors?: string[] };
+                    setCsvResult(
+                      `طلبات: ${body.imported ?? 0} جديد، ${body.skipped ?? 0} متخطّى` +
+                        (body.errors?.length ? ` — ${body.errors.slice(0, 2).join("؛ ")}` : ""),
+                    );
+                    void load();
+                  } catch {
+                    setCsvResult("فشل رفع ملف الطلبات");
+                  } finally {
+                    setBusy(null);
+                  }
+                }}
+              />
+              <CsvUploadCard
+                label="عملاء Shopify (customers_export.csv)"
+                busy={busy === "customers-csv"}
+                onFile={async (file) => {
+                  setBusy("customers-csv");
+                  setCsvResult(null);
+                  try {
+                    const res = await sellerApi.importCustomersCsv(file, "shopify");
+                    const body = res.data as { imported?: number; skipped?: number; errors?: string[] };
+                    setCsvResult(
+                      `عملاء: ${body.imported ?? 0} جديد، ${body.skipped ?? 0} متخطّى` +
+                        (body.errors?.length ? ` — ${body.errors.slice(0, 2).join("؛ ")}` : ""),
+                    );
+                    void load();
+                  } catch {
+                    setCsvResult("فشل رفع ملف العملاء");
+                  } finally {
+                    setBusy(null);
+                  }
+                }}
+              />
+            </div>
+          </section>
         </div>
       </SellerShell>
     </>
@@ -587,3 +657,31 @@ function DashboardImportPage() {
 }
 
 export default DashboardImportPage;
+
+function CsvUploadCard({
+  label,
+  busy,
+  onFile,
+}: {
+  label: string;
+  busy: boolean;
+  onFile: (file: File) => Promise<void>;
+}) {
+  return (
+    <label className="flex cursor-pointer flex-col gap-2 rounded-xl border border-dashed border-zinc-300 p-4 text-sm dark:border-zinc-600">
+      <span className="font-semibold text-zinc-800 dark:text-zinc-200">{label}</span>
+      <input
+        type="file"
+        accept=".csv,text/csv"
+        disabled={busy}
+        className="text-xs"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) void onFile(file);
+          e.target.value = "";
+        }}
+      />
+      {busy ? <span className="text-xs text-zinc-500">جاري الرفع…</span> : null}
+    </label>
+  );
+}
