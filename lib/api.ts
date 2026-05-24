@@ -221,6 +221,7 @@ export const sellerApi = {
   // استيراد Salla (M2)
   getImportStatus: () => api.get("/my-store/import"),
   getSallaAuthorizeUrl: () => api.get("/my-store/import/salla/authorize"),
+  previewSallaImport: (params?: QueryParams) => api.get("/my-store/import/salla/preview", { params }),
   disconnectSalla: () => api.delete("/my-store/import/salla"),
   runSallaImport: (data?: JsonRecord) => api.post("/my-store/import/salla/run", data ?? {}),
 };

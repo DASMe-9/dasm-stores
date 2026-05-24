@@ -2,7 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
-import { Download, Link2, RefreshCw, Unplug } from "lucide-react";
+import { Download, Eye, Link2, RefreshCw, Unplug } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi } from "@/lib/api";
 
@@ -50,12 +50,26 @@ function statusLabel(status?: string | null): string {
   }
 }
 
-export default function DashboardImportPage() {
+type ImportPreview = {
+  total_remote?: number;
+  would_import?: number;
+  would_skip?: number;
+  sample_new_products?: Array<{
+    external_id?: string;
+    name?: string;
+    price?: number;
+    sku?: string | null;
+    image_url?: string | null;
+  }>;
+};
+
+function DashboardImportPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
   const [data, setData] = useState<ImportStatusResponse | null>(null);
+  const [preview, setPreview] = useState<ImportPreview | null>(null);
 
   const sallaConnection = data?.connections?.find((c) => c.provider === "salla");
 
@@ -106,6 +120,21 @@ export default function DashboardImportPage() {
       window.location.href = url;
     } catch {
       setFlash("تعذّر بدء ربط Salla. تأكد أن الخدمة مفعّلة على المنصة.");
+      setBusy(null);
+    }
+  }
+
+  async function runPreview() {
+    setBusy("preview");
+    setFlash(null);
+    setPreview(null);
+    try {
+      const res = await sellerApi.previewSallaImport({ limit: 200 });
+      const payload = (res.data as { data?: ImportPreview }).data;
+      setPreview(payload ?? null);
+    } catch {
+      setFlash("تعذّرت معاينة المنتجات. تأكد أن Salla مربوطة.");
+    } finally {
       setBusy(null);
     }
   }
@@ -232,6 +261,15 @@ export default function DashboardImportPage() {
                   <button
                     type="button"
                     disabled={busy !== null}
+                    onClick={() => void runPreview()}
+                    className="inline-flex items-center gap-2 rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-100 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+                  >
+                    <Eye className="h-4 w-4" />
+                    {busy === "preview" ? "جاري المعاينة…" : "معاينة قبل الاستيراد"}
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy !== null}
                     onClick={() => void runImport()}
                     className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
                   >
@@ -256,6 +294,30 @@ export default function DashboardImportPage() {
                 عرض المنتجات
               </Link>
             </div>
+
+            {preview && (
+              <div className="mt-6 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 dark:border-zinc-700 dark:bg-zinc-800/50">
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">نتيجة المعاينة (dry-run)</h3>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+                  في Salla: <strong>{preview.total_remote ?? 0}</strong> — جديد:{" "}
+                  <strong>{preview.would_import ?? 0}</strong> — موجود مسبقاً:{" "}
+                  <strong>{preview.would_skip ?? 0}</strong>
+                </p>
+                {preview.sample_new_products && preview.sample_new_products.length > 0 && (
+                  <ul className="mt-3 space-y-2 text-sm">
+                    {preview.sample_new_products.map((item) => (
+                      <li
+                        key={item.external_id ?? item.name}
+                        className="flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 dark:bg-zinc-900"
+                      >
+                        <span className="font-medium text-zinc-800 dark:text-zinc-100">{item.name}</span>
+                        <span className="text-zinc-500">{item.price ?? 0} ر.س</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
 
             {sallaConnection?.recent_runs && sallaConnection.recent_runs.length > 0 && (
               <div className="mt-8 overflow-x-auto">
@@ -294,3 +356,5 @@ export default function DashboardImportPage() {
     </>
   );
 }
+
+export default DashboardImportPage;
