@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import {
   CreditCard,
+  Download,
   ExternalLink,
   Eye,
   LayoutDashboard,
@@ -98,6 +99,13 @@ const MAIN_NAV: NavItem[] = [
     label: "المنتجات",
     icon: Package,
     match: (p) => p === "/dashboard/products",
+    requiresStore: true,
+  },
+  {
+    href: "/dashboard/import",
+    label: "استيراد Salla",
+    icon: Download,
+    match: (p) => p.startsWith("/dashboard/import"),
     requiresStore: true,
   },
   {
