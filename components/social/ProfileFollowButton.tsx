@@ -20,6 +20,14 @@ async function parseJson(res: Response): Promise<Record<string, unknown>> {
   }
 }
 
+function apiMessage(body: Record<string, unknown>, fallback: string): string {
+  const message = typeof body.message === "string" ? body.message : "";
+  if (message.includes("No query results for model")) {
+    return "تعذر العثور على ملف صاحب المتجر حالياً. حدث الصفحة ثم حاول مرة أخرى.";
+  }
+  return message || fallback;
+}
+
 export function ProfileFollowButton({
   owner,
   socialSummary,
@@ -69,7 +77,7 @@ export function ProfileFollowButton({
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
       const body = await parseJson(res);
-      if (!res.ok) throw new Error(String(body.message || "تعذر تحديث المتابعة."));
+      if (!res.ok) throw new Error(apiMessage(body, "تعذر تحديث المتابعة."));
 
       setIsFollowing(next);
       setFollowers((current) => Math.max(0, current + (next ? 1 : -1)));
@@ -95,7 +103,7 @@ export function ProfileFollowButton({
         headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
       });
       const body = await parseJson(res);
-      if (!res.ok) throw new Error(String(body.message || "تعذر تحديث الإعجاب."));
+      if (!res.ok) throw new Error(apiMessage(body, "تعذر تحديث الإعجاب."));
 
       const next = Boolean((body.data as { has_reacted?: boolean } | undefined)?.has_reacted ?? !hasReacted);
       setHasReacted(next);

@@ -27,17 +27,6 @@ function firstErrorMessage(error: unknown, fallback: string): string {
   return err.response?.data?.message ?? err.message ?? fallback;
 }
 
-function hasTabValidationError(error: unknown): boolean {
-  const err = error as ApiErrorShape;
-  if (err.response?.status !== 422) return false;
-
-  const fieldErrors = err.response?.data?.errors;
-  if (fieldErrors?.tab_id?.length) return true;
-
-  const msg = (err.response?.data?.message ?? "").toLowerCase();
-  return msg.includes("tab");
-}
-
 function revokeIfObjectUrl(url: string | null) {
   if (url?.startsWith("blob:")) {
     URL.revokeObjectURL(url);
@@ -47,7 +36,6 @@ function revokeIfObjectUrl(url: string | null) {
 export default function NewProductPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
-  const [tabs, setTabs] = useState<{ id: number; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -58,7 +46,6 @@ export default function NewProductPage() {
     sku: "",
     price: "",
     weight_kg: "1",
-    tab_id: "",
     status: "active" as "draft" | "active",
     primary_image_url: "",
   });
@@ -76,17 +63,6 @@ export default function NewProductPage() {
       if (!storeRes.data?.store) {
         router.replace("/stores/new");
         return;
-      }
-      try {
-        const tabsRes = await sellerApi.getTabs();
-        const raw = (tabsRes.data as { tabs?: { id: number; name: string }[] })?.tabs ?? [];
-        const mapped = raw.map((x) => ({ id: x.id, name: x.name }));
-        setTabs(mapped);
-        if (mapped.length) {
-          setForm((f) => ({ ...f, tab_id: f.tab_id || String(mapped[0].id) }));
-        }
-      } catch {
-        setTabs([]);
       }
     } catch {
       setError("تعذّر تحميل بيانات المتجر حالياً. حاول مرة أخرى بعد قليل.");
@@ -161,40 +137,26 @@ export default function NewProductPage() {
         return;
       }
 
-      const buildPayload = (withTab: boolean): Record<string, unknown> => {
-        const payload: Record<string, unknown> = {
-          name: form.name.trim(),
-          description: form.description.trim() || undefined,
-          sku: form.sku.trim() || undefined,
-          price: numericPrice,
-          weight: Number(form.weight_kg) > 0 ? Number(form.weight_kg) : 1,
-          status: form.status,
-          product_type: "physical",
-        };
-
-        if (withTab && form.tab_id) payload.tab_id = parseInt(form.tab_id, 10);
-
-        if (form.primary_image_url.trim()) {
-          payload.images = [
-            {
-              url: form.primary_image_url.trim(),
-              is_primary: true,
-            },
-          ];
-        }
-
-        return payload;
+      const payload: Record<string, unknown> = {
+        name: form.name.trim(),
+        description: form.description.trim() || undefined,
+        sku: form.sku.trim() || undefined,
+        price: numericPrice,
+        weight: Number(form.weight_kg) > 0 ? Number(form.weight_kg) : 1,
+        status: form.status,
+        product_type: "physical",
       };
 
-      try {
-        await sellerApi.createProduct(buildPayload(true));
-      } catch (e: unknown) {
-        if (!form.tab_id || !hasTabValidationError(e)) throw e;
-
-        // قد يكون التبويب غير متاح حالياً (تم حذفه مثلاً) — نكمل الإضافة بدون تبويب.
-        await sellerApi.createProduct(buildPayload(false));
+      if (form.primary_image_url.trim()) {
+        payload.images = [
+          {
+            url: form.primary_image_url.trim(),
+            is_primary: true,
+          },
+        ];
       }
 
+      await sellerApi.createProduct(payload);
       router.push("/dashboard/products");
     } catch (e: unknown) {
       setError(firstErrorMessage(e, "تعذّر إنشاء المنتج حالياً."));
@@ -267,22 +229,6 @@ export default function NewProductPage() {
                 onChange={(e) => setForm((f) => ({ ...f, weight_kg: e.target.value }))}
                 className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
               />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">التبويب</label>
-              <select
-                value={form.tab_id}
-                onChange={(e) => setForm((f) => ({ ...f, tab_id: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
-              >
-                <option value="">بدون تبويب (اختياري)</option>
-                {tabs.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.name}
-                  </option>
-                ))}
-              </select>
             </div>
 
             <div className="space-y-1.5">
@@ -362,12 +308,6 @@ export default function NewProductPage() {
                 className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 resize-none focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
-
-            {tabs.length === 0 ? (
-              <p className="rounded-xl border border-emerald-100 bg-emerald-50 px-3 py-2 text-[11px] text-emerald-700 dark:border-emerald-900/60 dark:bg-emerald-950/30 dark:text-emerald-300">
-                يمكنك إضافة المنتج الآن بدون تبويب، ثم تنظيم المنتجات داخل تبويبات لاحقاً.
-              </p>
-            ) : null}
 
             {error ? <p className="text-xs text-red-600">{error}</p> : null}
 

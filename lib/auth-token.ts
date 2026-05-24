@@ -1,5 +1,6 @@
 const TOKEN_KEY = "stores_token";
 const USER_KEY = "stores_user";
+const SELECTED_STORE_KEY = "dasm_selected_store_id";
 const PREVIEW_SLUG_COOKIE = "stores_preview_slug";
 const COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
 
@@ -29,6 +30,7 @@ export function clearStoresToken(): void {
 
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(USER_KEY);
+  localStorage.removeItem(SELECTED_STORE_KEY);
   document.cookie = `${TOKEN_KEY}=; Path=/; SameSite=Lax; Max-Age=0${cookieSecurePart()}`;
   document.cookie = `${PREVIEW_SLUG_COOKIE}=; Path=/; SameSite=Lax; Max-Age=0${cookieSecurePart()}`;
 }

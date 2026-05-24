@@ -6,21 +6,33 @@ import { STOREFRONT_ORIGIN } from "@/lib/storefront-url";
 
 export const runtime = "nodejs";
 
-const MAX_FILE_SIZE_BYTES = 8 * 1024 * 1024;
 const ALLOWED_MIME_TYPES = new Set([
   "image/jpeg",
+  "image/pjpeg",
   "image/png",
   "image/webp",
   "image/heic",
   "image/heif",
+  "image/heic-sequence",
+  "image/heif-sequence",
 ]);
 
 const MIME_EXTENSION_MAP: Record<string, string> = {
   "image/jpeg": "jpg",
+  "image/pjpeg": "jpg",
   "image/png": "png",
   "image/webp": "webp",
   "image/heic": "heic",
   "image/heif": "heif",
+  "image/heic-sequence": "heic",
+  "image/heif-sequence": "heif",
+};
+const ALLOWED_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif"]);
+
+const CONTEXT_CONFIGS: Record<string, { dir: string; maxBytes: number }> = {
+  store_product_image: { dir: "store-products", maxBytes: 8 * 1024 * 1024 },
+  store_logo: { dir: "store-logos", maxBytes: 5 * 1024 * 1024 },
+  store_banner: { dir: "store-banners", maxBytes: 8 * 1024 * 1024 },
 };
 
 function safeExtension(name: string, mimeType: string): string {
@@ -31,6 +43,12 @@ function safeExtension(name: string, mimeType: string): string {
   if (/^[a-z0-9]{2,8}$/.test(fromName)) return fromName;
 
   return "jpg";
+}
+
+function isAllowedImage(file: File): boolean {
+  if (ALLOWED_MIME_TYPES.has(file.type)) return true;
+  const extension = path.extname(file.name).replace(".", "").trim().toLowerCase();
+  return ALLOWED_EXTENSIONS.has(extension);
 }
 
 function requestOrigin(request: Request): string {
@@ -53,8 +71,9 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
     const file = formData.get("file");
-    const context = String(formData.get("context") ?? "").trim();
-    if (context && context !== "store_product_image") {
+    const context = String(formData.get("context") ?? "store_product_image").trim() || "store_product_image";
+    const config = CONTEXT_CONFIGS[context];
+    if (!config) {
       return NextResponse.json(
         { status: "error", message: "سياق الرفع غير مدعوم." },
         { status: 422 },
@@ -68,14 +87,14 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!ALLOWED_MIME_TYPES.has(file.type)) {
+    if (!isAllowedImage(file)) {
       return NextResponse.json(
         { status: "error", message: "نوع الملف غير مدعوم." },
         { status: 422 },
       );
     }
 
-    if (file.size > MAX_FILE_SIZE_BYTES) {
+    if (file.size > config.maxBytes) {
       return NextResponse.json(
         { status: "error", message: "حجم الملف يتجاوز الحد المسموح." },
         { status: 422 },
@@ -85,7 +104,7 @@ export async function POST(request: Request) {
     const now = new Date();
     const year = String(now.getFullYear());
     const month = String(now.getMonth() + 1).padStart(2, "0");
-    const baseDir = path.join(process.cwd(), "public", "uploads", "store-products", year, month);
+    const baseDir = path.join(process.cwd(), "public", "uploads", config.dir, year, month);
     await mkdir(baseDir, { recursive: true });
 
     const extension = safeExtension(file.name, file.type);
@@ -95,13 +114,13 @@ export async function POST(request: Request) {
     const bytes = await file.arrayBuffer();
     await writeFile(filePath, new Uint8Array(bytes));
 
-    const relativePath = `/uploads/store-products/${year}/${month}/${filename}`;
+    const relativePath = `/uploads/${config.dir}/${year}/${month}/${filename}`;
     const secureUrl = new URL(relativePath, requestOrigin(request)).toString();
 
     return NextResponse.json({
       status: "ok",
       secure_url: secureUrl,
-      context: context || "store_product_image",
+      context,
       source: "local",
     });
   } catch {

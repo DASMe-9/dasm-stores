@@ -146,13 +146,13 @@ export default function ResetPasswordPage() {
       </Head>
 
       <main className="min-h-screen bg-white text-slate-950 dark:bg-gray-950 dark:text-white" dir="rtl">
-        <div className="min-h-screen lg:grid lg:grid-cols-[0.88fr_1.12fr]">
-          <section className="relative hidden overflow-hidden bg-[#071c12] px-10 py-10 lg:flex lg:flex-col lg:justify-between">
-            <div className="absolute inset-0 bg-[linear-gradient(145deg,#071c12_0%,#0d3320_48%,#123c32_100%)]" />
+        <div className="min-h-screen lg:grid lg:grid-cols-[0.9fr_1.1fr]">
+          <section className="relative hidden overflow-hidden bg-[#062015] px-10 py-10 lg:flex lg:flex-col lg:justify-between">
+            <div className="absolute inset-0 bg-[linear-gradient(145deg,#062015_0%,#0b3b25_48%,#0f5132_100%)]" />
             <div className="absolute inset-x-10 top-28 h-px bg-gradient-to-l from-transparent via-emerald-300/30 to-transparent" />
 
             <div className="relative z-10 flex items-center gap-3">
-              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-emerald-600 text-lg font-extrabold text-white">
+              <div className="grid h-11 w-11 place-items-center rounded-2xl bg-[#047857] text-lg font-extrabold text-white">
                 م
               </div>
               <div>
@@ -192,7 +192,7 @@ export default function ResetPasswordPage() {
                 تسجيل الدخول
               </Link>
               <div className="flex items-center gap-3 lg:hidden">
-                <div className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-600 font-extrabold text-white">
+                <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#047857] font-extrabold text-white">
                   م
                 </div>
                 <div>
@@ -298,7 +298,7 @@ export default function ResetPasswordPage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-l from-emerald-700 to-teal-600 px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-emerald-950/10 transition hover:from-emerald-800 hover:to-teal-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 dark:focus:ring-offset-gray-950"
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#047857] px-5 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-emerald-950/10 transition hover:bg-[#065f46] focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70 dark:focus:ring-offset-gray-950"
                 >
                   {loading
                     ? hasToken

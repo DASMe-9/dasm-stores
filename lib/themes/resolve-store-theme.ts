@@ -32,6 +32,41 @@ function readVar(vars: Record<string, string>, key: string): string | null {
   return vars[key] ?? vars[`--${key}`] ?? null;
 }
 
+function readString(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function writeStringVar(vars: Record<string, string>, key: string, value: unknown) {
+  const stringValue = readString(value);
+  if (stringValue) vars[key] = stringValue;
+}
+
+function varsFromThemeConfig(themeConfig: Record<string, unknown> | null | undefined): Record<string, string> | undefined {
+  if (!themeConfig) return undefined;
+
+  const nestedVars = asObject(themeConfig.css_variables);
+  const vars: Record<string, string> = {};
+
+  if (nestedVars) {
+    for (const [key, value] of Object.entries(nestedVars)) {
+      writeStringVar(vars, key.replace(/^--/, ""), value);
+    }
+  }
+
+  writeStringVar(vars, "primary", themeConfig.primary);
+  writeStringVar(vars, "accent", themeConfig.accent);
+  writeStringVar(vars, "background", themeConfig.background);
+  writeStringVar(vars, "foreground", themeConfig.foreground);
+  writeStringVar(vars, "card", themeConfig.card);
+  writeStringVar(vars, "border", themeConfig.border);
+  writeStringVar(vars, "muted", themeConfig.muted);
+  writeStringVar(vars, "muted-foreground", themeConfig["muted-foreground"] ?? themeConfig.muted_foreground);
+  writeStringVar(vars, "product-card-style", themeConfig.product_card_style);
+  writeStringVar(vars, "header-style", themeConfig.header_style);
+
+  return Object.keys(vars).length > 0 ? vars : undefined;
+}
+
 function writeVarIfMissing(vars: Record<string, string>, key: string, value: string) {
   if (vars[key] || vars[`--${key}`]) return;
   vars[key] = value;
@@ -90,15 +125,21 @@ function pickPreset(store: StorePublic) {
 }
 
 export function resolveStoreCssVariables(store: StorePublic): Record<string, string> | undefined {
+  const storeThemeConfig = asObject(store.theme_config);
   const preset = pickPreset(store);
   const fromPreset = preset ? presetToStoreTheme(preset).css_variables : undefined;
   const fromTheme = store.theme?.css_variables ?? undefined;
+  const fromStoreConfig = varsFromThemeConfig(storeThemeConfig);
 
-  if (hasEntries(fromTheme)) {
-    return withDerivedVars(fromPreset ? { ...fromPreset, ...fromTheme } : fromTheme);
+  if (fromPreset || hasEntries(fromTheme) || fromStoreConfig) {
+    return withDerivedVars({
+      ...(fromPreset ?? {}),
+      ...(hasEntries(fromTheme) ? fromTheme : {}),
+      ...(fromStoreConfig ?? {}),
+    });
   }
 
-  return withDerivedVars(fromPreset);
+  return undefined;
 }
 
 export function resolveStoreTemplateConfig(store: StorePublic): JsonObject | null {

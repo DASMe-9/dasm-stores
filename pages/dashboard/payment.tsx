@@ -63,25 +63,28 @@ export default function PaymentSettingsPage() {
     try {
       const res = await sellerApi.getMyStore();
       const store = res.data?.store;
-      if (store) {
-        setFinance({
-          subscription_status: store.subscription_status || "trial",
-          trial_ends_at: store.trial_ends_at,
-          monthly_fee_sar: store.monthly_fee_sar ?? 25,
-          commission_rate: store.commission_rate ?? 0.02,
-          iban: store.iban,
-          bank_name: store.bank_name,
-          account_holder_name: store.account_holder_name,
-          total_sales: store.total_sales ?? 0,
-          total_commission: store.total_commission ?? 0,
-          available_balance: store.available_balance ?? 0,
-        });
-        setIbanForm({
-          iban: store.iban || "",
-          bank_name: store.bank_name || "",
-          account_holder_name: store.account_holder_name || "",
-        });
+      if (!store) {
+        router.replace("/stores/new");
+        return;
       }
+
+      setFinance({
+        subscription_status: store.subscription_status || "trial",
+        trial_ends_at: store.trial_ends_at,
+        monthly_fee_sar: store.monthly_fee_sar ?? 25,
+        commission_rate: store.commission_rate ?? 0.02,
+        iban: store.iban,
+        bank_name: store.bank_name,
+        account_holder_name: store.account_holder_name,
+        total_sales: store.total_sales ?? 0,
+        total_commission: store.total_commission ?? 0,
+        available_balance: store.available_balance ?? 0,
+      });
+      setIbanForm({
+        iban: store.iban || "",
+        bank_name: store.bank_name || "",
+        account_holder_name: store.account_holder_name || "",
+      });
     } catch {
       /* skip */
     } finally {

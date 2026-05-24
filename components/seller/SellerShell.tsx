@@ -46,6 +46,7 @@ type NavItem = {
   icon: ElementType;
   match?: (path: string) => boolean;
   badge?: string;
+  requiresStore?: boolean;
 };
 
 type SellerStoreOption = {
@@ -83,36 +84,42 @@ const MAIN_NAV: NavItem[] = [
     label: "إعدادات المتجر",
     icon: Settings,
     match: (p) => p === "/dashboard/settings",
+    requiresStore: true,
   },
   {
     href: "/dashboard/theme",
     label: "تصميم المتجر",
     icon: Palette,
     match: (p) => p === "/dashboard/theme",
+    requiresStore: true,
   },
   {
     href: "/dashboard/products",
     label: "المنتجات",
     icon: Package,
     match: (p) => p === "/dashboard/products",
+    requiresStore: true,
   },
   {
     href: "/dashboard/products/new",
     label: "أضف منتج",
     icon: Plus,
     match: (p) => p === "/dashboard/products/new",
+    requiresStore: true,
   },
   {
     href: "/dashboard/payment",
     label: "المالية والدفع",
     icon: CreditCard,
     match: (p) => p === "/dashboard/payment",
+    requiresStore: true,
   },
   {
     href: "/dashboard/shipping",
     label: "الشحن والتوصيل",
     icon: Truck,
     match: (p) => p.startsWith("/dashboard/shipping"),
+    requiresStore: true,
   },
 ];
 
@@ -224,7 +231,28 @@ export function SellerShell({
               ? String(list[0].id)
               : "";
         setSelectedStoreId(selected);
-        if (!stored && selected) storeSelection.set(selected);
+        if (selected) {
+          storeSelection.set(selected);
+          const selectedStore = list.find((store) => String(store.id) === selected);
+          if (selectedStore?.slug) {
+            const name = getStoreDisplayName(selectedStore);
+            const status = selectedStore.status || "";
+            setCachedSlug(selectedStore.slug);
+            setCachedName(name);
+            setCachedStatus(status);
+            const resolvedUserId = getCurrentStoreUserId();
+            if (resolvedUserId) {
+              sessionStorage.setItem(sellerCacheKey(resolvedUserId, "slug"), selectedStore.slug);
+              sessionStorage.setItem(sellerCacheKey(resolvedUserId, "name"), name);
+              sessionStorage.setItem(sellerCacheKey(resolvedUserId, "status"), status);
+            }
+          }
+        } else {
+          storeSelection.clear();
+          setCachedSlug("");
+          setCachedName("");
+          setCachedStatus("");
+        }
       })
       .catch(() => {});
 
@@ -296,12 +324,14 @@ export function SellerShell({
           </p>
           <div className="space-y-1">
             {MAIN_NAV.map((item) => {
-              const active = item.match ? item.match(pathname) : pathname === item.href;
+              const shouldCreateStoreFirst = item.requiresStore && hasStore === false;
+              const href = shouldCreateStoreFirst ? "/stores/new" : item.href;
+              const active = !shouldCreateStoreFirst && (item.match ? item.match(pathname) : pathname === item.href);
               const ItemIcon = item.icon;
               return (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={href}
                   onClick={() => setDrawerOpen(false)}
                   className={navLinkClass(active)}
                 >

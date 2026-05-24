@@ -1,0 +1,16 @@
+{
+  "name": "DASM Stores",
+  "short_name": "DASM Stores",
+  "description": "DASM merchant storefronts and seller dashboard.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#059669",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "48x48 32x32 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}
