@@ -117,6 +117,13 @@ const MAIN_NAV: NavItem[] = [
     requiresStore: true,
   },
   {
+    href: "/dashboard/pos",
+    label: "نقطة البيع",
+    icon: ShoppingCart,
+    match: (p) => p.startsWith("/dashboard/pos"),
+    requiresStore: true,
+  },
+  {
     href: "/dashboard/products/new",
     label: "أضف منتج",
     icon: Plus,
