@@ -76,20 +76,13 @@ function DashboardMarketingPage() {
       <Head>
         <title>التتبع التسويقي — متاجر داسم</title>
       </Head>
-      <SellerShell>
+      <SellerShell
+        title="التتبع التسويقي"
+        subtitle="TikTok وSnap وMeta — انسخ معرفات البيكسل بعد ترحيل Cheerly Live"
+        icon={Megaphone}
+        hasStore
+      >
         <div className="mx-auto max-w-2xl space-y-6">
-          <div className="flex items-center gap-3">
-            <div className="rounded-xl bg-emerald-100 p-2 dark:bg-emerald-950">
-              <Megaphone className="h-5 w-5 text-emerald-700 dark:text-emerald-300" />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-50">التتبع التسويقي</h1>
-              <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                TikTok وSnap وMeta — انسخ معرفات البيكسل من لوحة الإعلانات بعد ترحيل Cheerly Live
-              </p>
-            </div>
-          </div>
-
           {flash ? (
             <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
               {flash}
