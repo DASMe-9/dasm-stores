@@ -9,7 +9,7 @@
 
 | الطبقة | المكان | القاعدة |
 |--------|--------|---------|
-| هوية المستخدم | **Core API** `POST {NEXT_PUBLIC_API_URL}/api/login` (افتراضي Render: `dasm-platform-backend.onrender.com`) | لا SSO redirect، لا Supabase Auth مباشر، لا جدول `users` في Services |
+| هوية المستخدم | **Core API** `POST {NEXT_PUBLIC_API_URL}/api/login` (افتراضي Render: `dasm-laravel.onrender.com`) | لا SSO redirect، لا Supabase Auth مباشر، لا جدول `users` في Services |
 | API المتاجر | **Core API** `/api/stores/*` | `dasm-stores` يحفظ `stores_token` (Sanctum) ويرسل `Authorization: Bearer` |
 | واجهة المتاجر | **`dasm-stores`** (Vercel) | عرض + لوحة تاجر + ثيم فقط — **ليست** مصدر حقيقة مالية |
 | بيانات تشغيلية للكتالوج | **DASM-services** schema `stores` | ثيمات، اختيارات قوالب، نقل تدريجي لـ `store_*` — **بدون** ليدجر |

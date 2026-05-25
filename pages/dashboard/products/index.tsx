@@ -201,7 +201,7 @@ export default function ProductsListPage() {
                         </Link>
                         {storeSlug ? (
                           <Link
-                            href={`/store/${storeSlug}/products/${product.id}?preview=true`}
+                            href={`/${storeSlug}/products/${product.id}?preview=true`}
                             className="rounded-lg p-2 text-gray-400 dark:text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:text-zinc-700 dark:hover:text-zinc-200 transition"
                             title="معاينة"
                           >
