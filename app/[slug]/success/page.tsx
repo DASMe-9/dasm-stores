@@ -35,14 +35,14 @@ export default async function CheckoutSuccessPage({
       <div className="flex flex-col gap-2 pt-2">
         {order ? (
           <Link
-            href={`/store/${slug}/track/${encodeURIComponent(order)}`}
+            href={`/${slug}/track/${encodeURIComponent(order)}`}
             className="rounded-xl py-3 text-sm font-bold text-[var(--primary-foreground)]"
             style={{ backgroundColor: "var(--primary)" }}
           >
             تتبع الطلب
           </Link>
         ) : null}
-        <Link href={`/store/${slug}`} className="text-sm hover:underline">
+        <Link href={`/${slug}`} className="text-sm hover:underline">
           العودة للمتجر
         </Link>
       </div>

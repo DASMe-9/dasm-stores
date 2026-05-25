@@ -101,7 +101,7 @@ export function CartDrawer({ slug }: { slug: string }) {
             <span className="font-bold">{total.toFixed(2)} ر.س</span>
           </div>
           <Link
-            href={`/store/${slug}/cart`}
+            href={`/${slug}/cart`}
             onClick={() => close()}
             className="block w-full rounded-xl py-3 text-center text-sm font-semibold text-[var(--primary-foreground)]"
             style={{ backgroundColor: "var(--primary)" }}

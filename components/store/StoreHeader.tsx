@@ -170,13 +170,13 @@ export function StoreHeader({
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-2">
               <Link
-                href={`/store/${slug}/products`}
+                href={`/${slug}/products`}
                 className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--foreground)] hover:bg-[var(--muted)]"
               >
                 <Grid2X2 className="h-4 w-4" />
                 تصفح المنتجات
               </Link>
-              <ShareButton title={storeName} url={canonicalUrl(`/store/${slug}`)} />
+              <ShareButton title={storeName} url={canonicalUrl(`/${slug}`)} />
               <WhatsAppButton phone={store.contact_whatsapp} />
             </div>
             <div className="mt-4">

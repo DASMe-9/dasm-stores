@@ -56,7 +56,7 @@ export default async function TrackOrderPage({
           </dd>
         </div>
       </dl>
-      <Link href={`/store/${slug}`} className="block text-center text-sm hover:underline">
+      <Link href={`/${slug}`} className="block text-center text-sm hover:underline">
         العودة للمتجر
       </Link>
     </div>

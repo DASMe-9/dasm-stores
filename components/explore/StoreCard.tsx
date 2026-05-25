@@ -16,7 +16,7 @@ export function StoreCard({ store }: { store: ExploreStoreItem }) {
 
   return (
     <Link
-      href={`/store/${store.slug}`}
+      href={`/${store.slug}`}
       className="group overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--card)] shadow-sm transition hover:shadow-md"
     >
       <div className="relative h-32 overflow-hidden bg-[var(--muted)]">

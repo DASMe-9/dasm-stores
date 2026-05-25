@@ -20,7 +20,7 @@ export function ProductCard({
 
   return (
     <article className={cardClass}>
-      <Link href={`/store/${slug}/products/${product.id}`} className="store-product-card__link block">
+      <Link href={`/${slug}/products/${product.id}`} className="store-product-card__link block">
         <div className="store-product-card__media relative aspect-square bg-[var(--muted)]">
           {product.primary_image?.url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -47,7 +47,7 @@ export function ProductCard({
         </div>
       </Link>
       <div className="store-product-card__body space-y-2 p-3">
-        <Link href={`/store/${slug}/products/${product.id}`}>
+        <Link href={`/${slug}/products/${product.id}`}>
           <h3 className="line-clamp-2 text-sm font-semibold leading-snug hover:underline">
             {product.name}
           </h3>

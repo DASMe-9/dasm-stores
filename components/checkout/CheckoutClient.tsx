@@ -288,7 +288,7 @@ export function CheckoutClient({
         return;
       }
       router.push(
-        `/store/${slug}/success${result.order_number ? `?order=${encodeURIComponent(result.order_number)}` : ""}`,
+        `/${slug}/success${result.order_number ? `?order=${encodeURIComponent(result.order_number)}` : ""}`,
       );
     } finally {
       setBusy(false);
@@ -305,7 +305,7 @@ export function CheckoutClient({
         </p>
         <WhatsAppButton phone={whatsapp} label="تواصل مع المتجر" className="justify-center" />
         <div>
-          <Link href={`/store/${slug}/cart`} className="text-sm hover:underline">
+          <Link href={`/${slug}/cart`} className="text-sm hover:underline">
             العودة للسلة
           </Link>
         </div>
@@ -317,7 +317,7 @@ export function CheckoutClient({
     return (
       <p className="text-sm text-red-600">
         السلة لا تتطابق مع هذا المتجر. ارجع إلى{" "}
-        <Link href={`/store/${slug}/products`} className="underline">
+        <Link href={`/${slug}/products`} className="underline">
           المنتجات
         </Link>
         .
@@ -330,7 +330,7 @@ export function CheckoutClient({
       <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 text-center">
         <p className="text-sm text-[var(--muted-foreground)]">السلة فارغة</p>
         <Link
-          href={`/store/${slug}/products`}
+          href={`/${slug}/products`}
           className="mt-4 inline-block text-sm font-semibold hover:underline"
           style={{ color: "var(--primary-text,var(--primary))" }}
         >
@@ -637,7 +637,7 @@ export function CheckoutClient({
           يتم التحقق من الشحن والضريبة والكوبونات على الخادم عند إنشاء الطلب. إذا اخترت Tryoto يُعاد
           طلب الأسعار للتحقق من السعر.
         </p>
-        <Link href={`/store/${slug}/cart`} className="block text-center text-sm hover:underline">
+        <Link href={`/${slug}/cart`} className="block text-center text-sm hover:underline">
           تعديل السلة
         </Link>
         <PaymentLogos className="mt-3" />

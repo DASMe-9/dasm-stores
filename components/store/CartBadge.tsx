@@ -29,7 +29,7 @@ export function CartBadge({ slug }: { slug: string }) {
       </button>
 
       <Link
-        href={`/store/${slug}/cart`}
+        href={`/${slug}/cart`}
         className="relative hidden items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-95 md:inline-flex"
         style={{
           backgroundColor: "var(--primary)",

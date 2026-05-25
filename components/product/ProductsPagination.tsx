@@ -18,7 +18,7 @@ export function ProductsPagination({
     const qs = new URLSearchParams(query.toString());
     qs.set("page", String(page));
     const s = qs.toString();
-    return `/store/${slug}/products${s ? `?${s}` : ""}`;
+    return `/${slug}/products${s ? `?${s}` : ""}`;
   }
 
   if (paginator.last_page <= 1) return null;

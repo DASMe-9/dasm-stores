@@ -18,7 +18,7 @@ function buildProductsHref(
   });
   next.delete("page");
   const s = next.toString();
-  return `/store/${slug}/products${s ? `?${s}` : ""}`;
+  return `/${slug}/products${s ? `?${s}` : ""}`;
 }
 
 function CategoryTree({
