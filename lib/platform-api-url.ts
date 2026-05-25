@@ -4,7 +4,7 @@
  */
 export const DEFAULT_PLATFORM_API_ORIGIN =
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
-  "https://dasm-platform-backend.onrender.com";
+  "https://dasm-laravel.onrender.com";
 
 export function platformApiOrigin(): string {
   return DEFAULT_PLATFORM_API_ORIGIN;

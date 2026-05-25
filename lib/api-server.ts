@@ -7,7 +7,7 @@ export function getApiBase(): string {
   const base =
     process.env.API_BACKEND_URL?.replace(/\/$/, "") ||
     process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
-    "https://dasm-platform-backend.onrender.com";
+    "https://dasm-laravel.onrender.com";
   return base;
 }
 
