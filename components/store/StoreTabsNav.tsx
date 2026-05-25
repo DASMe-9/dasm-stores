@@ -14,7 +14,7 @@ export function StoreTabsNav({
     <nav className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md">
       <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3 text-sm font-medium scrollbar-hide">
         <Link
-          href={`/store/${slug}/products`}
+          href={`/${slug}/products`}
           className="whitespace-nowrap rounded-xl px-4 py-2 transition hover:bg-[var(--muted)]"
           style={{ border: "1px solid var(--border)" }}
         >
@@ -23,7 +23,7 @@ export function StoreTabsNav({
         {tabs.map((t) => (
           <Link
             key={t.id}
-            href={`/store/${slug}/products?tab=${encodeURIComponent(t.slug)}`}
+            href={`/${slug}/products?tab=${encodeURIComponent(t.slug)}`}
             className="whitespace-nowrap rounded-xl px-4 py-2 transition hover:bg-[var(--muted)]"
             style={{ border: "1px solid var(--border)" }}
           >

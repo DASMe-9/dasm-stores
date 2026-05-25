@@ -16,5 +16,5 @@ export default async function CategoryAliasPage({
   const cat = findCategoryBySlug(categories, categorySlug);
   if (!cat) notFound();
 
-  redirect(`/store/${slug}/products?category_id=${cat.id}`);
+  redirect(`/${slug}/products?category_id=${cat.id}`);
 }

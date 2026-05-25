@@ -51,7 +51,7 @@ export function browserStorefrontOrigin(): string {
 export function storePath(slug: string, options?: { preview?: boolean }): string {
   const encodedSlug = encodeURIComponent(slug);
   const query = options?.preview ? "?preview=true" : "";
-  return `/store/${encodedSlug}${query}`;
+  return `/${encodedSlug}${query}`;
 }
 
 export function storefrontUrl(slug: string, options?: { preview?: boolean; origin?: string }): string {

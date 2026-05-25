@@ -27,7 +27,7 @@ export default async function StoreHomePage({
     <div className="space-y-8">
       <section className="grid gap-3 md:grid-cols-4">
         <Link
-          href={`/store/${slug}/products`}
+          href={`/${slug}/products`}
           className="group flex min-h-28 items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
         >
           <div>
@@ -39,7 +39,7 @@ export default async function StoreHomePage({
           <Search className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
         </Link>
         <Link
-          href={`/store/${slug}/products?sort=featured`}
+          href={`/${slug}/products?sort=featured`}
           className="group flex min-h-28 items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
         >
           <div>
@@ -51,7 +51,7 @@ export default async function StoreHomePage({
           <PackageCheck className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
         </Link>
         <Link
-          href={`/store/${slug}/cart`}
+          href={`/${slug}/cart`}
           className="group flex min-h-28 items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
         >
           <div>
@@ -63,7 +63,7 @@ export default async function StoreHomePage({
           <ShoppingCart className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
         </Link>
         <Link
-          href={`/store/${slug}/products`}
+          href={`/${slug}/products`}
           className="group flex min-h-28 items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
         >
           <div>
@@ -80,7 +80,7 @@ export default async function StoreHomePage({
         <section>
           <div className="mb-4 flex items-center justify-between gap-2">
             <h2 className="text-base font-bold">أقسام المتجر</h2>
-            <Link href={`/store/${slug}/products`} className="text-sm hover:underline">
+            <Link href={`/${slug}/products`} className="text-sm hover:underline">
               تصفح الكتالوج
             </Link>
           </div>
@@ -88,7 +88,7 @@ export default async function StoreHomePage({
             {visibleCategories.map((category) => (
               <Link
                 key={category.id}
-                href={`/store/${slug}/products?category_id=${category.id}`}
+                href={`/${slug}/products?category_id=${category.id}`}
                 className="rounded-full border border-[var(--border)] bg-[var(--card)] px-4 py-2 text-sm font-semibold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
               >
                 {category.name}
@@ -101,7 +101,7 @@ export default async function StoreHomePage({
       <section>
         <div className="mb-4 flex items-center justify-between gap-2">
           <h2 className="text-base font-bold">منتجات مميزة</h2>
-          <Link href={`/store/${slug}/products?sort=featured`} className="text-sm hover:underline">
+          <Link href={`/${slug}/products?sort=featured`} className="text-sm hover:underline">
             عرض الكل
           </Link>
         </div>

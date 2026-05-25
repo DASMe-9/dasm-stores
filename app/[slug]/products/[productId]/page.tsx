@@ -42,9 +42,9 @@ export default async function ProductDetailPage({
         : [];
 
   const crumbs = breadcrumbSchema([
-    { name: storeName, path: `/store/${slug}` },
-    { name: "المنتجات", path: `/store/${slug}/products` },
-    { name: product.name, path: `/store/${slug}/products/${productId}` },
+    { name: storeName, path: `/${slug}` },
+    { name: "المنتجات", path: `/${slug}/products` },
+    { name: product.name, path: `/${slug}/products/${productId}` },
   ]);
 
   const pSchema = productSchema({
@@ -70,11 +70,11 @@ export default async function ProductDetailPage({
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdString(pSchema) }} />
 
       <nav className="mb-6 text-xs text-[var(--muted-foreground)]">
-        <Link href={`/store/${slug}`} className="hover:underline">
+        <Link href={`/${slug}`} className="hover:underline">
           {storeName}
         </Link>
         <span className="mx-2">/</span>
-        <Link href={`/store/${slug}/products`} className="hover:underline">
+        <Link href={`/${slug}/products`} className="hover:underline">
           المنتجات
         </Link>
         <span className="mx-2">/</span>
@@ -97,7 +97,7 @@ export default async function ProductDetailPage({
             <WhatsAppButton phone={storeData.store.contact_whatsapp} label="استفسر عبر واتساب" />
             <ShareButton
               title={product.name}
-              url={canonicalUrl(`/store/${slug}/products/${productId}`)}
+              url={canonicalUrl(`/${slug}/products/${productId}`)}
             />
           </div>
           {product.description ? (

@@ -124,7 +124,7 @@ export function storeSchema(store: StoreForSchema): Thing {
     "@context": "https://schema.org",
     "@type": "Store",
     name: store.name,
-    url: canonicalUrl(`/store/${store.slug}`),
+    url: canonicalUrl(`/${store.slug}`),
     image: absoluteImage(store.coverUrl || store.logoUrl),
     logo: absoluteImage(store.logoUrl),
   };
@@ -177,7 +177,7 @@ export function productSchema(p: ProductForSchema): Thing {
       : undefined,
     offers: {
       "@type": "Offer",
-      url: canonicalUrl(`/store/${p.storeSlug}/products/${p.slug ?? p.id}`),
+      url: canonicalUrl(`/${p.storeSlug}/products/${p.slug ?? p.id}`),
       priceCurrency: p.currency ?? "SAR",
       price: p.price,
       availability: `https://schema.org/${p.availability ?? "InStock"}`,

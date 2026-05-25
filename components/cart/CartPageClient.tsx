@@ -60,7 +60,7 @@ export function CartPageClient({ slug }: { slug: string }) {
     <div className="min-h-[60vh]">
       <header className="mb-6 flex items-center gap-3 border-b border-[var(--border)] pb-4">
         <Link
-          href={`/store/${slug}`}
+          href={`/${slug}`}
           className="rounded-xl p-2 hover:bg-[var(--muted)]"
           aria-label="رجوع للمتجر"
         >
@@ -76,7 +76,7 @@ export function CartPageClient({ slug }: { slug: string }) {
         <div className="py-16 text-center">
           <p className="text-[var(--muted-foreground)]">السلة فارغة</p>
           <Link
-            href={`/store/${slug}/products`}
+            href={`/${slug}/products`}
             className="mt-4 inline-block rounded-xl px-6 py-3 text-sm font-semibold text-[var(--primary-foreground)]"
             style={{ backgroundColor: "var(--primary)" }}
           >
@@ -159,7 +159,7 @@ export function CartPageClient({ slug }: { slug: string }) {
               <span>{grand.toFixed(2)} ر.س</span>
             </div>
             <Link
-              href={`/store/${slug}/checkout`}
+              href={`/${slug}/checkout`}
               className="mt-2 block w-full rounded-xl py-3 text-center text-sm font-bold text-[var(--primary-foreground)]"
               style={{ backgroundColor: "var(--primary)" }}
             >

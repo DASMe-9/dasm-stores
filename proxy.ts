@@ -13,7 +13,6 @@ const RESERVED = new Set([
   "auth",
   "dashboard",
   "stores",
-  "store",
   "explore",
   "verify-email",
   "_next",
@@ -55,31 +54,55 @@ function nextWithPreviewHeader(request: NextRequest, slug: string) {
 export function proxy(request: NextRequest) {
   const { pathname, search } = request.nextUrl;
 
-  const storeMatch = pathname.match(/^\/store\/([^/]+)(\/.*)?$/);
-  if (storeMatch) {
-    const [, slug, rest = ""] = storeMatch;
-    const canonical = STORE_SLUG_ALIASES[slug.toLowerCase()];
-    if (canonical) {
-      const url = request.nextUrl.clone();
-      url.pathname = `/store/${canonical}${rest}`;
-      url.search = search;
-      return NextResponse.redirect(url, 308);
-    }
-    return nextWithPreviewHeader(request, slug);
+  // --- Legacy /store/[slug] → /[slug] redirect (remove /store/ prefix) ---
+  const legacyStoreMatch = pathname.match(/^\/store\/([^/]+)(\/.*)?$/);
+  if (legacyStoreMatch) {
+    const [, slug, rest = ""] = legacyStoreMatch;
+    const canonical = STORE_SLUG_ALIASES[slug.toLowerCase()] ?? slug;
+    const url = request.nextUrl.clone();
+    url.pathname = `/${canonical}${rest}`;
+    url.search = search;
+    return NextResponse.redirect(url, 308);
   }
 
-  const legacyMatch = pathname.match(/^\/([^/]+)(\/.*)?$/);
-  if (legacyMatch) {
-    const [, segment, rest = ""] = legacyMatch;
+  // --- Alias redirect and preview for /[slug] ---
+  const slugMatch = pathname.match(/^\/([^/]+)(\/.*)?$/);
+  if (slugMatch) {
+    const [, segment, rest = ""] = slugMatch;
     if (RESERVED.has(segment.toLowerCase())) return NextResponse.next();
     if (segment.includes(".")) return NextResponse.next();
 
-    const canonical = STORE_SLUG_ALIASES[segment.toLowerCase()] ?? segment;
+    const canonical = STORE_SLUG_ALIASES[segment.toLowerCase()];
+    if (canonical && canonical !== segment) {
+      // /slug/product/123 → /slug/products/123
+      const productMatch = rest.match(/^\/product\/(\d+)$/);
+      if (productMatch) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/${canonical}/products/${productMatch[1]}`;
+        url.search = search;
+        return NextResponse.redirect(url, 308);
+      }
 
+      // /slug/order/ABC → /slug/track/ABC
+      const orderMatch = rest.match(/^\/order\/([^/]+)$/);
+      if (orderMatch) {
+        const url = request.nextUrl.clone();
+        url.pathname = `/${canonical}/track/${orderMatch[1]}`;
+        url.search = search;
+        return NextResponse.redirect(url, 308);
+      }
+
+      const url = request.nextUrl.clone();
+      url.pathname = `/${canonical}${rest}`;
+      url.search = search;
+      return NextResponse.redirect(url, 308);
+    }
+
+    // Legacy /product/ and /order/ rewrites (no alias needed)
     const productMatch = rest.match(/^\/product\/(\d+)$/);
     if (productMatch) {
       const url = request.nextUrl.clone();
-      url.pathname = `/store/${canonical}/products/${productMatch[1]}`;
+      url.pathname = `/${segment}/products/${productMatch[1]}`;
       url.search = search;
       return NextResponse.redirect(url, 308);
     }
@@ -87,15 +110,12 @@ export function proxy(request: NextRequest) {
     const orderMatch = rest.match(/^\/order\/([^/]+)$/);
     if (orderMatch) {
       const url = request.nextUrl.clone();
-      url.pathname = `/store/${canonical}/track/${orderMatch[1]}`;
+      url.pathname = `/${segment}/track/${orderMatch[1]}`;
       url.search = search;
       return NextResponse.redirect(url, 308);
     }
 
-    const url = request.nextUrl.clone();
-    url.pathname = `/store/${canonical}${rest}`;
-    url.search = search;
-    return NextResponse.redirect(url, 308);
+    return nextWithPreviewHeader(request, segment);
   }
 
   return NextResponse.next();
