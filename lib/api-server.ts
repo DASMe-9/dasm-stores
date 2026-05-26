@@ -72,6 +72,7 @@ export type ExploreStoreItem = {
   name_ar?: string | null;
   slug: string;
   description: string | null;
+  category?: string | null;
   logo_url: string | null;
   banner_url: string | null;
   owner_type: string;

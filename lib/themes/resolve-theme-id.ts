@@ -23,6 +23,18 @@ export const PRESET_TO_LEGACY_THEME_ID: Record<string, number> = {
   "retail-home-living": 18,
   "retail-electronics-lite": 19,
   "retail-multi-department": 20,
+  "auto-ev-future": 21,
+  "auto-rental-fleet": 22,
+  "auto-motorcycle-street": 23,
+  "auto-detailing-spa": 24,
+  "auto-auction-lane": 25,
+  "auto-tires-battery": 26,
+  "retail-coffee-roastery": 27,
+  "retail-organic-grocery": 28,
+  "retail-sports-outdoor": 29,
+  "retail-beauty-care": 30,
+  "retail-books-stationery": 31,
+  "retail-flowers-events": 32,
 };
 
 export function resolveLegacyThemeId(presetId: string): number | undefined {

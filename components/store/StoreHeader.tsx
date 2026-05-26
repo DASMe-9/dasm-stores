@@ -35,7 +35,7 @@ function cssColor(vars: Record<string, string> | undefined, key: string, fallbac
 }
 
 function heroMotion(value: string | null | undefined): string {
-  const allowed = new Set(["aurora", "spotlight", "mesh", "silk", "neon"]);
+  const allowed = new Set(["aurora", "spotlight", "mesh", "silk", "neon", "showroom-banner"]);
   return value && allowed.has(value) ? value : "aurora";
 }
 

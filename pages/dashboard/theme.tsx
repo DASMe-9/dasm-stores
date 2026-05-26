@@ -136,7 +136,7 @@ export default function StoreThemePage() {
             <div className="rounded-2xl border border-emerald-200/60 bg-gradient-to-l from-emerald-50 to-white p-5 dark:border-emerald-900/40 dark:from-emerald-950/40 dark:to-zinc-900">
               <h1 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">معرض القوالب</h1>
               <p className="mt-1 max-w-2xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
-                20 قالباً مجانياً جاهزاً لقطاعات السيارات والتجزئة. التغييرات تُحفظ عبر API المنصة وتنعكس على واجهة
+                32 قالباً مجانياً جاهزاً لقطاعات السيارات والتجزئة. التغييرات تُحفظ عبر API المنصة وتنعكس على واجهة
                 المتجر العامة فوراً بعد الحفظ.
               </p>
             </div>
