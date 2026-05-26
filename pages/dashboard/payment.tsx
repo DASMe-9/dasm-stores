@@ -1,14 +1,23 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
-  CreditCard, CheckCircle, AlertCircle, Landmark, Percent,
-  Wallet, Calendar, ShieldCheck, ArrowDownToLine,
+  AlertTriangle,
+  ArrowDownToLine,
+  BadgeCheck,
+  Calendar,
+  CreditCard,
+  Landmark,
+  Percent,
+  ShieldCheck,
+  Smartphone,
+  Wallet,
+  type LucideIcon,
 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi } from "@/lib/api";
 
-interface StoreFinance {
+type StoreFinance = {
   subscription_status: string;
   trial_ends_at: string | null;
   monthly_fee_sar: number;
@@ -19,6 +28,57 @@ interface StoreFinance {
   total_sales: number;
   total_commission: number;
   available_balance: number;
+};
+
+type PaymentMethodStatus = {
+  key: string;
+  label?: string;
+  label_ar?: string;
+  integration_id?: number | null;
+  enabled?: boolean;
+};
+
+type PlatformPaymobStatus = {
+  enabled: boolean;
+  base_url?: string;
+  checkout_mode?: string;
+  has_secret_key?: boolean;
+  has_public_key?: boolean;
+  has_hmac_secret?: boolean;
+  payment_methods?: PaymentMethodStatus[];
+};
+
+type StorePaymentConfigStatus = {
+  provider?: string | { value?: string; name?: string };
+  is_live?: boolean;
+  is_active?: boolean;
+  has_keys?: boolean;
+};
+
+const emptyFinance: StoreFinance = {
+  subscription_status: "trial",
+  trial_ends_at: null,
+  monthly_fee_sar: 25,
+  commission_rate: 0.02,
+  iban: null,
+  bank_name: null,
+  account_holder_name: null,
+  total_sales: 0,
+  total_commission: 0,
+  available_balance: 0,
+};
+
+function formatSar(value: number) {
+  return `${Number(value || 0).toLocaleString("ar-SA")} ر.س`;
+}
+
+function methodIcon(key: string): LucideIcon {
+  if (key === "applepay" || key === "stcpay") return Smartphone;
+  return CreditCard;
+}
+
+function methodName(method: PaymentMethodStatus) {
+  return method.label_ar || method.label || method.key;
 }
 
 export default function PaymentSettingsPage() {
@@ -28,274 +88,325 @@ export default function PaymentSettingsPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
-  const [finance, setFinance] = useState<StoreFinance>({
-    subscription_status: "trial",
-    trial_ends_at: null,
-    monthly_fee_sar: 25,
-    commission_rate: 0.02,
-    iban: null,
-    bank_name: null,
-    account_holder_name: null,
-    total_sales: 0,
-    total_commission: 0,
-    available_balance: 0,
-  });
-
+  const [finance, setFinance] = useState<StoreFinance>(emptyFinance);
+  const [platformPaymob, setPlatformPaymob] = useState<PlatformPaymobStatus | null>(null);
+  const [storePaymentConfig, setStorePaymentConfig] = useState<StorePaymentConfigStatus | null>(null);
   const [ibanForm, setIbanForm] = useState({
     iban: "",
     bank_name: "",
     account_holder_name: "",
   });
 
+  const load = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [storeRes, paymentRes] = await Promise.allSettled([
+        sellerApi.getMyStore(),
+        sellerApi.getPaymentConfig(),
+      ]);
+
+      if (storeRes.status === "fulfilled") {
+        const store = storeRes.value.data?.store;
+        if (!store) {
+          router.replace("/stores/new");
+          return;
+        }
+
+        const nextFinance: StoreFinance = {
+          subscription_status: store.subscription_status || "trial",
+          trial_ends_at: store.trial_ends_at,
+          monthly_fee_sar: Number(store.monthly_fee_sar ?? 25),
+          commission_rate: Number(store.commission_rate ?? 0.02),
+          iban: store.iban,
+          bank_name: store.bank_name,
+          account_holder_name: store.account_holder_name,
+          total_sales: Number(store.total_sales ?? 0),
+          total_commission: Number(store.total_commission ?? 0),
+          available_balance: Number(store.available_balance ?? 0),
+        };
+        setFinance(nextFinance);
+        setIbanForm({
+          iban: nextFinance.iban || "",
+          bank_name: nextFinance.bank_name || "",
+          account_holder_name: nextFinance.account_holder_name || "",
+        });
+      }
+
+      if (paymentRes.status === "fulfilled") {
+        setPlatformPaymob(paymentRes.value.data?.platform_paymob ?? null);
+        setStorePaymentConfig(paymentRes.value.data?.payment_config ?? null);
+      }
+    } catch {
+      setError("تعذر تحميل إعدادات المالية والدفع.");
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
   useEffect(() => {
-    const t = localStorage.getItem("stores_token");
-    if (!t) {
+    const token = localStorage.getItem("stores_token");
+    if (!token) {
       router.replace("/auth/login?returnUrl=/dashboard/payment");
       return;
     }
     setReady(true);
-    load();
-  }, [router]);
-
-  const load = async () => {
-    setLoading(true);
-    try {
-      const res = await sellerApi.getMyStore();
-      const store = res.data?.store;
-      if (!store) {
-        router.replace("/stores/new");
-        return;
-      }
-
-      setFinance({
-        subscription_status: store.subscription_status || "trial",
-        trial_ends_at: store.trial_ends_at,
-        monthly_fee_sar: store.monthly_fee_sar ?? 25,
-        commission_rate: store.commission_rate ?? 0.02,
-        iban: store.iban,
-        bank_name: store.bank_name,
-        account_holder_name: store.account_holder_name,
-        total_sales: store.total_sales ?? 0,
-        total_commission: store.total_commission ?? 0,
-        available_balance: store.available_balance ?? 0,
-      });
-      setIbanForm({
-        iban: store.iban || "",
-        bank_name: store.bank_name || "",
-        account_holder_name: store.account_holder_name || "",
-      });
-    } catch {
-      /* skip */
-    } finally {
-      setLoading(false);
-    }
-  };
+    void load();
+  }, [load, router]);
 
   const handleSaveIban = async () => {
-    if (!ibanForm.iban.trim()) {
-      setError("رقم IBAN مطلوب");
+    const iban = ibanForm.iban.replace(/\s/g, "").toUpperCase();
+    if (!iban) {
+      setError("رقم IBAN مطلوب.");
       return;
     }
-    if (!ibanForm.iban.startsWith("SA") || ibanForm.iban.replace(/\s/g, "").length !== 24) {
-      setError("رقم IBAN غير صحيح — يجب أن يبدأ بـ SA ويتكون من 24 حرف");
+    if (!iban.startsWith("SA") || iban.length !== 24) {
+      setError("رقم IBAN يجب أن يبدأ بـ SA ويتكون من 24 خانة.");
       return;
     }
+
     setSaving(true);
     setError(null);
     setSuccess(null);
     try {
       await sellerApi.updateStore({
-        iban: ibanForm.iban.replace(/\s/g, ""),
+        iban,
         bank_name: ibanForm.bank_name,
         account_holder_name: ibanForm.account_holder_name,
       });
-      setSuccess("تم حفظ بيانات الحساب البنكي بنجاح");
-      setFinance((f) => ({
-        ...f,
-        iban: ibanForm.iban.replace(/\s/g, ""),
+      setSuccess("تم حفظ بيانات الحساب البنكي بنجاح.");
+      setFinance((current) => ({
+        ...current,
+        iban,
         bank_name: ibanForm.bank_name,
         account_holder_name: ibanForm.account_holder_name,
       }));
     } catch {
-      setError("فشل حفظ البيانات");
+      setError("فشل حفظ بيانات الحساب البنكي.");
     } finally {
       setSaving(false);
     }
   };
 
+  const trialDaysLeft = finance.trial_ends_at
+    ? Math.max(0, Math.ceil((new Date(finance.trial_ends_at).getTime() - Date.now()) / 86400000))
+    : 0;
+
+  const subscriptionLabel: Record<string, { text: string; className: string }> = {
+    trial: {
+      text: `فترة تجريبية (${trialDaysLeft} يوم متبقي)`,
+      className: "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200",
+    },
+    active: {
+      text: "اشتراك نشط",
+      className: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200",
+    },
+    expired: {
+      text: "اشتراك منتهي",
+      className: "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200",
+    },
+    cancelled: {
+      text: "ملغي",
+      className: "border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300",
+    },
+  };
+
+  const subscription = subscriptionLabel[finance.subscription_status] || subscriptionLabel.trial;
+  const paymentMethods = platformPaymob?.payment_methods ?? [];
+  const enabledMethods = paymentMethods.filter((method) => method.enabled);
+  const paymobReady = Boolean(platformPaymob?.enabled);
+
   if (!ready) {
     return (
-      <div className="min-h-screen flex items-center justify-center text-gray-500 dark:text-zinc-400 text-sm bg-gray-50 dark:bg-zinc-950">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 text-sm text-gray-500 dark:bg-zinc-950 dark:text-zinc-400">
         جاري التحميل...
       </div>
     );
   }
 
-  const trialDaysLeft = finance.trial_ends_at
-    ? Math.max(0, Math.ceil((new Date(finance.trial_ends_at).getTime() - Date.now()) / 86400000))
-    : 0;
-
-  const subscriptionLabel: Record<string, { text: string; color: string }> = {
-    trial: { text: `فترة تجريبية (${trialDaysLeft} يوم متبقي)`, color: "text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800" },
-    active: { text: "اشتراك نشط", color: "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800" },
-    expired: { text: "اشتراك منتهي", color: "text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800" },
-    cancelled: { text: "ملغى", color: "text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700" },
-  };
-
-  const sub = subscriptionLabel[finance.subscription_status] || subscriptionLabel.trial;
-
   return (
     <>
       <Head>
-        <title>المالية والدفع — متاجر داسم</title>
+        <title>المالية والدفع - متاجر داسم</title>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
       <SellerShell
         title="المالية والدفع"
-        subtitle="إعدادات الدفع والسحب والاشتراك"
+        subtitle="بوابة الدفع، الحساب البنكي، الاشتراك، وملخص التحصيل"
         icon={CreditCard}
         hasStore
       >
-        <div className="mx-auto max-w-2xl space-y-6">
+        <div className="mx-auto max-w-4xl space-y-5">
           {loading ? (
-            <div className="space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-24 bg-zinc-200 dark:bg-zinc-800 rounded-2xl animate-pulse" />
+            <div className="grid gap-3 md:grid-cols-2">
+              {[1, 2, 3, 4].map((item) => (
+                <div key={item} className="h-28 animate-pulse rounded-xl bg-zinc-200 dark:bg-zinc-800" />
               ))}
             </div>
           ) : (
             <>
-              {/* ── حالة الدفع ── */}
-              <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/30 p-4">
-                <ShieldCheck className="h-6 w-6 text-emerald-600 shrink-0" />
-                <div>
-                  <p className="text-sm font-bold text-emerald-900 dark:text-emerald-200">
-                    الدفع الإلكتروني مفعّل تلقائياً
-                  </p>
-                  <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-0.5">
-                    متجرك يقبل: مدى، فيزا، ماستركارد، Apple Pay، STC Pay — عبر بوابة داسم المركزية
-                  </p>
+              {error ? (
+                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+                  {error}
                 </div>
-              </div>
+              ) : null}
+              {success ? (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-200">
+                  {success}
+                </div>
+              ) : null}
 
-              {/* ── ملخص مالي ── */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 text-center">
-                  <Wallet className="h-5 w-5 text-emerald-600 mx-auto mb-1" />
-                  <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                    {finance.available_balance.toLocaleString("ar-SA")} <span className="text-xs">ر.س</span>
+              <section
+                className={[
+                  "rounded-xl border p-5",
+                  paymobReady
+                    ? "border-emerald-200 bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30"
+                    : "border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30",
+                ].join(" ")}
+              >
+                <div className="flex flex-wrap items-start justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    {paymobReady ? (
+                      <ShieldCheck className="mt-0.5 h-6 w-6 text-emerald-600" />
+                    ) : (
+                      <AlertTriangle className="mt-0.5 h-6 w-6 text-amber-600" />
+                    )}
+                    <div>
+                      <h2 className="text-base font-black text-zinc-950 dark:text-zinc-50">
+                        {paymobReady ? "الدفع الإلكتروني مفعل" : "الدفع الإلكتروني غير متاح حالياً"}
+                      </h2>
+                      <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+                        {paymobReady
+                          ? `الدفع يعمل عبر ${enabledMethods.map(methodName).join("، ")}.`
+                          : "سيتم تفعيل الدفع للمتجر بعد اكتمال إعدادات بوابة الدفع."}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400">رصيد قابل للسحب</p>
                 </div>
-                <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 text-center">
-                  <ArrowDownToLine className="h-5 w-5 text-blue-600 mx-auto mb-1" />
-                  <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                    {finance.total_sales.toLocaleString("ar-SA")} <span className="text-xs">ر.س</span>
-                  </div>
-                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400">إجمالي المبيعات</p>
-                </div>
-                <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-4 text-center col-span-2 sm:col-span-1">
-                  <Percent className="h-5 w-5 text-orange-600 mx-auto mb-1" />
-                  <div className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
-                    {finance.total_commission.toLocaleString("ar-SA")} <span className="text-xs">ر.س</span>
-                  </div>
-                  <p className="text-[10px] text-zinc-500 dark:text-zinc-400">عمولة المنصة (2%)</p>
-                </div>
-              </div>
+              </section>
 
-              {/* ── الاشتراك ── */}
-              <div className={`rounded-2xl border p-4 ${sub.color}`}>
-                <div className="flex items-center gap-3">
-                  <Calendar className="h-5 w-5 shrink-0" />
-                  <div>
-                    <p className="text-sm font-bold">{sub.text}</p>
-                    <p className="text-xs mt-0.5 opacity-80">
-                      {finance.subscription_status === "trial"
-                        ? `بعد انتهاء التجربة: ${finance.monthly_fee_sar} ر.س/شهر + عمولة ${(finance.commission_rate * 100).toFixed(0)}% على كل عملية`
-                        : `${finance.monthly_fee_sar} ر.س/شهر + عمولة ${(finance.commission_rate * 100).toFixed(0)}% على كل عملية`}
+              <section className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-xl border border-zinc-100 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="mb-4 flex items-center gap-2">
+                    <CreditCard className="h-5 w-5 text-emerald-600" />
+                    <h2 className="text-sm font-black text-zinc-950 dark:text-zinc-50">طرق الدفع المفعلة</h2>
+                  </div>
+                  <div className="grid gap-2">
+                    {paymentMethods.map((method) => {
+                      const Icon = methodIcon(method.key);
+                      return (
+                        <div
+                          key={method.key}
+                          className={[
+                            "flex items-center justify-between gap-3 rounded-lg border px-3 py-2",
+                            method.enabled
+                              ? "border-emerald-100 bg-emerald-50 text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100"
+                              : "border-zinc-200 bg-zinc-50 text-zinc-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400",
+                          ].join(" ")}
+                        >
+                          <span className="flex items-center gap-2 text-sm font-bold">
+                            <Icon className="h-4 w-4" />
+                            {methodName(method)}
+                          </span>
+                          <span className="text-xs">
+                            {method.enabled ? "مفعل" : "غير متاح"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {storePaymentConfig?.has_keys ? (
+                    <p className="mt-3 rounded-lg bg-zinc-50 px-3 py-2 text-xs text-zinc-600 dark:bg-zinc-950 dark:text-zinc-300">
+                      يوجد إعداد بوابة خاص بالمتجر، والدفع المركزي يظل المسار الأساسي لطلبات المتجر.
                     </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* ── نموذج البنك/IBAN ── */}
-              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 space-y-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <Landmark className="h-5 w-5 text-zinc-600 dark:text-zinc-400" />
-                  <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">حساب السحب (IBAN)</h2>
+                  ) : null}
                 </div>
 
-                {finance.iban && !error ? (
-                  <div className="flex items-center gap-2 text-xs text-emerald-700 dark:text-emerald-400">
-                    <CheckCircle className="h-4 w-4" />
-                    <span>حساب بنكي مسجّل: {finance.iban.slice(0, 4)}...{finance.iban.slice(-4)}</span>
+                <div className={`rounded-xl border p-5 ${subscription.className}`}>
+                  <div className="mb-4 flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    <h2 className="text-sm font-black">الاشتراك والعمولة</h2>
                   </div>
+                  <p className="text-base font-black">{subscription.text}</p>
+                  <p className="mt-2 text-sm opacity-90">
+                    {finance.monthly_fee_sar} ر.س / شهر + عمولة {(finance.commission_rate * 100).toFixed(0)}% على كل عملية.
+                  </p>
+                </div>
+              </section>
+
+              <section className="grid gap-3 sm:grid-cols-3">
+                <div className="rounded-xl border border-zinc-100 bg-white p-4 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                  <Wallet className="mx-auto mb-2 h-5 w-5 text-emerald-600" />
+                  <div className="text-lg font-black text-zinc-950 dark:text-zinc-50">{formatSar(finance.available_balance)}</div>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">رصيد قابل للسحب</p>
+                </div>
+                <div className="rounded-xl border border-zinc-100 bg-white p-4 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                  <ArrowDownToLine className="mx-auto mb-2 h-5 w-5 text-blue-600" />
+                  <div className="text-lg font-black text-zinc-950 dark:text-zinc-50">{formatSar(finance.total_sales)}</div>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">إجمالي المبيعات</p>
+                </div>
+                <div className="rounded-xl border border-zinc-100 bg-white p-4 text-center dark:border-zinc-800 dark:bg-zinc-900">
+                  <Percent className="mx-auto mb-2 h-5 w-5 text-orange-600" />
+                  <div className="text-lg font-black text-zinc-950 dark:text-zinc-50">{formatSar(finance.total_commission)}</div>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">عمولة المنصة</p>
+                </div>
+              </section>
+
+              <section className="rounded-xl border border-zinc-100 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="mb-4 flex items-center gap-2">
+                  <Landmark className="h-5 w-5 text-emerald-600" />
+                  <h2 className="text-sm font-black text-zinc-950 dark:text-zinc-50">حساب السحب IBAN</h2>
+                  {finance.iban ? <BadgeCheck className="h-4 w-4 text-emerald-600" /> : null}
+                </div>
+
+                {finance.iban ? (
+                  <p className="mb-4 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+                    حساب محفوظ: {finance.iban.slice(0, 4)}...{finance.iban.slice(-4)}
+                  </p>
                 ) : null}
 
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  أدخل رقم IBAN الخاص بك لاستلام أرباحك. التحويل يتم تلقائياً عند وصول الحد الأدنى (100 ر.س).
-                </p>
-
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">رقم IBAN</label>
+                <div className="grid gap-3 md:grid-cols-3">
+                  <label className="space-y-1.5 md:col-span-3">
+                    <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">IBAN</span>
                     <input
                       type="text"
                       value={ibanForm.iban}
-                      onChange={(e) => setIbanForm((f) => ({ ...f, iban: e.target.value }))}
+                      onChange={(event) => setIbanForm((current) => ({ ...current, iban: event.target.value.toUpperCase() }))}
                       placeholder="SA02 8000 0000 6080 1016 7519"
-                      className="mt-1 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                       dir="ltr"
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">اسم البنك</label>
+                  </label>
+                  <label className="space-y-1.5 md:col-span-1">
+                    <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">اسم البنك</span>
                     <input
                       type="text"
                       value={ibanForm.bank_name}
-                      onChange={(e) => setIbanForm((f) => ({ ...f, bank_name: e.target.value }))}
-                      placeholder="البنك الأهلي السعودي"
-                      className="mt-1 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      onChange={(event) => setIbanForm((current) => ({ ...current, bank_name: event.target.value }))}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     />
-                  </div>
-                  <div>
-                    <label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">اسم صاحب الحساب</label>
+                  </label>
+                  <label className="space-y-1.5 md:col-span-2">
+                    <span className="text-xs font-bold text-zinc-700 dark:text-zinc-300">اسم صاحب الحساب</span>
                     <input
                       type="text"
                       value={ibanForm.account_holder_name}
-                      onChange={(e) => setIbanForm((f) => ({ ...f, account_holder_name: e.target.value }))}
-                      placeholder="محمد عبدالله العمري"
-                      className="mt-1 w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                      onChange={(event) => setIbanForm((current) => ({ ...current, account_holder_name: event.target.value }))}
+                      className="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-100"
                     />
-                  </div>
+                  </label>
                 </div>
-
-                {error && <p className="text-xs text-red-600">{error}</p>}
-                {success && <p className="text-xs text-emerald-600">{success}</p>}
 
                 <button
                   type="button"
                   onClick={handleSaveIban}
                   disabled={saving}
-                  className="w-full rounded-xl bg-emerald-600 text-white py-2.5 text-sm font-bold hover:bg-emerald-700 disabled:opacity-60 transition"
+                  className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-600 px-4 py-3 text-sm font-black text-white transition hover:bg-emerald-700 disabled:opacity-60"
                 >
                   {saving ? "جاري الحفظ..." : "حفظ بيانات الحساب البنكي"}
                 </button>
-              </div>
-
-              {/* ── توضيح النظام ── */}
-              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-4 text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed space-y-2">
-                <strong className="text-zinc-700 dark:text-zinc-300">ك��ف يعمل نظام الدفع؟</strong>
-                <ul className="list-disc pr-5 space-y-1">
-                  <li>الزبون يدفع عبر بوابة داسم المركزية (مدى، فيزا، Apple Pay، STC Pay)</li>
-                  <li>المبلغ يدخل حساب المنصة → تُخصم عمولة 2% → الباقي يُضاف لرصيدك</li>
-                  <li>عند وصول رصيدك 100 ر.س أو أكثر يُحوَّل تلقائياً لحسابك البنكي</li>
-                  <li>الضريبة (15% VAT) مضمّنة في سعر المنتج ومحسوبة تلقائياً في الفاتورة</li>
-                  <li>تقدر تتابع كل العمليات من هذه الصفحة</li>
-                </ul>
-              </div>
+              </section>
             </>
           )}
         </div>

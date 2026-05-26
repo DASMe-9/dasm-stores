@@ -47,7 +47,7 @@ export function presetToStoreTheme(preset: ThemePreset): StoreThemePayload {
       enabled_sections: enabledSections,
       typography_scale: typography.scale,
       preset_id: preset.id,
-      preset_version: 1,
+      preset_version: 2,
     },
   };
 }

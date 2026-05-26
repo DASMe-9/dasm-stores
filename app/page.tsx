@@ -131,8 +131,12 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   const paginator = await getExploreStores({ q, per_page: 24 });
   const stores = paginator.data;
   const products = (await getHomeProducts(q)) || [];
-  const fallbackProducts = products.length ? [] : await getFeaturedProducts(stores);
-  const visibleProducts = products.length ? products : fallbackProducts;
+  const fallbackProducts = products.length >= 12 ? [] : await getFeaturedProducts(stores);
+  const productKeys = new Set(products.map((product) => `${product.storeSlug}-${product.id}`));
+  const visibleProducts = [
+    ...products,
+    ...fallbackProducts.filter((product) => !productKeys.has(`${product.storeSlug}-${product.id}`)),
+  ].slice(0, 12);
   const featuredStores = stores.slice(0, 5);
   const shoppingHref = "#stores";
   const listLd = itemListSchema("متاجر داسم", stores.map((s) => ({ name: getStoreDisplayName(s), url: `/${s.slug}`, image: s.logo_url ?? undefined })));

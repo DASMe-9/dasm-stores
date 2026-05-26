@@ -77,7 +77,7 @@ export type StoreThemePayload = {
   template_config: Record<string, string | string[] | boolean | number>;
 };
 
-export const THEME_CATALOG_VERSION = 1;
+export const THEME_CATALOG_VERSION = 2;
 
 export const THEME_STORAGE_KEY = "dasm_store_theme_preset_id";
 

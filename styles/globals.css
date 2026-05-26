@@ -295,6 +295,13 @@ body {
     linear-gradient(120deg, #030712, #111827);
 }
 
+.store-hero-showroom-banner::before {
+  background:
+    linear-gradient(110deg, color-mix(in srgb, var(--primary) 74%, #111827) 0 34%, transparent 34% 42%, color-mix(in srgb, var(--accent) 62%, #f8fafc) 42% 100%),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.1) 0 1px, transparent 1px 4.5rem);
+  filter: saturate(1.08);
+}
+
 /* Capacitor safe-area padding */
 .safe-top {
   padding-top: env(safe-area-inset-top, 0px);
@@ -492,7 +499,7 @@ body {
 
 .store-product-card--highlight-price .store-product-card__body span:first-of-type {
   font-size: 1.125rem;
-  letter-spacing: -0.02em;
+  letter-spacing: 0;
 }
 
 .store-product-grid {
