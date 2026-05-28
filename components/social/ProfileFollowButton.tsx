@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import { Heart, UserPlus } from "lucide-react";
 import type { OwnerPublicProfile, ProfileViewerState, SocialSummary } from "@/lib/api-server";
+import { platformApiOrigin } from "@/lib/platform-api-url";
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || "https://api.dasm.com.sa").replace(/\/$/, "");
+const API_URL = platformApiOrigin();
 const PLATFORM_URL = "https://www.dasm.com.sa";
 
 function readToken(): string | null {
