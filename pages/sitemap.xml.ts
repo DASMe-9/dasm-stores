@@ -19,7 +19,7 @@ type StoreEntry = {
 const API_URL =
   process.env.API_BACKEND_URL?.replace(/\/$/, "") ||
   process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
-  "https://dasm-laravel.onrender.com";
+  "https://dasm-platform-backend.onrender.com";
 
 function escapeXml(s: string): string {
   return s
