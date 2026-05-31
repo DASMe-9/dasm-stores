@@ -1,7 +1,9 @@
 import "@/styles/globals.css";
 import type { AppProps } from "next/app";
 import Head from "next/head";
+import { useEffect } from "react";
 import { useRouter } from "next/router";
+import { shouldHideFloatingWidgets } from "@/lib/hideFloatingWidgets";
 import { SITE, canonicalUrl, organizationSchema, websiteSchema, jsonLdString } from "@/lib/seo";
 
 /**
@@ -15,6 +17,29 @@ export default function App({ Component, pageProps }: AppProps) {
   // asPath includes query string; strip it for canonical stability.
   const canonical = canonicalUrl(router.asPath.split(/[?#]/)[0] || "/");
   const ogImage = `${SITE.url}${SITE.defaultOgImage}`;
+
+  useEffect(() => {
+    const path = router.pathname || "/";
+    const hide = shouldHideFloatingWidgets(path);
+    document.body.classList.toggle("dasm-no-floating-widgets", hide);
+
+    const scriptId = "dasm-talk-widget";
+    const existing = document.getElementById(scriptId) as HTMLScriptElement | null;
+
+    if (hide) {
+      existing?.remove();
+    } else if (!existing) {
+      const script = document.createElement("script");
+      script.id = scriptId;
+      script.src = "https://talk.dasm.com.sa/widget.js";
+      script.async = true;
+      document.body.appendChild(script);
+    }
+
+    return () => {
+      document.body.classList.remove("dasm-no-floating-widgets");
+    };
+  }, [router.pathname]);
 
   return (
     <>

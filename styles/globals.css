@@ -562,3 +562,19 @@ body {
     animation: none;
   }
 }
+
+/* Seller/auth/admin shells — hide injected floating launchers (Talk widget, Vercel toolbar). */
+body.dasm-no-floating-widgets [data-dasm-talk-launcher],
+body.dasm-no-floating-widgets [data-dasm-talk-open],
+body.dasm-no-floating-widgets .dasm-talk-launcher,
+body.dasm-no-floating-widgets #dasm-talk-launcher,
+body.dasm-no-floating-widgets #vercel-toolbar,
+body.dasm-no-floating-widgets vercel-live-feedback,
+body.dasm-no-floating-widgets vercel-live,
+body.dasm-no-floating-widgets [data-vercel-toolbar],
+body.dasm-no-floating-widgets [class*="vercel-toolbar"],
+body.dasm-no-floating-widgets iframe[src*="vercel.live"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
