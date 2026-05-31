@@ -14,7 +14,7 @@ import {
   detectPresetFromThemeConfig,
   findPresetById,
   presetToThemeConfig,
-  resolveLegacyThemeId,
+  buildThemeStorePayload,
   resolvePresetIdFromLegacyThemeId,
 } from "@/lib/themes";
 import type { ThemeMarket, ThemePreset } from "@/lib/themes/types";
@@ -47,8 +47,15 @@ export default function StoreThemePage() {
       setStoreStatus(store.status || "");
       const themeConfig = (store.theme_config || {}) as Record<string, unknown>;
       const fromConfig = detectPresetFromThemeConfig(themeConfig);
-      const fromThemeId = findPresetById(resolvePresetIdFromLegacyThemeId(store.theme_id));
-      setSelected(fromConfig ?? fromThemeId ?? findPresetById("retail-multi-department") ?? null);
+      const fromThemeSlug = findPresetById(typeof store.theme?.slug === "string" ? store.theme.slug : null);
+      const legacyNumericThemeId =
+        typeof store.theme_id === "number"
+          ? store.theme_id
+          : typeof store.theme_id === "string" && /^\d+$/.test(store.theme_id)
+            ? Number(store.theme_id)
+            : null;
+      const fromThemeId = findPresetById(resolvePresetIdFromLegacyThemeId(legacyNumericThemeId));
+      setSelected(fromConfig ?? fromThemeSlug ?? fromThemeId ?? findPresetById("retail-multi-department") ?? null);
       if (fromConfig?.market === "automotive" || fromConfig?.market === "general") {
         setMarketFilter(fromConfig.market);
       }
@@ -77,9 +84,8 @@ export default function StoreThemePage() {
     setError(null);
     setSuccess(null);
     try {
-      const themeId = resolveLegacyThemeId(selected.id);
       await sellerApi.updateStore({
-        theme_id: themeId,
+        ...buildThemeStorePayload(selected),
         theme_config: presetToThemeConfig(selected),
       });
       setSuccess("تم حفظ تصميم المتجر. قد يستغرق ظهوره على الواجهة دقيقة واحدة.");

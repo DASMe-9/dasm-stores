@@ -30,7 +30,7 @@ import {
   detectPresetFromThemeConfig,
   findPresetById,
   presetToThemeConfig,
-  resolveLegacyThemeId,
+  buildThemeStorePayload,
   resolvePresetIdFromLegacyThemeId,
 } from "@/lib/themes";
 import type { ThemeMarket, ThemePreset } from "@/lib/themes/types";
@@ -52,6 +52,7 @@ type StoreSettingsData = {
   contact_whatsapp?: string | null;
   social_links?: Record<string, string> | null;
   theme_id?: string | number | null;
+  theme?: { slug?: string | null } | null;
   theme_config?: Record<string, unknown> | null;
   paymentConfig?: unknown;
   payment_config?: unknown;
@@ -400,10 +401,15 @@ export default function StoreSettingsPage() {
 
     const themeConfig = nextStore.theme_config ?? {};
     const fromConfig = detectPresetFromThemeConfig(themeConfig);
-    const numericThemeId =
-      typeof nextStore.theme_id === "number" ? nextStore.theme_id : Number(nextStore.theme_id ?? 0) || null;
-    const fromThemeId = findPresetById(resolvePresetIdFromLegacyThemeId(numericThemeId));
-    const nextTheme = fromConfig ?? fromThemeId ?? findPresetById("retail-multi-department") ?? null;
+    const fromThemeSlug = findPresetById(nextStore.theme?.slug ?? null);
+    const legacyNumericThemeId =
+      typeof nextStore.theme_id === "number"
+        ? nextStore.theme_id
+        : typeof nextStore.theme_id === "string" && /^\d+$/.test(nextStore.theme_id)
+          ? Number(nextStore.theme_id)
+          : null;
+    const fromThemeId = findPresetById(resolvePresetIdFromLegacyThemeId(legacyNumericThemeId));
+    const nextTheme = fromConfig ?? fromThemeSlug ?? fromThemeId ?? findPresetById("retail-multi-department") ?? null;
     setSelectedTheme(nextTheme);
     setMarketFilter(nextTheme?.market === "automotive" || nextTheme?.market === "general" ? nextTheme.market : "all");
   }, []);
@@ -582,8 +588,6 @@ export default function StoreSettingsPage() {
       const cleanSocialLinks = Object.fromEntries(
         Object.entries(socialLinks).filter(([, value]) => value.length > 0),
       );
-      const themeId = selectedTheme ? resolveLegacyThemeId(selectedTheme.id) : undefined;
-
       await sellerApi.updateStore({
         name: form.name.trim(),
         name_ar: form.name_ar.trim() || null,
@@ -601,8 +605,7 @@ export default function StoreSettingsPage() {
         iban: iban || null,
         bank_name: form.bank_name.trim() || null,
         account_holder_name: form.account_holder_name.trim() || null,
-        ...(themeId ? { theme_id: themeId } : {}),
-        ...(selectedTheme ? { theme_config: presetToThemeConfig(selectedTheme) } : {}),
+        ...(selectedTheme ? { ...buildThemeStorePayload(selectedTheme), theme_config: presetToThemeConfig(selectedTheme) } : {}),
         tryoto_shipping_enabled: form.tryoto_shipping_enabled,
         shipping_origin_city: form.shipping_origin_city.trim() || null,
         shipping_markup_sar: markup ?? 0,
@@ -621,13 +624,13 @@ export default function StoreSettingsPage() {
         };
 
         if (flatConfigId != null) {
-          await sellerApi.updateShippingConfig(Number(flatConfigId), payload);
+          await sellerApi.updateShippingConfig(flatConfigId, payload);
         } else {
           const { data } = await sellerApi.createShippingConfig({ provider: "custom", ...payload });
           setFlatConfigId(data?.shipping_config?.id ?? null);
         }
       } else if (flatConfigId != null) {
-        await sellerApi.updateShippingConfig(Number(flatConfigId), { is_active: false });
+        await sellerApi.updateShippingConfig(flatConfigId, { is_active: false });
       }
 
       if (shouldSubmitAddress) {

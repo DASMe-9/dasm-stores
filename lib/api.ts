@@ -215,8 +215,8 @@ export const sellerApi = {
   // الشحن
   getShippingConfigs: () => api.get("/my-store/shipping-config"),
   createShippingConfig: (data: JsonRecord) => api.post("/my-store/shipping-config", data),
-  updateShippingConfig: (id: number, data: JsonRecord) => api.put(`/my-store/shipping-config/${id}`, data),
-  deleteShippingConfig: (id: number) => api.delete(`/my-store/shipping-config/${id}`),
+  updateShippingConfig: (id: string | number, data: JsonRecord) => api.put(`/my-store/shipping-config/${id}`, data),
+  deleteShippingConfig: (id: string | number) => api.delete(`/my-store/shipping-config/${id}`),
 
   // استيراد Salla (M2) + Shopify (M4)
   getImportStatus: () => api.get("/my-store/import"),
