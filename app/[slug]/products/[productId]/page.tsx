@@ -8,6 +8,7 @@ import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getProduct, getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
+import { ensurePublicStore } from "@/lib/storefront-guards";
 import {
   breadcrumbSchema,
   canonicalUrl,
@@ -30,7 +31,8 @@ export default async function ProductDetailPage({
     getStore(slug, requestContext),
     getProduct(slug, productId, requestContext),
   ]);
-  if (!storeData || !prod?.product) notFound();
+  if (!ensurePublicStore(storeData, requestContext)) return null;
+  if (!prod?.product) notFound();
 
   const product = prod.product;
   const storeName = getStoreDisplayName(storeData.store);

@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 const STORE_SLUG_ALIASES: Record<string, string> = {
-  cheerylife: "cheerlylife",
+  cheerylife: "cheerlylive",
+  cheerlylife: "cheerlylive",
 };
 
 const PREVIEW_SLUG_COOKIE = "stores_preview_slug";

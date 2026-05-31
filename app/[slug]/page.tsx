@@ -3,7 +3,7 @@ import { PackageCheck, Search, ShoppingCart, Tags } from "lucide-react";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { getCategories, getProducts, getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
-import { notFound } from "next/navigation";
+import { ensurePublicStore } from "@/lib/storefront-guards";
 
 export const revalidate = 300;
 
@@ -15,7 +15,7 @@ export default async function StoreHomePage({
   const { slug } = await params;
   const requestContext = await getStorefrontRequestContext();
   const data = await getStore(slug, requestContext);
-  if (!data) notFound();
+  if (!ensurePublicStore(data, requestContext)) return null;
 
   const [featured, categories] = await Promise.all([
     getProducts(slug, new URLSearchParams({ sort: "featured", per_page: "8" }), requestContext),

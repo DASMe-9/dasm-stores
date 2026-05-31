@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { Tajawal } from "next/font/google";
 import "@/styles/globals.css";
+import { SyncStoresAuthCookie } from "@/components/store/SyncStoresAuthCookie";
 import {
   SITE,
   buildTitle,
@@ -61,6 +62,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLdString(websiteSchema()) }}
         />
+        <SyncStoresAuthCookie />
         {children}
         <script src="https://talk.dasm.com.sa/widget.js" async />
       </body>
