@@ -1,11 +1,11 @@
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductsPagination } from "@/components/product/ProductsPagination";
 import { ProductsToolbar } from "@/components/product/ProductsToolbar";
 import { StoreSidebar } from "@/components/store/StoreSidebar";
 import { getCategories, getProducts, getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
+import { ensurePublicStore } from "@/lib/storefront-guards";
 
 export const revalidate = 60;
 
@@ -21,7 +21,7 @@ export default async function StoreProductsPage({
   const requestContext = await getStorefrontRequestContext();
 
   const storeData = await getStore(slug, requestContext);
-  if (!storeData) notFound();
+  if (!ensurePublicStore(storeData, requestContext)) return null;
 
   const qs = new URLSearchParams();
   const tab = typeof sp.tab === "string" ? sp.tab : undefined;

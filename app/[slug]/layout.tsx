@@ -5,6 +5,8 @@ import { StoreHeader } from "@/components/store/StoreHeader";
 import { StoreTabsNav } from "@/components/store/StoreTabsNav";
 import { StoreThemeApplier } from "@/components/store/StoreThemeApplier";
 import { StoreTrackingPixels } from "@/components/store/StoreTrackingPixels";
+import { OwnerPreviewRecovery } from "@/components/store/OwnerPreviewRecovery";
+import { SyncStoresAuthCookie } from "@/components/store/SyncStoresAuthCookie";
 import { getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import { clip } from "@/lib/seo";
@@ -42,7 +44,17 @@ export default async function StoreLayout({ children, params }: Props) {
   const { slug } = await params;
   const requestContext = await getStorefrontRequestContext();
   const data = await getStore(slug, requestContext);
-  if (!data) notFound();
+  if (!data) {
+    if (requestContext.preview) {
+      return (
+        <>
+          <SyncStoresAuthCookie />
+          <OwnerPreviewRecovery slug={slug} />
+        </>
+      );
+    }
+    notFound();
+  }
 
   const store = data.store;
   const storeName = getStoreDisplayName(store);

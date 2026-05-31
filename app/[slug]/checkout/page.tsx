@@ -1,8 +1,8 @@
 import { CheckoutClient } from "@/components/checkout/CheckoutClient";
 import { getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
+import { ensurePublicStore } from "@/lib/storefront-guards";
 import { pickShippingConfigs } from "@/lib/store-utils";
-import { notFound } from "next/navigation";
 
 export const revalidate = 300;
 
@@ -14,7 +14,7 @@ export default async function CheckoutPage({
   const { slug } = await params;
   const requestContext = await getStorefrontRequestContext();
   const data = await getStore(slug, requestContext);
-  if (!data) notFound();
+  if (!ensurePublicStore(data, requestContext)) return null;
 
   const shipping = pickShippingConfigs(data.store);
 
