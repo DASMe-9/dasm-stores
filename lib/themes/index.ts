@@ -6,6 +6,13 @@ export {
   resolveLegacyThemeId,
   resolvePresetIdFromLegacyThemeId,
 } from "./resolve-theme-id";
+
+/** Prefer theme_preset (slug) over legacy numeric theme_id when saving store settings. */
+export function buildThemeStorePayload(preset: { id: string }): {
+  theme_preset: string;
+} {
+  return { theme_preset: preset.id };
+}
 export { productCardClassName } from "./product-card-class";
 export { resolveStoreCssVariables, resolveStoreTemplateConfig } from "./resolve-store-theme";
 
