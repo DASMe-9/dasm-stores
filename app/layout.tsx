@@ -64,7 +64,6 @@ export default function RootLayout({
         />
         <SyncStoresAuthCookie />
         {children}
-        <script src="https://talk.dasm.com.sa/widget.js" async />
       </body>
     </html>
   );

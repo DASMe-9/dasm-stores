@@ -7,7 +7,6 @@ import {
 } from "lucide-react";
 import { StoreCard } from "@/components/explore/StoreCard";
 import { HomeHeaderActions } from "@/components/home/HomeHeaderActions";
-import { TalkOpenButton } from "@/components/home/TalkOpenButton";
 import { getExploreProducts, getExploreStores, getProducts, type StoreProductCard } from "@/lib/api-server";
 import { SITE, buildTitle, canonicalUrl, itemListSchema, jsonLdString } from "@/lib/seo";
 import { getStoreDisplayName } from "@/lib/store-display";
@@ -148,7 +147,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
         <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/92 backdrop-blur">
           <div className="mx-auto flex h-20 max-w-7xl items-center justify-between gap-4 px-4">
             <Link href="/" className="flex items-center gap-3 text-2xl font-extrabold text-slate-950"><span>متاجر داسم</span><span className="grid h-11 w-11 place-items-center rounded-2xl border border-emerald-100 bg-emerald-50 text-emerald-700"><ShoppingBag className="h-6 w-6" /></span></Link>
-            <nav className="hidden items-center gap-8 text-sm font-bold text-slate-800 lg:flex"><Link href="/" className="border-b-2 border-emerald-600 pb-1 text-emerald-700">الرئيسية</Link><Link href="#stores" className="hover:text-emerald-700">استكشف المتاجر</Link><Link href="#categories" className="hover:text-emerald-700">الأقسام</Link><Link href="#track-order" className="hover:text-emerald-700">تتبع الطلب</Link><TalkOpenButton className="bg-transparent p-0 font-bold text-inherit hover:text-emerald-700">تواصل معنا</TalkOpenButton></nav>
+            <nav className="hidden items-center gap-8 text-sm font-bold text-slate-800 lg:flex"><Link href="/" className="border-b-2 border-emerald-600 pb-1 text-emerald-700">الرئيسية</Link><Link href="#stores" className="hover:text-emerald-700">استكشف المتاجر</Link><Link href="#categories" className="hover:text-emerald-700">الأقسام</Link><Link href="#track-order" className="hover:text-emerald-700">تتبع الطلب</Link></nav>
             <HomeHeaderActions shoppingHref={shoppingHref} />
           </div>
         </header>
