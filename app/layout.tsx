@@ -52,7 +52,16 @@ export default function RootLayout({
   children: ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <head>
+        {/* No-flash theme: apply saved/system theme before first paint.
+            Shares the "stores_theme" key with the seller dashboard. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var s=localStorage.getItem("stores_theme");var d=s?s==="dark":window.matchMedia("(prefers-color-scheme: dark)").matches;document.documentElement.classList.toggle("dark",d);}catch(e){}})();`,
+          }}
+        />
+      </head>
       <body className={`${tajawal.className} min-h-screen antialiased`}>
         <script
           type="application/ld+json"

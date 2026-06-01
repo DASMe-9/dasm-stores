@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { LayoutDashboard, ShoppingCart, User } from "lucide-react";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 function cookieHasValue(name: string): boolean {
   if (typeof document === "undefined") return false;
@@ -40,15 +41,16 @@ export function HomeHeaderActions({ shoppingHref }: { shoppingHref: string }) {
 
   return (
     <div className="flex items-center gap-2">
+      <ThemeToggle />
       {authState === "checking" ? (
         <span
           aria-hidden
-          className="hidden h-11 w-28 rounded-2xl border border-slate-200 bg-white shadow-sm sm:inline-flex"
+          className="hidden h-11 w-28 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm sm:inline-flex"
         />
       ) : authState === "auth" ? (
         <Link
           href="/dashboard"
-          className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700 sm:inline-flex"
+          className="hidden items-center gap-2 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-bold text-slate-900 dark:text-zinc-100 shadow-sm transition hover:border-emerald-200 dark:hover:border-emerald-800 hover:text-emerald-700 dark:hover:text-emerald-300 sm:inline-flex"
         >
           <LayoutDashboard className="h-4 w-4" />
           لوحتي
@@ -56,7 +58,7 @@ export function HomeHeaderActions({ shoppingHref }: { shoppingHref: string }) {
       ) : (
         <Link
           href="/auth/login?returnUrl=/dashboard"
-          className="hidden items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700 sm:inline-flex"
+          className="hidden items-center gap-2 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-bold text-slate-900 dark:text-zinc-100 shadow-sm transition hover:border-emerald-200 dark:hover:border-emerald-800 hover:text-emerald-700 dark:hover:text-emerald-300 sm:inline-flex"
         >
           <User className="h-4 w-4" />
           تسجيل الدخول
@@ -65,7 +67,7 @@ export function HomeHeaderActions({ shoppingHref }: { shoppingHref: string }) {
 
       <Link
         href={shoppingHref}
-        className="relative inline-flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-bold text-slate-900 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700"
+        className="relative inline-flex items-center gap-2 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-bold text-slate-900 dark:text-zinc-100 shadow-sm transition hover:border-emerald-200 dark:hover:border-emerald-800 hover:text-emerald-700 dark:hover:text-emerald-300"
       >
         <ShoppingCart className="h-4 w-4" />
         ابدأ التسوق
