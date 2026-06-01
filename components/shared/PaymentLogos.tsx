@@ -1,11 +1,11 @@
 export function PaymentLogos({ className = "" }: { className?: string }) {
   return (
     <div className={`flex flex-col items-center gap-3 ${className}`}>
-      <p className="text-[11px] text-gray-400 tracking-wide">مدفوعات آمنة عبر</p>
+      <p className="text-[11px] text-gray-400 dark:text-zinc-400 tracking-wide">مدفوعات آمنة عبر</p>
 
       <div className="flex items-center justify-center gap-2 flex-wrap">
         {/* mada */}
-        <span className="inline-flex items-center justify-center h-8 px-3 rounded-md bg-white border border-gray-200 shadow-sm">
+        <span className="inline-flex items-center justify-center h-8 px-3 rounded-md bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 shadow-sm">
           <svg viewBox="0 0 80 24" className="h-4 w-auto" aria-label="mada">
             <path d="M8.5 6.5c-2.5 0-4.5 2-4.5 4.5v2.5c0 2.5 2 4.5 4.5 4.5h3c2.5 0 4.5-2 4.5-4.5V11c0-2.5-2-4.5-4.5-4.5h-3z" fill="#6DC53A"/>
             <path d="M21 6.5c-2.5 0-4.5 2-4.5 4.5v2.5c0 2.5 2 4.5 4.5 4.5h3c2.5 0 4.5-2 4.5-4.5V11c0-2.5-2-4.5-4.5-4.5h-3z" fill="#003B71"/>
@@ -14,14 +14,14 @@ export function PaymentLogos({ className = "" }: { className?: string }) {
         </span>
 
         {/* Visa */}
-        <span className="inline-flex items-center justify-center h-8 px-3 rounded-md bg-white border border-gray-200 shadow-sm">
+        <span className="inline-flex items-center justify-center h-8 px-3 rounded-md bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 shadow-sm">
           <svg viewBox="0 0 48 16" className="h-4 w-auto" aria-label="Visa">
             <path fill="#1A1F71" d="M19.5 1.2l-3.2 13.6h-2.6L16.9 1.2h2.6zm13.1 8.8l1.4-3.7.8 3.7h-2.2zm2.9 4.8h2.4L35.8 1.2h-2.2c-.5 0-.9.3-1.1.7l-3.8 12.9h2.7l.5-1.4h3.2l.4 1.4zM28 10.1c0 3.6 5 3.8 5 5.6 0 .5-.5 1-1.5 1-1.3 0-2.3-.5-2.9-.9l-.5 2.3c.7.3 1.9.6 3.2.6 3 0 4.4-1.5 4.4-3.7 0-4.7-5-5-5-5.6 0-.4.4-.9 1.4-.9 1 0 1.9.4 2.4.6l.5-2.2c-.6-.2-1.5-.5-2.7-.5-2.8 0-4.3 1.5-4.3 3.7zM15.4 1.2L11 14.8H8.2l-2-10.9c-.1-.5-.3-.7-.7-.9C4.7 2.6 3.5 2.3 2.4 2l.1-.8h4.3c.5 0 1 .4 1.1 1l1.1 5.6 2.6-6.6h2.8z"/>
           </svg>
         </span>
 
         {/* Mastercard */}
-        <span className="inline-flex items-center justify-center h-8 px-3 rounded-md bg-white border border-gray-200 shadow-sm">
+        <span className="inline-flex items-center justify-center h-8 px-3 rounded-md bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 shadow-sm">
           <svg viewBox="0 0 40 24" className="h-5 w-auto" aria-label="Mastercard">
             <circle cx="15" cy="12" r="7" fill="#EB001B"/>
             <circle cx="25" cy="12" r="7" fill="#F79E1B"/>
@@ -38,7 +38,7 @@ export function PaymentLogos({ className = "" }: { className?: string }) {
         </span>
 
         {/* STC Pay */}
-        <span className="inline-flex items-center justify-center h-8 px-3 rounded-md bg-white border border-gray-200 shadow-sm">
+        <span className="inline-flex items-center justify-center h-8 px-3 rounded-md bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 shadow-sm">
           <svg viewBox="0 0 60 20" className="h-4 w-auto" aria-label="STC Pay">
             <text x="0" y="14" fill="#4F008C" fontFamily="Arial,sans-serif" fontWeight="bold" fontSize="10">stc</text>
             <text x="22" y="14" fill="#4F008C" fontFamily="Arial,sans-serif" fontWeight="500" fontSize="9">pay</text>
@@ -54,11 +54,11 @@ export function PaymentLogos({ className = "" }: { className?: string }) {
       </div>
 
       {/* Paymob badge */}
-      <div className="flex items-center gap-1.5 bg-gray-50 rounded-full px-3 py-1">
+      <div className="flex items-center gap-1.5 bg-gray-50 dark:bg-zinc-900/50 rounded-full px-3 py-1">
         <svg viewBox="0 0 12 12" className="h-3 w-3 text-emerald-500" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M2 6.5l2.5 2.5 5.5-5.5"/>
         </svg>
-        <span className="text-[10px] text-gray-500 font-medium">دفع آمن ومشفّر عبر</span>
+        <span className="text-[10px] text-gray-500 dark:text-zinc-400 font-medium">دفع آمن ومشفّر عبر</span>
         <span className="text-[10px] text-[#6C63FF] font-bold">Paymob</span>
       </div>
     </div>

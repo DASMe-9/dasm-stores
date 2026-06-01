@@ -15,6 +15,7 @@ import {
   Watch,
 } from "lucide-react";
 import { CartBadge } from "./CartBadge";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { ProfileFollowButton } from "@/components/social/ProfileFollowButton";
@@ -74,6 +75,7 @@ export function StoreHeader({
           </Link>
           <span className="text-[var(--muted-foreground)]">/</span>
           <span className="text-[var(--foreground)] font-medium">{storeName}</span>
+          <ThemeToggle className="ms-auto h-8 w-8" />
         </div>
       </div>
       <div
