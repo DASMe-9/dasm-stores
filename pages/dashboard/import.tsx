@@ -62,7 +62,7 @@ function statusLabel(status?: string | null): string {
   }
 }
 
-const CHEERLY_SHOPIFY_DOMAIN = "we0crfq5.myshopify.com";
+const CHEERLY_SHOPIFY_DOMAIN = "we0crf-q5.myshopify.com";
 const CHEERLY_SLUGS = new Set(["cheerlylive", "cheerlylife"]);
 
 type ImportPreview = {
@@ -83,6 +83,7 @@ function DashboardImportPage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
   const [flash, setFlash] = useState<string | null>(null);
+  const [flashTone, setFlashTone] = useState<"success" | "error">("success");
   const [data, setData] = useState<ImportStatusResponse | null>(null);
   const [preview, setPreview] = useState<ImportPreview | null>(null);
   const [shopDomain, setShopDomain] = useState("");
@@ -107,6 +108,7 @@ function DashboardImportPage() {
         setMigrationStats(null);
       }
     } catch {
+      setFlashTone("error");
       setFlash("تعذّر تحميل حالة الاستيراد");
     } finally {
       setLoading(false);
@@ -156,9 +158,11 @@ function DashboardImportPage() {
     const message = router.query.message;
     if (typeof salla === "string") {
       if (salla === "connected") {
+        setFlashTone("success");
         setFlash(typeof message === "string" ? message : "تم ربط Salla بنجاح");
         void load();
       } else if (salla === "error") {
+        setFlashTone("error");
         setFlash(typeof message === "string" ? message : "فشل ربط Salla");
       }
       router.replace("/dashboard/import", undefined, { shallow: true });
@@ -166,10 +170,12 @@ function DashboardImportPage() {
     }
     if (typeof shopify === "string") {
       if (shopify === "connected") {
+        setFlashTone("success");
         setFlash(typeof message === "string" ? message : "تم ربط Shopify بنجاح");
         setShowThemeGuide(true);
         void load();
       } else if (shopify === "error") {
+        setFlashTone("error");
         setFlash(typeof message === "string" ? message : "فشل ربط Shopify");
       }
       router.replace("/dashboard/import", undefined, { shallow: true });
@@ -321,7 +327,13 @@ function DashboardImportPage() {
       >
         <div className="mx-auto max-w-3xl space-y-6">
           {flash && (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-100">
+            <div
+              className={
+                flashTone === "error"
+                  ? "rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900 dark:border-red-900/40 dark:bg-red-950/40 dark:text-red-100"
+                  : "rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-900/40 dark:bg-emerald-950/40 dark:text-emerald-100"
+              }
+            >
               {flash}
             </div>
           )}
@@ -616,7 +628,7 @@ function DashboardImportPage() {
                     type="text"
                     value={shopDomain}
                     onChange={(e) => setShopDomain(e.target.value)}
-                    placeholder="we0crfq5.myshopify.com"
+                    placeholder="we0crf-q5.myshopify.com"
                     className="min-w-[220px] flex-1 rounded-xl border border-zinc-200 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                     aria-label="نطاق Shopify"
                   />
