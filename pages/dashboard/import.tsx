@@ -2,7 +2,17 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
-import { Download, Eye, Link2, RefreshCw, Unplug } from "lucide-react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  Download,
+  Eye,
+  Link2,
+  Palette,
+  RefreshCw,
+  Settings,
+  Unplug,
+} from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi } from "@/lib/api";
 
@@ -52,6 +62,9 @@ function statusLabel(status?: string | null): string {
   }
 }
 
+const CHEERLY_SHOPIFY_DOMAIN = "we0crfq5.myshopify.com";
+const CHEERLY_SLUGS = new Set(["cheerlylive", "cheerlylife"]);
+
 type ImportPreview = {
   total_remote?: number;
   would_import?: number;
@@ -76,6 +89,8 @@ function DashboardImportPage() {
   const [shopifyPreview, setShopifyPreview] = useState<ImportPreview | null>(null);
   const [migrationStats, setMigrationStats] = useState<{ imported_orders?: number; marketing_contacts?: number } | null>(null);
   const [csvResult, setCsvResult] = useState<string | null>(null);
+  const [storeSlug, setStoreSlug] = useState<string | null>(null);
+  const [showThemeGuide, setShowThemeGuide] = useState(false);
 
   const sallaConnection = data?.connections?.find((c) => c.provider === "salla");
   const shopifyConnection = data?.connections?.find((c) => c.provider === "shopify");
@@ -109,6 +124,32 @@ function DashboardImportPage() {
   }, [load, router]);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+    void sellerApi
+      .getMyStore()
+      .then((res) => {
+        const slug = (res.data as { store?: { slug?: string | null } })?.store?.slug;
+        if (slug) {
+          setStoreSlug(slug);
+          if (!shopDomain && CHEERLY_SLUGS.has(slug.toLowerCase())) {
+            setShopDomain(CHEERLY_SHOPIFY_DOMAIN);
+          }
+        }
+      })
+      .catch(() => {
+        /* optional — import still works without slug */
+      });
+  }, []);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    const shopQuery = router.query.shop;
+    if (typeof shopQuery === "string" && shopQuery.trim()) {
+      setShopDomain(shopQuery.trim());
+    }
+  }, [router.isReady, router.query.shop]);
+
+  useEffect(() => {
     if (!router.isReady) return;
     const salla = router.query.salla;
     const shopify = router.query.shopify;
@@ -126,6 +167,7 @@ function DashboardImportPage() {
     if (typeof shopify === "string") {
       if (shopify === "connected") {
         setFlash(typeof message === "string" ? message : "تم ربط Shopify بنجاح");
+        setShowThemeGuide(true);
         void load();
       } else if (shopify === "error") {
         setFlash(typeof message === "string" ? message : "فشل ربط Shopify");
@@ -231,7 +273,8 @@ function DashboardImportPage() {
     setFlash(null);
     try {
       await sellerApi.runShopifyImport({ limit: 200 });
-      setFlash("بدأ استيراد منتجات Shopify في الخلفية. حدّث الصفحة بعد دقيقة.");
+      setFlash("بدأ استيراد منتجات Shopify في الخلفية. حدّث الصفحة بعد دقيقة، ثم خصّص الثيم من «تصميم المتجر».");
+      setShowThemeGuide(true);
       await load();
     } catch {
       setFlash("تعذّر بدء استيراد Shopify. تأكد أن المتجر مربوط.");
@@ -262,7 +305,7 @@ function DashboardImportPage() {
       </Head>
       <SellerShell
         title="استيراد المنتجات"
-        subtitle="اربط Salla أو Shopify واستورد الكatalog إلى متجر داسم"
+        subtitle="اربط Shopify رسمياً ثم خصّص واجهة متجر داسم (ألوان، شعار، تصميم) — الاستلهام من Shopify وليس نسخ قالب Theme Store"
         icon={Download}
         hasStore
         actions={
@@ -282,6 +325,80 @@ function DashboardImportPage() {
               {flash}
             </div>
           )}
+
+          <section className="rounded-3xl border border-sky-200 bg-gradient-to-b from-sky-50/80 to-white p-6 shadow-sm dark:border-sky-900/50 dark:from-sky-950/30 dark:to-zinc-900">
+            <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">مسار ترحيل Shopify → داسم</h2>
+            <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
+              المنتجات والأوصاف تُستورد عبر OAuth الرسمي. الشكل العام (ألوان، شعار، قالب داسم) يُضبط من لوحة التحكم — لا ننسخ
+              قوالب Liquid من Shopify.
+            </p>
+            <ol className="mt-5 space-y-3">
+              {[
+                {
+                  done: shopifyConnection?.connected,
+                  title: "ربط متجر Shopify",
+                  hint: "أدخل نطاق myshopify.com ووافق على الصلاحيات",
+                },
+                {
+                  done: Boolean(shopifyPreview || shopifyConnection?.last_sync_status),
+                  title: "معاينة ثم استيراد المنتجات",
+                  hint: "معاينة dry-run ثم «استيراد المنتجات»",
+                },
+                {
+                  done: showThemeGuide || (shopifyConnection?.recent_runs?.some((r) => r.status === "ok") ?? false),
+                  title: "تخصيص واجهة متجر داسم",
+                  hint: "ألوان وقالب من «تصميم المتجر» — شعار وبيانات من «إعدادات المتجر»",
+                },
+              ].map((step, index) => (
+                <li key={step.title} className="flex gap-3 text-sm">
+                  <span
+                    className={[
+                      "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+                      step.done
+                        ? "bg-emerald-600 text-white"
+                        : "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300",
+                    ].join(" ")}
+                  >
+                    {step.done ? <CheckCircle2 className="h-4 w-4" /> : index + 1}
+                  </span>
+                  <div>
+                    <p className="font-semibold text-zinc-900 dark:text-zinc-100">{step.title}</p>
+                    <p className="text-zinc-600 dark:text-zinc-400">{step.hint}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            {(showThemeGuide || shopifyConnection?.connected) && (
+              <div className="mt-5 flex flex-wrap gap-3 border-t border-sky-100 pt-5 dark:border-sky-900/40">
+                <Link
+                  href="/dashboard/theme"
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700"
+                >
+                  <Palette className="h-4 w-4" />
+                  تصميم المتجر (ألوان وقالب)
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="/dashboard/settings"
+                  className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+                >
+                  <Settings className="h-4 w-4" />
+                  إعدادات المتجر (شعار، تبويبات، تواصل)
+                </Link>
+                {storeSlug && (
+                  <Link
+                    href={`/${storeSlug}?preview=true`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 px-4 py-2.5 text-sm font-semibold text-emerald-800 hover:bg-emerald-50 dark:border-emerald-800 dark:text-emerald-200"
+                  >
+                    معاينة الواجهة
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                )}
+              </div>
+            )}
+          </section>
 
           <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-start justify-between gap-4">
@@ -442,9 +559,10 @@ function DashboardImportPage() {
           <section className="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Shopify</h2>
+                <h2 className="text-lg font-bold text-zinc-900 dark:text-zinc-50">Shopify (الربط الرسمي)</h2>
                 <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
-                  OAuth على نطاق متجرك — استيراد المنتجات عبر Admin REST API.
+                  OAuth على نطاق متجرك — استيراد المنتجات والأوصاف والصور عبر Admin REST API. بعد الاستيراد، اضبط
+                  المظهر من «تصميم المتجر» و«إعدادات المتجر» (لا نستورد قالب Theme Store).
                 </p>
               </div>
               <span
@@ -498,7 +616,7 @@ function DashboardImportPage() {
                     type="text"
                     value={shopDomain}
                     onChange={(e) => setShopDomain(e.target.value)}
-                    placeholder="mystore.myshopify.com"
+                    placeholder="we0crfq5.myshopify.com"
                     className="min-w-[220px] flex-1 rounded-xl border border-zinc-200 px-3 py-2.5 text-sm dark:border-zinc-700 dark:bg-zinc-900"
                     aria-label="نطاق Shopify"
                   />
