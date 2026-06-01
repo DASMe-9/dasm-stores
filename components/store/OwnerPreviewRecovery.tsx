@@ -118,11 +118,24 @@ export function OwnerPreviewRecovery({ slug }: Props) {
       <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 px-6 text-center">
         <h1 className="text-xl font-bold">المتجر غير متاح</h1>
         <p className="max-w-md text-sm text-[var(--muted-foreground)]">
-          لم نجد متجراً بهذا الرابط، أو أنه لم يُنشأ بعد في المنصة. تحقق من الرابط في إعدادات المتجر.
+          لم نجد متجراً بهذا الرابط في المنصة ({slug}). إن كان الربط مع Shopify ناجحاً، أكمِل إنشاء المتجر من لوحة
+          التاجر ثم راجع الـ slug في الإعدادات.
         </p>
-        <Link href="/" className="text-sm font-semibold underline">
-          العودة للاستكشاف
-        </Link>
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <Link
+            href="/stores/new"
+            className="rounded-xl px-6 py-3 text-sm font-semibold text-[var(--primary-foreground)]"
+            style={{ backgroundColor: "var(--primary)" }}
+          >
+            إنشاء متجر
+          </Link>
+          <Link href="/dashboard/import" className="text-sm font-semibold underline">
+            استيراد المنتجات
+          </Link>
+          <Link href="/dashboard/settings" className="text-sm font-semibold underline">
+            إعدادات المتجر
+          </Link>
+        </div>
       </div>
     );
   }

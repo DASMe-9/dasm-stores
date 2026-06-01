@@ -3,12 +3,10 @@
  * Uses API_BACKEND_URL (server env). ISR via fetch `next.revalidate` where noted.
  */
 
+import { resolveServerPlatformApiOrigin } from "./platform-api-url";
+
 export function getApiBase(): string {
-  const base =
-    process.env.API_BACKEND_URL?.replace(/\/$/, "") ||
-    process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
-    "https://api.dasm.com.sa";
-  return base;
+  return resolveServerPlatformApiOrigin();
 }
 
 const JSON_HEADERS = { Accept: "application/json", "Content-Type": "application/json" };

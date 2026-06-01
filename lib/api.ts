@@ -1,9 +1,9 @@
 import axios, { type AxiosResponse, type InternalAxiosRequestConfig } from "axios";
 
 import { clearStoresToken } from "./auth-token";
-import { DEFAULT_PLATFORM_API_ORIGIN } from "./platform-api-url";
+import { platformApiOrigin } from "./platform-api-url";
 
-const API_URL = DEFAULT_PLATFORM_API_ORIGIN;
+const API_URL = platformApiOrigin();
 type JsonRecord = Record<string, unknown>;
 type QueryParams = Record<string, string | number | boolean | undefined>;
 type CheckoutItem = {

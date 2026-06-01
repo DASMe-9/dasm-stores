@@ -9,6 +9,7 @@
  */
 import type { GetServerSideProps } from "next";
 import { SITE } from "@/lib/seo";
+import { resolveServerPlatformApiOrigin } from "@/lib/platform-api-url";
 
 type StoreEntry = {
   slug: string;
@@ -16,10 +17,7 @@ type StoreEntry = {
   lastmod?: string;
 };
 
-const API_URL =
-  process.env.API_BACKEND_URL?.replace(/\/$/, "") ||
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ||
-  "https://dasm-platform-backend.onrender.com";
+const API_URL = resolveServerPlatformApiOrigin();
 
 function escapeXml(s: string): string {
   return s
