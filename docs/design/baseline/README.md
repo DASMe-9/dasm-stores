@@ -39,9 +39,15 @@
 
 أي تعديل على هذه الصور أو على محتوى مجلد `docs/design/baseline/` **يتطلب موافقة محمد الزهراني مباشرةً** عبر **PR منفصل** بعنوان **`baseline-update`**. لا تُدمَج تعديلات المرجع ضمن PRs عادية.
 
-## راوت الحراسة (لاحقاً)
+## راوت الحراسة
 
-سيُضاف هنا رابط **Design Guardian** على Claude Code بمجرد تفعيله لمراجعة انحراف التنفيذ عن هذا الـ baseline أسبوعياً.
+**dasm-stores — Design Guardian & Spec Generator**
+- الجدول: كل يوم أحد الساعة 09:00
+- الفروع المكتوبة: `docs/research/` و `docs/specs/` فقط
+- الـ connectors: exa + Figma + Sentry
+- المسارات المرجعية للـ baseline (مستخدمة في الـ prompt):
+  - `docs/design/baseline/marketplace-home.png`
+  - `docs/design/baseline/subdomain-store.png`
 
 ---
 
