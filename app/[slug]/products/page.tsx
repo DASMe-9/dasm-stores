@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { StoreAdSlot } from "@/components/ads/StoreAdSlot";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductsPagination } from "@/components/product/ProductsPagination";
 import { ProductsToolbar } from "@/components/product/ProductsToolbar";
@@ -61,6 +62,7 @@ export default async function StoreProductsPage({
         >
           <ProductsToolbar tabs={storeData.store.tabs ?? []} />
         </Suspense>
+        <StoreAdSlot slotKey="store.product.sidebar" context={{ store_slug: slug }} className="mb-4 w-full" />
         <ProductGrid products={products.data} slug={slug} />
         <ProductsPagination slug={slug} paginator={products} query={qs} />
       </div>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PackageCheck, Search, ShoppingCart, Tags } from "lucide-react";
+import { StoreAdSlot } from "@/components/ads/StoreAdSlot";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { getCategories, getProducts, getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
@@ -97,6 +98,8 @@ export default async function StoreHomePage({
           </div>
         </section>
       ) : null}
+
+      <StoreAdSlot slotKey="store.category.promo" context={{ store_slug: slug }} className="w-full" />
 
       <section>
         <div className="mb-4 flex items-center justify-between gap-2">
