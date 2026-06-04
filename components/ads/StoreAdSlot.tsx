@@ -13,9 +13,10 @@ interface StoreAdSlotProps {
   slotKey: string;
   context?: AdSlotContext;
   className?: string;
+  variant?: "card" | "hero";
 }
 
-export function StoreAdSlot({ slotKey, context = {}, className = "" }: StoreAdSlotProps) {
+export function StoreAdSlot({ slotKey, context = {}, className = "", variant = "card" }: StoreAdSlotProps) {
   const [ad, setAd] = useState<DasmAd | null>(null);
   const impressionTracked = useRef(false);
 
@@ -49,6 +50,56 @@ export function StoreAdSlot({ slotKey, context = {}, className = "" }: StoreAdSl
   const r = ad.rendered;
   const href = ad.target_url || "#";
   const sessionId = getAdsSessionId();
+
+  if (variant === "hero") {
+    const backgroundStyle = r?.image_url
+      ? {
+          backgroundImage: `linear-gradient(90deg, rgba(2, 27, 31, 0.92), rgba(2, 27, 31, 0.58)), url(${r.image_url})`,
+        }
+      : undefined;
+
+    return (
+      <a
+        data-dasm-ad-slot={slotKey}
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        onClick={() => trackAdEvent(ad, "click", sessionId, { ...context, slot: slotKey })}
+        className={`absolute inset-0 z-20 flex items-end overflow-hidden rounded-[inherit] bg-[#021b1f] bg-cover bg-center text-white transition hover:brightness-110 ${className}`}
+        style={backgroundStyle}
+        dir="rtl"
+      >
+        {!r?.image_url && (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_35%,rgba(45,212,191,.24),transparent_28%),linear-gradient(120deg,#031b1f,#06313a_52%,#031214)]" />
+        )}
+        <div className="relative z-10 flex w-full flex-col gap-3 p-6 text-right md:max-w-2xl md:p-9">
+          {r?.headline && (
+            <p className="text-2xl font-extrabold leading-tight md:text-4xl">{r.headline}</p>
+          )}
+          {r?.subtitle && (
+            <p className="max-w-xl text-sm leading-6 text-emerald-50/82 md:text-base">{r.subtitle}</p>
+          )}
+          <div className="flex flex-wrap items-center gap-3">
+            {r?.cta && (
+              <span className="rounded-full bg-emerald-500 px-5 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-emerald-950/20">
+                {r.cta}
+              </span>
+            )}
+            {r?.price != null && (
+              <span className="rounded-full bg-white/12 px-3 py-1.5 text-xs font-bold text-emerald-50">
+                {typeof r.price === "number" ? `${r.price.toFixed(0)} ر.س` : r.price}
+              </span>
+            )}
+            {r?.city && (
+              <span className="rounded-full bg-white/12 px-3 py-1.5 text-xs font-bold text-emerald-50">
+                {r.city}
+              </span>
+            )}
+          </div>
+        </div>
+      </a>
+    );
+  }
 
   return (
     <div className={`relative overflow-hidden rounded-2xl border border-emerald-200 dark:border-emerald-800 bg-gradient-to-l from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/40 shadow-sm ${className}`} dir="rtl">
