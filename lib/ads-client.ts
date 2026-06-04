@@ -1,13 +1,30 @@
 "use client";
 
 export type DasmAdRendered = {
+  media_type?: string | null;
   headline?: string | null;
   subtitle?: string | null;
   image_url?: string | null;
+  // Video payload — present only when the creative is a video (Package A/B).
+  video_url?: string | null;
+  poster_url?: string | null;
+  duration_sec?: number | null;
+  format?: string | null;
+  source?: string | null;
   price?: number | string | null;
   city?: string | null;
   cta?: string | null;
+  target_url?: string | null;
 };
+
+const VIDEO_MEDIA_TYPES = ["video", "ai_video", "clip"];
+
+/** True when the served ad should render as a playable <video>. */
+export function isVideoAd(rendered?: DasmAdRendered | null): boolean {
+  return Boolean(
+    rendered?.video_url && VIDEO_MEDIA_TYPES.includes(rendered?.media_type ?? "")
+  );
+}
 
 export type DasmAd = {
   creative_id: number;
