@@ -20,10 +20,16 @@ export async function GET(req: NextRequest) {
       signal: AbortSignal.timeout(8_000),
     });
     const data = await upstream.json().catch(() => ({ data: [] }));
-    return NextResponse.json(data, { status: upstream.status });
+    if (!upstream.ok) {
+      return NextResponse.json(
+        { data: [], error: "ads_unavailable", upstream_status: upstream.status },
+        { status: 200 },
+      );
+    }
+    return NextResponse.json(data, { status: 200 });
   } catch (error) {
     const message = error instanceof Error ? error.message : "ads_unavailable";
     console.error("[ads-serve-proxy] error:", message);
-    return NextResponse.json({ data: [], error: "ads_unavailable" }, { status: 502 });
+    return NextResponse.json({ data: [], error: "ads_unavailable" }, { status: 200 });
   }
 }
