@@ -39,9 +39,11 @@
 
 أي تعديل على هذه الصور أو على محتوى مجلد `docs/design/baseline/` **يتطلب موافقة محمد الزهراني مباشرةً** عبر **PR منفصل** بعنوان **`baseline-update`**. لا تُدمَج تعديلات المرجع ضمن PRs عادية.
 
-## راوت الحراسة (لاحقاً)
+## راوت الحراسة
 
-سيُضاف هنا رابط **Design Guardian** على Claude Code بمجرد تفعيله لمراجعة انحراف التنفيذ عن هذا الـ baseline أسبوعياً.
+**Design Guardian & Spec Generator** — يعمل كل أحد الساعة 09:00 على Claude Code web.  
+الروتين يقرأ هذا الـ baseline مقارنةً بالكود، يُنتج تقارير drift في `docs/research/`، وmواصفات specs في `docs/specs/`.  
+الـ prompt المُصحَّح والمسارات الصحيحة محفوظة في `.github/routines/design-guardian.md`.
 
 ---
 
