@@ -19,8 +19,9 @@ export async function getStorefrontRequestContext(): Promise<StorefrontRequestCo
   const token = rawToken ? decodeCookieValue(rawToken) : undefined;
   const previewHeader = headerList.get("x-dasm-store-preview") === "1";
 
-  // If seller token exists, use owner preview mode by default so draft stores
-  // remain visible to their owners even without `?preview=true` in the URL.
-  const preview = previewHeader || Boolean(token);
+  // Preview is explicit per request. A seller token alone must not turn public
+  // storefront visits into owner preview, otherwise sellers cannot browse
+  // other active stores as normal shoppers.
+  const preview = previewHeader;
   return { preview, token };
 }
