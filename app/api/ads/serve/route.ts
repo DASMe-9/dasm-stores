@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const DEFAULT_ADS_API_URL = "https://dasm-ads.vercel.app/api/ads";
+const DEFAULT_ADS_API_URL = "https://ads.dasm.com.sa/ads";
 
 function adsApiUrl(): string {
   return (
