@@ -3,11 +3,9 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import {
-  CheckCircle,
   Clock,
   DollarSign,
   Edit3,
-  ExternalLink,
   LayoutDashboard,
   Package,
   Plus,
@@ -15,11 +13,9 @@ import {
   Settings,
   ShoppingCart,
   Store,
-  Truck,
-  TrendingUp,
 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
-import { AdBanner } from "@/components/ads/AdBanner";
+import { StoreAdSlot } from "@/components/ads/StoreAdSlot";
 import { sellerApi } from "@/lib/api";
 import { getStoreDisplayName } from "@/lib/store-display";
 import {
@@ -157,8 +153,17 @@ export default function SellerDashboardHome() {
         storeStatus={store?.status}
       >
         <div className="mx-auto max-w-6xl space-y-6">
-          {/* ─── Ad Banner ─── */}
-          <AdBanner placement="stores_dashboard_header" variant="header" />
+          {!loading && (
+            <StoreAdSlot
+              slotKey="store.home.banner"
+              context={{
+                placement: "stores_dashboard_header",
+                store_slug: store?.slug,
+                owner_type: store?.owner_type,
+              }}
+              className="w-full"
+            />
+          )}
 
           {/* ─── Loading ─── */}
           {loading && (
