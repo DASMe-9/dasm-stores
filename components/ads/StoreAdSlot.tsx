@@ -5,6 +5,7 @@ import {
   type AdSlotContext,
   type DasmAd,
   getAdsSessionId,
+  isVideoAd,
   serveAds,
   trackAdEvent,
 } from "@/lib/ads-client";
@@ -18,6 +19,7 @@ interface StoreAdSlotProps {
 
 export function StoreAdSlot({ slotKey, context = {}, className = "", variant = "card" }: StoreAdSlotProps) {
   const [ad, setAd] = useState<DasmAd | null>(null);
+  const [videoFailed, setVideoFailed] = useState(false);
   const impressionTracked = useRef(false);
 
   useEffect(() => {
@@ -50,9 +52,11 @@ export function StoreAdSlot({ slotKey, context = {}, className = "", variant = "
   const r = ad.rendered;
   const href = ad.target_url || "#";
   const sessionId = getAdsSessionId();
+  const showVideo = isVideoAd(r) && !videoFailed;
+  const posterSrc = r?.poster_url || r?.image_url || undefined;
 
   if (variant === "hero") {
-    const backgroundStyle = r?.image_url
+    const backgroundStyle = !showVideo && r?.image_url
       ? {
           backgroundImage: `linear-gradient(90deg, rgba(2, 27, 31, 0.92), rgba(2, 27, 31, 0.58)), url(${r.image_url})`,
         }
@@ -69,7 +73,25 @@ export function StoreAdSlot({ slotKey, context = {}, className = "", variant = "
         style={backgroundStyle}
         dir="rtl"
       >
-        {!r?.image_url && (
+        {showVideo && (
+          <>
+            {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+            <video
+              src={r?.video_url ?? undefined}
+              poster={posterSrc}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-label={r?.headline ?? "إعلان"}
+              onError={() => setVideoFailed(true)}
+              className="absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(2,27,31,0.92),rgba(2,27,31,0.58))]" />
+          </>
+        )}
+        {!r?.image_url && !showVideo && (
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_35%,rgba(45,212,191,.24),transparent_28%),linear-gradient(120deg,#031b1f,#06313a_52%,#031214)]" />
         )}
         <div className="relative z-10 flex w-full flex-col gap-3 p-6 text-right md:max-w-2xl md:p-9">
@@ -115,11 +137,25 @@ export function StoreAdSlot({ slotKey, context = {}, className = "", variant = "
         onClick={() => trackAdEvent(ad, "click", sessionId, { ...context, slot: slotKey })}
         className="flex items-center gap-4 p-4 pt-8 transition hover:bg-emerald-100/40 dark:hover:bg-emerald-900/20"
       >
-        {r?.image_url ? (
+        {showVideo ? (
+          // eslint-disable-next-line jsx-a11y/media-has-caption
+          <video
+            src={r?.video_url ?? undefined}
+            poster={posterSrc}
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="metadata"
+            aria-label={r?.headline ?? "إعلان"}
+            onError={() => setVideoFailed(true)}
+            className="h-16 w-16 shrink-0 rounded-xl object-cover"
+          />
+        ) : r?.image_url || posterSrc ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={r.image_url}
-            alt={r.headline ?? "إعلان"}
+            src={(r?.image_url || posterSrc) as string}
+            alt={r?.headline ?? "إعلان"}
             className="h-16 w-16 shrink-0 rounded-xl object-cover"
           />
         ) : (
