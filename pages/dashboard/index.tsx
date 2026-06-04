@@ -134,6 +134,15 @@ export default function SellerDashboardHome() {
 
   const headerActions = null;
   const storeDisplayName = getStoreDisplayName(store);
+  const loadedProductsCount = products.length;
+  const totalProductsCount = Math.max(
+    loadedProductsCount,
+    stats?.total_products ?? stats?.active_products ?? loadedProductsCount,
+  );
+  const productsCountLabel =
+    totalProductsCount > loadedProductsCount
+      ? `${loadedProductsCount} من ${totalProductsCount}`
+      : `${totalProductsCount}`;
 
   return (
     <>
@@ -240,7 +249,7 @@ export default function SellerDashboardHome() {
                 <div className="flex gap-6">
                   {([
                     { key: "overview" as TabKey, label: "نظرة عامة", icon: Store },
-                    { key: "products" as TabKey, label: `المنتجات (${products.length})`, icon: Package },
+                    { key: "products" as TabKey, label: `المنتجات (${productsCountLabel})`, icon: Package },
                     { key: "info" as TabKey, label: "معلومات المتجر", icon: Settings },
                   ]).map((tab) => (
                     <button
@@ -316,7 +325,7 @@ export default function SellerDashboardHome() {
               {activeTab === "products" && (
                 <div className="space-y-4">
                   <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                    جميع المنتجات ({products.length})
+                    المنتجات المعروضة ({productsCountLabel})
                   </h3>
                   {products.length > 0 ? (
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -404,14 +413,14 @@ function ProductCard({ product }: { product: StoreProduct }) {
   return (
     <Link href={`/dashboard/products/${product.id}`} className="group overflow-hidden rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 transition hover:shadow-md block">
       {imageUrl && !imgError ? (
-        <div className="h-32 overflow-hidden bg-zinc-100 dark:bg-zinc-800 relative">
-          <img src={imageUrl} alt={product.name} className="h-full w-full object-cover transition-transform group-hover:scale-105" onError={() => setImgError(true)} />
+        <div className="relative flex aspect-[16/9] items-center justify-center overflow-hidden bg-zinc-100 p-2 dark:bg-zinc-800">
+          <img src={imageUrl} alt={product.name} className="max-h-full max-w-full object-contain transition-transform group-hover:scale-[1.03]" onError={() => setImgError(true)} />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center">
             <Edit3 className="h-5 w-5 text-white opacity-0 group-hover:opacity-100 transition drop-shadow-lg" />
           </div>
         </div>
       ) : (
-        <div className="flex h-32 items-center justify-center bg-zinc-50 dark:bg-zinc-800 relative">
+        <div className="relative flex aspect-[16/9] items-center justify-center bg-zinc-50 dark:bg-zinc-800">
           <Package className="h-8 w-8 text-zinc-300 dark:text-zinc-600" />
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition flex items-center justify-center">
             <Edit3 className="h-5 w-5 text-zinc-400 opacity-0 group-hover:opacity-100 transition" />
