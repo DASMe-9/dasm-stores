@@ -6,11 +6,9 @@ import {
   Headphones,
   MapPin,
   Phone,
-  ShieldCheck,
   ShoppingBag,
   ShoppingCart,
   Store as StoreIcon,
-  Truck,
   Watch,
 } from "lucide-react";
 import { CartBadge } from "./CartBadge";
@@ -83,17 +81,6 @@ export function StoreHeader({
               </span>
             </span>
           </Link>
-          <nav className="ms-auto hidden items-center gap-1 md:flex">
-            <Link href={`/${slug}`} className="rounded-xl px-3 py-2 font-bold text-[var(--foreground)] hover:bg-[var(--muted)]">
-              الرئيسية
-            </Link>
-            <Link href={`/${slug}/products`} className="rounded-xl px-3 py-2 font-bold text-[var(--foreground)] hover:bg-[var(--muted)]">
-              المنتجات
-            </Link>
-            <Link href={`/${slug}/cart`} className="rounded-xl px-3 py-2 font-bold text-[var(--foreground)] hover:bg-[var(--muted)]">
-              السلة
-            </Link>
-          </nav>
           <div className="ms-auto flex items-center gap-2 md:ms-0">
             <CartBadge slug={slug} />
             <StoreAuthActions slug={slug} />
@@ -174,14 +161,6 @@ export function StoreHeader({
                   {areaName}
                 </span>
               ) : null}
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                واجهة متجر على داسم
-              </span>
-              <span className="flex items-center gap-1">
-                <Truck className="h-3.5 w-3.5" />
-                خيارات التوصيل حسب المتجر
-              </span>
               {store.contact_phone ? (
                 <a
                   href={`tel:${store.contact_phone}`}
