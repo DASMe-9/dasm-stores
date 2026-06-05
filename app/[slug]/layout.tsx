@@ -82,14 +82,18 @@ export default async function StoreLayout({ children, params }: Props) {
         <StoreTabsNav slug={slug} tabs={store.tabs ?? []} />
         <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
         <footer className="border-t border-[var(--border)] bg-[var(--card)] py-8 text-center text-xs text-[var(--muted-foreground)]">
-        {storeName} — مدعوم بواسطة{" "}
-        <a
-          href="https://dasm.com.sa"
-          className="hover:underline"
-          style={{ color: "var(--primary-text,var(--primary))" }}
-        >
-          متاجر داسم
-        </a>
+          <span className="inline-flex flex-wrap items-center justify-center gap-1.5" dir="rtl">
+            <span>{storeName}</span>
+            <span aria-hidden="true">—</span>
+            <span>مدعوم بواسطة</span>
+            <a
+              href="https://dasm.com.sa"
+              className="font-semibold hover:underline"
+              style={{ color: "var(--primary-text,var(--primary))" }}
+            >
+              متاجر داسم
+            </a>
+          </span>
         </footer>
       </div>
     </>
