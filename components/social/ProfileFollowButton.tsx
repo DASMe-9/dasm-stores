@@ -33,10 +33,12 @@ export function ProfileFollowButton({
   owner,
   socialSummary,
   viewerState,
+  layout = "stacked",
 }: {
   owner: OwnerPublicProfile | null;
   socialSummary: SocialSummary | null;
   viewerState: ProfileViewerState | null;
+  layout?: "stacked" | "inline";
 }) {
   const [followers, setFollowers] = useState(socialSummary?.followers ?? 0);
   const [likes, setLikes] = useState(socialSummary?.likes ?? 0);
@@ -117,8 +119,10 @@ export function ProfileFollowButton({
     }
   }
 
+  const inline = layout === "inline";
+
   return (
-    <div className="flex flex-col gap-2">
+    <div className={inline ? "flex flex-wrap items-center gap-2" : "flex flex-col gap-2"}>
       <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--muted-foreground)]">
         <a href={profileHref} className="font-bold text-[var(--primary-text,var(--primary))] hover:underline">
           {owner.handle || owner.display_name}
