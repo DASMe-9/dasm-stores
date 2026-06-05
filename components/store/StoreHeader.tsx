@@ -15,6 +15,7 @@ import {
   Watch,
 } from "lucide-react";
 import { CartBadge } from "./CartBadge";
+import { StoreAuthActions } from "./StoreAuthActions";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
@@ -64,18 +65,41 @@ export function StoreHeader({
 
   return (
     <>
-      <div className="bg-[var(--card)] border-b border-[var(--border)]">
-        <div className="mx-auto flex max-w-6xl items-center gap-2 px-4 py-2 text-sm">
-          <Link
-            href="/"
-            className="flex items-center gap-1.5 font-semibold text-[var(--primary-text,var(--primary))] hover:underline"
-          >
-            <ArrowRight className="h-4 w-4" />
-            متاجر داسم
+      <div className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--card)]/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-[var(--card)]/82">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 text-sm">
+          <Link href={`/${slug}`} className="flex min-w-0 items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--muted)]">
+              {store.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={store.logo_url} alt="" className="h-full w-full object-cover" />
+              ) : (
+                <StoreIcon className="h-5 w-5" style={{ color: "var(--primary-text,var(--primary))" }} />
+              )}
+            </span>
+            <span className="min-w-0">
+              <span className="block truncate text-base font-extrabold text-[var(--foreground)]">{storeName}</span>
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--muted-foreground)]">
+                <ArrowRight className="h-3.5 w-3.5" />
+                متاجر داسم
+              </span>
+            </span>
           </Link>
-          <span className="text-[var(--muted-foreground)]">/</span>
-          <span className="text-[var(--foreground)] font-medium">{storeName}</span>
-          <ThemeToggle className="ms-auto h-8 w-8" />
+          <nav className="ms-auto hidden items-center gap-1 md:flex">
+            <Link href={`/${slug}`} className="rounded-xl px-3 py-2 font-bold text-[var(--foreground)] hover:bg-[var(--muted)]">
+              الرئيسية
+            </Link>
+            <Link href={`/${slug}/products`} className="rounded-xl px-3 py-2 font-bold text-[var(--foreground)] hover:bg-[var(--muted)]">
+              المنتجات
+            </Link>
+            <Link href={`/${slug}/cart`} className="rounded-xl px-3 py-2 font-bold text-[var(--foreground)] hover:bg-[var(--muted)]">
+              السلة
+            </Link>
+          </nav>
+          <div className="ms-auto flex items-center gap-2 md:ms-0">
+            <CartBadge slug={slug} />
+            <StoreAuthActions slug={slug} />
+            <ThemeToggle className="h-10 w-10" />
+          </div>
         </div>
       </div>
       <div
@@ -191,7 +215,6 @@ export function StoreHeader({
           </div>
 
           <div className="order-3 flex shrink-0 flex-col gap-2 self-stretch md:order-none md:items-end">
-            <CartBadge slug={slug} />
             <div className="hidden items-center gap-1 rounded-full bg-[var(--muted)] px-3 py-1 text-xs font-semibold text-[var(--muted-foreground)] md:flex">
               <Sparkles className="h-3.5 w-3.5" />
               واجهة دعائية متحركة
