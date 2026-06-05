@@ -9,7 +9,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   ShoppingCart,
-  Sparkles,
   Store as StoreIcon,
   Truck,
   Watch,
@@ -204,20 +203,12 @@ export function StoreHeader({
               </Link>
               <ShareButton title={storeName} url={canonicalUrl(`/${slug}`)} />
               <WhatsAppButton phone={store.contact_whatsapp} />
-            </div>
-            <div className="mt-4">
               <ProfileFollowButton
                 owner={ownerPublicProfile ?? null}
                 socialSummary={socialSummary ?? null}
                 viewerState={viewerState ?? null}
+                layout="inline"
               />
-            </div>
-          </div>
-
-          <div className="order-3 flex shrink-0 flex-col gap-2 self-stretch md:order-none md:items-end">
-            <div className="hidden items-center gap-1 rounded-full bg-[var(--muted)] px-3 py-1 text-xs font-semibold text-[var(--muted-foreground)] md:flex">
-              <Sparkles className="h-3.5 w-3.5" />
-              واجهة دعائية متحركة
             </div>
           </div>
         </div>
