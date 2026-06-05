@@ -47,18 +47,19 @@ export const useCartStore = create<CartState>()(
       dismissStoreSwitchNotice: () => set({ storeSwitchNotice: false }),
 
       ensureStoreSlug: (slug: string) => {
-        const prev = get().storeSlug;
+        const { storeSlug: prev, items, coupon, selectedShippingId } = get();
         if (prev && prev !== slug) {
+          const hadCartContents = items.length > 0 || Boolean(coupon) || Boolean(selectedShippingId);
           set({
             items: [],
             coupon: null,
             selectedShippingId: null,
             storeSlug: slug,
-            storeSwitchNotice: true,
+            storeSwitchNotice: hadCartContents,
           });
           return;
         }
-        if (!prev) set({ storeSlug: slug });
+        if (!prev) set({ storeSlug: slug, storeSwitchNotice: false });
       },
 
       openDrawer: () => set({ drawerOpen: true }),
