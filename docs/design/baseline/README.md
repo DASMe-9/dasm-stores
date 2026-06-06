@@ -39,9 +39,27 @@
 
 أي تعديل على هذه الصور أو على محتوى مجلد `docs/design/baseline/` **يتطلب موافقة محمد الزهراني مباشرةً** عبر **PR منفصل** بعنوان **`baseline-update`**. لا تُدمَج تعديلات المرجع ضمن PRs عادية.
 
-## راوت الحراسة (لاحقاً)
+## راوت الحراسة ✅ مُفعَّل
 
-سيُضاف هنا رابط **Design Guardian** على Claude Code بمجرد تفعيله لمراجعة انحراف التنفيذ عن هذا الـ baseline أسبوعياً.
+**Design Guardian & Spec Generator** — يعمل كل أحد 09:00 على Claude Code.
+
+### مسارات صحيحة للراوت
+
+| ما في البرومبت | المسار الفعلي في المستودع |
+|---|---|
+| `docs/design/baseline/marketplace-home.png` | `docs/design/baseline/screenshots/marketplace-home.png` |
+| `docs/design/baseline/subdomain-store.png` | `docs/design/baseline/screenshots/subdomain-store.png` |
+| `src/app/page.tsx` | `app/page.tsx` |
+| `src/app/[storeSlug]/page.tsx` | `app/[slug]/page.tsx` |
+
+### مخرجات الراوت
+
+| النوع | المسار |
+|---|---|
+| تقارير الانحراف البصري | `docs/research/baseline-drift-{YYYY-MM-DD}.md` |
+| تقارير المنافسين (أسبوعية) | `docs/research/competitors/{YYYY-WW}.md` |
+| مواصفات Cursor | `docs/specs/{component}-{YYYY-MM-DD}.md` |
+| أفكار مرجأة | `docs/research/ideas-backlog.md` |
 
 ---
 
