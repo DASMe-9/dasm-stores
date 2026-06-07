@@ -8,11 +8,19 @@ export default async function CheckoutSuccessPage({
   searchParams,
 }: {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ order?: string }>;
+  searchParams: Promise<{
+    dasm_order?: string;
+    merchant_order_id?: string;
+    order?: string;
+    paymob_order?: string;
+    paymob_transaction?: string;
+  }>;
 }) {
   const { slug } = await params;
   const sp = await searchParams;
-  const order = sp.order;
+  const orderCandidates = [sp.dasm_order, sp.merchant_order_id, sp.order];
+  const order = orderCandidates.find((value) => value?.startsWith("DASM-STR-"));
+  const paymobReference = sp.paymob_transaction ?? sp.paymob_order ?? (order ? undefined : sp.order);
   const requestContext = await getStorefrontRequestContext();
   const storeData = await getStore(slug, requestContext);
 
@@ -30,6 +38,11 @@ export default async function CheckoutSuccessPage({
       {order ? (
         <p className="rounded-xl bg-[var(--muted)] px-4 py-2 font-mono text-sm">
           رقم الطلب: {order}
+        </p>
+      ) : null}
+      {!order && paymobReference ? (
+        <p className="rounded-xl bg-[var(--muted)] px-4 py-2 font-mono text-sm">
+          مرجع الدفع: {paymobReference}
         </p>
       ) : null}
       <div className="flex flex-col gap-2 pt-2">
