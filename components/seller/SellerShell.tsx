@@ -305,7 +305,10 @@ export function SellerShell({
     localStorage.setItem("stores_theme", next ? "dark" : "light");
   };
 
+  const officialStorePath = resolvedSlug ? storePath(resolvedSlug) : "";
   const previewStorePath = resolvedSlug ? storePath(resolvedSlug, { preview: true }) : "";
+  const visitStorePath =
+    resolvedStatus && resolvedStatus !== "active" ? previewStorePath : officialStorePath;
 
   const sidebarInner = (
     <div className="flex h-full flex-col">
@@ -333,7 +336,7 @@ export function SellerShell({
           ) : null}
           {resolvedSlug ? (
             <a
-              href={previewStorePath}
+              href={visitStorePath}
               target="_blank"
               rel="noopener noreferrer"
               className="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:underline"
