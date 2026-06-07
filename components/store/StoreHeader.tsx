@@ -64,23 +64,26 @@ export function StoreHeader({
     <>
       <div className="sticky top-0 z-40 border-b border-[var(--border)] bg-[var(--card)]/95 shadow-sm backdrop-blur supports-[backdrop-filter]:bg-[var(--card)]/82">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3 text-sm">
-          <Link href={`/${slug}`} className="flex min-w-0 items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--muted)]">
-              {store.logo_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={store.logo_url} alt="" className="h-full w-full object-cover" />
-              ) : (
-                <StoreIcon className="h-5 w-5" style={{ color: "var(--primary-text,var(--primary))" }} />
-              )}
-            </span>
-            <span className="min-w-0">
-              <span className="block truncate text-base font-extrabold text-[var(--foreground)]">{storeName}</span>
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-[var(--muted-foreground)]">
-                <ArrowRight className="h-3.5 w-3.5" />
-                متاجر داسم
+          <div className="flex min-w-0 items-center gap-2">
+            <Link href={`/${slug}`} className="flex min-w-0 items-center gap-2.5">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--muted)]">
+                {store.logo_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={store.logo_url} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  <StoreIcon className="h-5 w-5" style={{ color: "var(--primary-text,var(--primary))" }} />
+                )}
               </span>
-            </span>
-          </Link>
+              <span className="block truncate text-base font-extrabold text-[var(--foreground)]">{storeName}</span>
+            </Link>
+            <Link
+              href="/"
+              className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+            >
+              <ArrowRight className="h-3.5 w-3.5" />
+              متاجر داسم
+            </Link>
+          </div>
           <div className="ms-auto flex items-center gap-2 md:ms-0">
             <CartBadge slug={slug} />
             <StoreAuthActions slug={slug} />
@@ -89,7 +92,7 @@ export function StoreHeader({
         </div>
       </div>
       <div
-        className={`store-hero-motion store-hero-${motion} relative h-72 overflow-hidden bg-[var(--muted)] md:h-[360px]`}
+        className={`store-hero-motion store-hero-${motion} relative h-36 overflow-hidden bg-[var(--muted)] md:h-52`}
         style={{ "--primary": primary, "--accent": accent } as CSSProperties}
       >
         {heroVideoUrl ? (
@@ -137,7 +140,7 @@ export function StoreHeader({
       </div>
 
       <div className="relative z-10 mx-auto max-w-6xl px-4 pb-4 pt-0">
-        <div className="-mt-20 flex flex-col gap-5 rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 p-5 shadow-xl shadow-black/5 backdrop-blur md:-mt-24 md:flex-row md:items-center md:p-6">
+        <div className="-mt-12 flex flex-col gap-5 rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 p-5 shadow-xl shadow-black/5 backdrop-blur md:-mt-16 md:flex-row md:items-center md:p-6">
           <div className="order-1 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-3xl border-4 border-[var(--card)] bg-[var(--muted)] shadow md:order-none">
               {store.logo_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
