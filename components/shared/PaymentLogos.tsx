@@ -13,22 +13,17 @@ export function PaymentLogos({ className = "" }: { className?: string }) {
       <div className="mt-2 grid grid-cols-2 gap-2">
         {/* mada */}
         <span className={tile}>
-          <svg viewBox="0 0 60 24" className="h-5 w-auto" aria-label="mada" role="img">
-            <text x="4" y="17" fontFamily="Arial,Helvetica,sans-serif" fontWeight="700" fontSize="15" fill="#1A2B5F">
-              mada
-            </text>
-            <rect x="4" y="19.5" width="34" height="2.2" rx="1.1" fill="#84BD41" />
-          </svg>
+          <span className="flex flex-col items-center leading-none" aria-label="mada" role="img">
+            <span className="text-base font-black tracking-wide text-[#1A2B5F]">mada</span>
+            <span className="mt-1 h-1 w-10 rounded-full bg-[#84BD41]" />
+          </span>
         </span>
 
         {/* Visa */}
         <span className={tile}>
-          <svg viewBox="0 0 48 16" className="h-3.5 w-auto" aria-label="Visa" role="img">
-            <path
-              fill="#1A1F71"
-              d="M19.5 1.2l-3.2 13.6h-2.6L16.9 1.2h2.6zm13.1 8.8l1.4-3.7.8 3.7h-2.2zm2.9 4.8h2.4L35.8 1.2h-2.2c-.5 0-.9.3-1.1.7l-3.8 12.9h2.7l.5-1.4h3.2l.4 1.4zM28 10.1c0 3.6 5 3.8 5 5.6 0 .5-.5 1-1.5 1-1.3 0-2.3-.5-2.9-.9l-.5 2.3c.7.3 1.9.6 3.2.6 3 0 4.4-1.5 4.4-3.7 0-4.7-5-5-5-5.6 0-.4.4-.9 1.4-.9 1 0 1.9.4 2.4.6l.5-2.2c-.6-.2-1.5-.5-2.7-.5-2.8 0-4.3 1.5-4.3 3.7zM15.4 1.2L11 14.8H8.2l-2-10.9c-.1-.5-.3-.7-.7-.9C4.7 2.6 3.5 2.3 2.4 2l.1-.8h4.3c.5 0 1 .4 1.1 1l1.1 5.6 2.6-6.6h2.8z"
-            />
-          </svg>
+          <span className="text-lg font-black italic tracking-wide text-[#1A1F71]" aria-label="Visa" role="img">
+            VISA
+          </span>
         </span>
 
         {/* Mastercard */}
