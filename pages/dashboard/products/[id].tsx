@@ -17,7 +17,7 @@ import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi, uploadApi } from "@/lib/api";
 
 interface ProductImage {
-  id: number;
+  id: string | number;
   url: string;
   alt_text: string | null;
   is_primary: boolean;
@@ -25,7 +25,7 @@ interface ProductImage {
 }
 
 interface ProductData {
-  id: number;
+  id: string | number;
   name: string;
   slug: string;
   description: string | null;
@@ -65,10 +65,11 @@ export default function EditProductPage() {
   });
 
   const [images, setImages] = useState<ProductImage[]>([]);
-  const [originalImageIds, setOriginalImageIds] = useState<Set<number>>(new Set());
-  const [removedImageIds, setRemovedImageIds] = useState<number[]>([]);
+  const [originalImageIds, setOriginalImageIds] = useState<Set<string | number>>(new Set());
+  const [removedImageIds, setRemovedImageIds] = useState<Array<string | number>>([]);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const productId = Array.isArray(id) ? id[0] : id;
 
   useEffect(() => {
     const t = localStorage.getItem("stores_token");
@@ -80,15 +81,17 @@ export default function EditProductPage() {
   }, [router]);
 
   useEffect(() => {
-    if (!ready || !id) return;
+    if (!ready || !productId) return;
     loadProduct();
-  }, [ready, id]);
+  }, [ready, productId]);
 
   const loadProduct = async () => {
+    if (!productId) return;
+
     setLoading(true);
     try {
       const [prodRes, catsRes] = await Promise.allSettled([
-        sellerApi.getProduct(Number(id)),
+        sellerApi.getProduct(productId),
         sellerApi.getCategories(),
       ]);
 
@@ -208,7 +211,12 @@ export default function EditProductPage() {
       if (newImages.length > 0) payload.images = newImages;
       if (primaryImageId) payload.primary_image_id = primaryImageId;
 
-      const { data } = await sellerApi.updateProduct(Number(id), payload);
+      if (!productId) {
+        setError("معرف المنتج غير صالح.");
+        return;
+      }
+
+      const { data } = await sellerApi.updateProduct(productId, payload);
       const updated = data?.product as ProductData | undefined;
       if (updated) {
         setImages(updated.images || []);
@@ -229,7 +237,13 @@ export default function EditProductPage() {
     if (!confirm("هل أنت متأكد من حذف هذا المنتج؟ لا يمكن التراجع.")) return;
     setDeleting(true);
     try {
-      await sellerApi.deleteProduct(Number(id));
+      if (!productId) {
+        setError("معرف المنتج غير صالح.");
+        setDeleting(false);
+        return;
+      }
+
+      await sellerApi.deleteProduct(productId);
       router.push("/dashboard");
     } catch {
       setError("فشل حذف المنتج");
