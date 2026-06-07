@@ -19,7 +19,7 @@ export default async function StoreHomePage({
   if (!ensurePublicStore(data, requestContext)) return null;
 
   const [featured, categories] = await Promise.all([
-    getProducts(slug, new URLSearchParams({ sort: "featured", per_page: "8" }), requestContext),
+    getProducts(slug, new URLSearchParams({ sort: "featured", per_page: "12" }), requestContext),
     getCategories(slug, requestContext),
   ]);
   const visibleCategories = categories.categories.slice(0, 6);

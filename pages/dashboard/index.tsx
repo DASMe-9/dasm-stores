@@ -294,13 +294,13 @@ export default function SellerDashboardHome() {
                   {products.length > 0 ? (
                     <div>
                       <div className="mb-3 flex items-center justify-between">
-                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">آخر المنتجات</h3>
+                        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">أفضل المنتجات</h3>
                         <button type="button" onClick={() => setActiveTab("products")} className="text-xs font-medium text-emerald-600 hover:text-emerald-700">
                           عرض الكل
                         </button>
                       </div>
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        {products.slice(0, 3).map((p) => (
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        {products.slice(0, 12).map((p) => (
                           <ProductCard key={p.id} product={p} />
                         ))}
                       </div>
