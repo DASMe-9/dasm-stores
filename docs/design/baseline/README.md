@@ -12,8 +12,10 @@
 
 | الملف | ماذا يمثل |
 |--------|-----------|
-| `screenshots/marketplace-home.png` | الصفحة الرئيسية للسوق: هيدر المنصة، Hero السوق مع بحث ومزايا، منتجات مميزة، متاجر مميزة، إعلانات، أقسام، شريط إحصائيات. |
-| `screenshots/subdomain-store.png` | واجهة متجر فرعي (مثال **Cheerly Life**): Hero بمساحة فيديو/دعائي، بطاقة معلومات المتجر العائمة، شريط بحث وتبويب وترتيب، شبكة منتجات مميزة. |
+| `marketplace-home.png` | الصفحة الرئيسية للسوق: هيدر المنصة، Hero السوق مع بحث ومزايا، منتجات مميزة، متاجر مميزة، إعلانات، أقسام، شريط إحصائيات. |
+| `subdomain-store.png` | واجهة متجر فرعي (مثال **Cheerly Life**): Hero بمساحة فيديو/دعائي، بطاقة معلومات المتجر العائمة، شريط بحث وتبويب وترتيب، شبكة منتجات مميزة. |
+
+> النسخ الأصلية محفوظة أيضا في `screenshots/` للرجوع إليها. تبقى نسخ الجذر متاحة لأن Route الحراسة وبعض الـ prompts تقرأ المسارات المباشرة داخل `docs/design/baseline/`.
 
 ## مكوّنات مرئية حسب الشاشة
 
@@ -37,11 +39,27 @@
 
 ## حظر تغيير المرجع
 
-أي تعديل على هذه الصور أو على محتوى مجلد `docs/design/baseline/` **يتطلب موافقة محمد الزهراني مباشرةً** عبر **PR منفصل** بعنوان **`baseline-update`**. لا تُدمَج تعديلات المرجع ضمن PRs عادية.
+أي تعديل على هذه الصور أو على محتوى مجلد `docs/design/baseline/` **يتطلب موافقة محمد الزهراني مباشرة** عبر **PR منفصل** بعنوان **`baseline-update`**. لا تُدمَج تعديلات المرجع ضمن PRs عادية.
 
-## راوت الحراسة (لاحقاً)
+## راوت الحراسة
 
-سيُضاف هنا رابط **Design Guardian** على Claude Code بمجرد تفعيله لمراجعة انحراف التنفيذ عن هذا الـ baseline أسبوعياً.
+**dasm-stores — Design Guardian & Spec Generator**
+
+- **الجدول:** كل أحد الساعة 09:00
+- **المستودع:** `DASMe-9/dasm-stores`
+- **الـ Connectors:** exa + Figma + Sentry
+- **الكتابة مسموحة في:** `docs/research/` و `docs/specs/` فقط
+- **مسارات baseline المستخدمة في prompt:**
+  - `docs/design/baseline/marketplace-home.png`
+  - `docs/design/baseline/subdomain-store.png`
+- **مسارات الكود الفعلية:**
+  - `app/page.tsx`
+  - `app/[slug]/page.tsx`
+- **الناتج الأسبوعي:**
+  1. `docs/research/baseline-drift-{YYYY-MM-DD}.md` — إن وجد انحراف بصري
+  2. `docs/research/competitors/{YYYY-WW}.md` — delta منافسين
+  3. `docs/specs/{component-name}-{YYYY-MM-DD}.md` — spec واحد لـ Cursor
+  4. `docs/research/ideas-backlog.md` — أفكار مؤجلة
 
 ---
 

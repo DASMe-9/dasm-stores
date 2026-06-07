@@ -1,7 +1,7 @@
 # تقرير انحراف بصري — baseline-drift-2026-06-05
 
-**تاريخ التشغيل:** 2026-06-05  
-**مرجع الـ baseline:** `docs/design/baseline/screenshots/marketplace-home.png` و `subdomain-store.png`  
+**تاريخ التشغيل:** 2026-06-05
+**مرجع الـ baseline:** `docs/design/baseline/screenshots/marketplace-home.png` و `subdomain-store.png`
 **المسار الفعلي للصور:** `docs/design/baseline/screenshots/` (وليس `docs/design/baseline/` مباشرة — ملاحظة للصيانة)
 
 ---
@@ -19,15 +19,15 @@
 
 ## الانحراف 1 — Hero: صف مزايا المنصة مفقود
 
-**الأولوية:** 🔴 عالية  
-**الملف:** `app/page.tsx` — السطر 156 (داخل قسم `<section>` الـ hero)  
+**الأولوية:** 🔴 عالية
+**الملف:** `app/page.tsx` — السطر 156 (داخل قسم `<section>` الـ hero)
 **المكوّن:** Hero (marketplace)
 
-**الـ baseline يُظهر:**  
-صف أفقي أسفل حقل البحث بأربعة عناصر: «شحن سريع» / «متاجر موثوقة» / «تجربة شراء آمنة» / «دعم 24/7» — كل عنصر بأيقونة وتسمية نصية.  
+**الـ baseline يُظهر:**
+صف أفقي أسفل حقل البحث بأربعة عناصر: «شحن سريع» / «متاجر موثوقة» / «تجربة شراء آمنة» / «دعم 24/7» — كل عنصر بأيقونة وتسمية نصية.
 (موثّق في `docs/design/baseline/components-inventory.md` — سطر 9: «وتحته صف أيقونات قصيرة لمزايا المنصة»)
 
-**الوضع الراهن:**  
+**الوضع الراهن:**
 الـ hero ينتهي بحقل البحث مباشرة. لا صف مزايا. الكود النافذ (السطر 156):
 ```
 <form action="/" className="absolute inset-x-5 bottom-7 z-10 ...">
@@ -38,11 +38,11 @@
 ```
 لا يوجد عنصر بعد الـ form داخل الـ hero.
 
-**متى تغيّر تقريباً:**  
-commit `3a1c699` — `fix(stores): compact home banner and wire hero ad slot`  
+**متى تغيّر تقريباً:**
+commit `3a1c699` — `fix(stores): compact home banner and wire hero ad slot`
 هذا الـ commit "ضغط" الـ hero ويُرجَّح أنه حذف الصف عند إعادة الهيكلة.
 
-**توصية الاسترجاع:**  
+**توصية الاسترجاع:**
 أضف داخل الـ `<div className="relative z-10 ...">` في الـ hero، بعد الـ `<form>` مباشرة، عنصر صف مزايا مستقل:
 ```tsx
 <div className="absolute bottom-1 inset-x-0 z-10 flex justify-center gap-6 text-xs text-emerald-100/70 pb-2">
@@ -58,25 +58,25 @@ commit `3a1c699` — `fix(stores): compact home banner and wire hero ad slot`
 
 ## الانحراف 2 — Hero: قائمة نطاق البحث «الكل» مفقودة
 
-**الأولوية:** 🟡 متوسطة  
-**الملف:** `app/page.tsx` — السطر 156 (داخل `<form>`)  
+**الأولوية:** 🟡 متوسطة
+**الملف:** `app/page.tsx` — السطر 156 (داخل `<form>`)
 **المكوّن:** Hero (marketplace)
 
-**الـ baseline يُظهر:**  
-حقل البحث يحتوي dropdown «الكل» على يساره (في تخطيط RTL: عنصر يظهر يميناً) للتصفية بنطاق المنتج أو المتجر.  
+**الـ baseline يُظهر:**
+حقل البحث يحتوي dropdown «الكل» على يساره (في تخطيط RTL: عنصر يظهر يميناً) للتصفية بنطاق المنتج أو المتجر.
 (موثّق في `components-inventory.md` — سطر 9: «قائمة نطاق (مثل «الكل»)»)
 
-**الوضع الراهن:**  
+**الوضع الراهن:**
 حقل بحث بسيط بدون selector:
 ```tsx
 <input name="q" defaultValue={q} placeholder="ابحث عن منتج أو متجر..." ... />
 ```
 لا يوجد `<select name="scope">` أو ما يعادله.
 
-**متى تغيّر تقريباً:**  
+**متى تغيّر تقريباً:**
 commit `3a1c699` — نفس commit الـ compact.
 
-**توصية الاسترجاع:**  
+**توصية الاسترجاع:**
 أضف قبل `<input>` في الـ form:
 ```tsx
 <select name="scope" className="bg-transparent text-sm font-bold text-slate-700 dark:text-zinc-300 pr-2 border-r border-slate-200 dark:border-zinc-600 outline-none">
@@ -90,21 +90,21 @@ commit `3a1c699` — نفس commit الـ compact.
 
 ## الانحراف 3 — StatsBar: غائب كلياً
 
-**الأولوية:** 🔴 عالية  
-**الملف:** `app/page.tsx` — القسم بأكمله مفقود  
+**الأولوية:** 🔴 عالية
+**الملف:** `app/page.tsx` — القسم بأكمله مفقود
 **المكوّن:** StatsBar
 
-**الـ baseline يُظهر:**  
-شريط سفلي مقسّم بأعمدة: «+15,000 متجر نشط» / «+1 مليون منتج» / «99.6% رضا العملاء».  
+**الـ baseline يُظهر:**
+شريط سفلي مقسّم بأعمدة: «+15,000 متجر نشط» / «+1 مليون منتج» / «99.6% رضا العملاء».
 (موثّق في `components-inventory.md` — السطر 69: «شريط سفلي مقسّم إلى أعمدة؛ كل عمود أيقونة رمادية، رقم كبير مع لواحق نصية عربية»)
 
-**الوضع الراهن:**  
+**الوضع الراهن:**
 لا يوجد أي `<section>` أو `<div>` يحتوي هذه الأرقام في `app/page.tsx`. البحث في الملف عن الكلمات المفتاحية (15,000 / مليون / 99) لا يُعيد نتيجة.
 
-**متى تغيّر تقريباً:**  
+**متى تغيّر تقريباً:**
 غير محدد بدقة. commit `3a1c699` هو المرشح الأقوى لأن وصفه يتضمن «compact home».
 
-**توصية الاسترجاع:**  
+**توصية الاسترجاع:**
 أضف `<section>` قبل الـ `<footer>`:
 ```tsx
 <section className="border-t border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900">
@@ -120,15 +120,15 @@ commit `3a1c699` — نفس commit الـ compact.
 
 ## الانحراف 4 — ProductTile (السوق): زر المفضلة مفقود
 
-**الأولوية:** 🟡 متوسطة  
-**الملف:** `app/page.tsx` — السطر 82-108 (`ProductTile` component)  
+**الأولوية:** 🟡 متوسطة
+**الملف:** `app/page.tsx` — السطر 82-108 (`ProductTile` component)
 **المكوّن:** ProductCard (marketplace variant)
 
-**الـ baseline يُظهر:**  
-أيقونة قلب (♥) فوق صورة المنتج في الزاوية اليسرى العليا أو العليا في بطاقات "منتجات مميزة".  
+**الـ baseline يُظهر:**
+أيقونة قلب (♥) فوق صورة المنتج في الزاوية اليسرى العليا أو العليا في بطاقات "منتجات مميزة".
 (موثّق في `components-inventory.md` — سطر 40: «أيقونة قلب للمفضلة»)
 
-**الوضع الراهن:**  
+**الوضع الراهن:**
 الـ `ProductTile` في `app/page.tsx` يحتوي فقط على badge «مميز» إن توفر. لا heart button:
 ```tsx
 {product.is_featured ? (
@@ -137,10 +137,10 @@ commit `3a1c699` — نفس commit الـ compact.
 // لا heart button
 ```
 
-**متى تغيّر تقريباً:**  
+**متى تغيّر تقريباً:**
 `ProductTile` لم يُعدَّل منذ commit `3a1c699`. لا يوجد دليل على أن الـ heart أُضيف ثم حُذف — يُرجَّح أنه لم يُنفَّذ أصلاً.
 
-**توصية الاسترجاع:**  
+**توصية الاسترجاع:**
 أضف داخل `<div className="relative aspect-[1.18] ...">` بعد شارة «مميز»:
 ```tsx
 <button
@@ -156,20 +156,20 @@ commit `3a1c699` — نفس commit الـ compact.
 
 ## الانحراف 5 — ProductTile (السوق): زر السلة مستطيل بدلاً من دائري
 
-**الأولوية:** 🟢 منخفضة  
-**الملف:** `app/page.tsx` — السطر 102  
+**الأولوية:** 🟢 منخفضة
+**الملف:** `app/page.tsx` — السطر 102
 **المكوّن:** ProductCard (marketplace variant)
 
-**الـ baseline يُظهر:**  
+**الـ baseline يُظهر:**
 زر سلة دائري (pill/circle) في الزاوية أو أسفل البطاقة.
 
-**الوضع الراهن:**  
+**الوضع الراهن:**
 ```tsx
 <Link ... className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-50 ...">
 ```
 `rounded-xl` يعطي زوايا ناعمة مستطيلة، وليس دائرة كاملة.
 
-**توصية الاسترجاع:**  
+**توصية الاسترجاع:**
 السطر 102 يصبح:
 ```
 rounded-xl  →  rounded-full
@@ -179,15 +179,15 @@ rounded-xl  →  rounded-full
 
 ## الانحراف 6 — ProductCard (المتجر الفرعي): زر المفضلة مفقود
 
-**الأولوية:** 🟡 متوسطة  
-**الملف:** `components/product/ProductCard.tsx` — السطر 22-67  
+**الأولوية:** 🟡 متوسطة
+**الملف:** `components/product/ProductCard.tsx` — السطر 22-67
 **المكوّن:** ProductCard (store variant)
 
-**الـ baseline يُظهر (subdomain-store.png):**  
-أيقونة قلب (♥) فوق كل صورة منتج في شبكة المنتجات بصفحة المتجر الفرعي.  
+**الـ baseline يُظهر (subdomain-store.png):**
+أيقونة قلب (♥) فوق كل صورة منتج في شبكة المنتجات بصفحة المتجر الفرعي.
 (موثّق في `components-inventory.md` — سطر 42: «في المتجر الفرعي يظهر القلب فوق الصورة»)
 
-**الوضع الراهن:**  
+**الوضع الراهن:**
 الـ `ProductCard` يحتوي badge «مميز» وbadge «خصم» فقط. لا heart:
 ```tsx
 <div className="store-product-card__media relative aspect-square bg-[var(--muted)]">
@@ -198,10 +198,10 @@ rounded-xl  →  rounded-full
 </div>
 ```
 
-**متى تغيّر تقريباً:**  
+**متى تغيّر تقريباً:**
 آخر commit لهذا الملف: `56e7281 fix(routes): remove /store/ prefix`. الـ heart لم يُنفَّذ.
 
-**توصية الاسترجاع:**  
+**توصية الاسترجاع:**
 أضف داخل `<div className="store-product-card__media ...">`:
 ```tsx
 <button
@@ -231,5 +231,5 @@ rounded-xl  →  rounded-full
 
 ## الخطوة التالية المطلوبة
 
-وفق قواعد الحارس: لا تُكمل المرحلة 2 (استخبارات منافسين) حتى يُوثَّق هذا التقرير ويُراجعه الفريق.  
+وفق قواعد الحارس: لا تُكمل المرحلة 2 (استخبارات منافسين) حتى يُوثَّق هذا التقرير ويُراجعه الفريق.
 التنفيذ الفعلي للتوصيات أعلاه يتم عبر Cursor بناءً على هذا الملف — الحارس لا يُعدّل كود الإنتاج.
