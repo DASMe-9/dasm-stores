@@ -1,5 +1,9 @@
 # تقرير انحراف بصري — baseline-drift-2026-06-05
 
+> ⛔ **متجاوَز (2026-06-07):** أُعيد تجميد الـ baseline على تحسينات UX معتمدة من
+> المالك (انظر `docs/design/baseline/README.md`). البنود أدناه لم تعد تُعتبر drift
+> ولا يجوز استرجاعها. لا تتصرّف على هذا التقرير.
+
 **تاريخ التشغيل:** 2026-06-05
 **مرجع الـ baseline:** `docs/design/baseline/screenshots/marketplace-home.png` و `subdomain-store.png`
 **المسار الفعلي للصور:** `docs/design/baseline/screenshots/` (وليس `docs/design/baseline/` مباشرة — ملاحظة للصيانة)
