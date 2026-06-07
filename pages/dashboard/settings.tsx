@@ -25,7 +25,7 @@ import { ThemePicker } from "@/components/theme/ThemePicker";
 import { ThemePreviewStorefront } from "@/components/theme/ThemePreviewStorefront";
 import { sellerApi, uploadApi } from "@/lib/api";
 import { getStoreDisplayName } from "@/lib/store-display";
-import { storePath } from "@/lib/storefront-url";
+import { storefrontUrl, storePath } from "@/lib/storefront-url";
 import {
   detectPresetFromThemeConfig,
   findPresetById,
@@ -199,6 +199,25 @@ function isInvalid(value: number | null): value is number {
   return Number.isNaN(value);
 }
 
+function isInternalStorefrontUrl(value: string | null | undefined, slug: string | null | undefined): boolean {
+  const raw = value?.trim();
+  const cleanSlug = slug?.trim().replace(/^\/+|\/+$/g, "");
+  if (!raw || !cleanSlug) return false;
+
+  const cleanPath = raw.replace(/^\/+|\/+$/g, "").split(/[?#]/)[0];
+  if (cleanPath === cleanSlug) return true;
+
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase();
+    const pathSlug = url.pathname.replace(/^\/+|\/+$/g, "");
+
+    return pathSlug === cleanSlug && (host === "stores.dasm.com.sa" || host.endsWith(".stores.dasm.com.sa"));
+  } catch {
+    return false;
+  }
+}
+
 function pickFlatConfig(configs: StoreShippingConfig[]): StoreShippingConfig | null {
   return (
     configs.find((item) => item.provider === "custom") ??
@@ -213,6 +232,7 @@ function Field({
   value,
   onChange,
   placeholder,
+  description,
   type = "text",
   dir,
   disabled,
@@ -221,6 +241,7 @@ function Field({
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
+  description?: string;
   type?: string;
   dir?: "rtl" | "ltr";
   disabled?: boolean;
@@ -237,6 +258,9 @@ function Field({
         onChange={(event) => onChange(event.target.value)}
         className="w-full rounded-xl border border-zinc-200 bg-white px-3 py-2.5 text-sm text-zinc-950 outline-none transition focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:disabled:bg-zinc-800"
       />
+      {description ? (
+        <span className="block text-[11px] leading-5 text-zinc-500 dark:text-zinc-400">{description}</span>
+      ) : null}
     </label>
   );
 }
@@ -372,7 +396,6 @@ export default function StoreSettingsPage() {
       x: social.x ?? social.twitter ?? "",
       tiktok: social.tiktok ?? "",
       snapchat: social.snapchat ?? "",
-      website: social.website ?? "",
       meta_title: nextStore.meta_title ?? "",
       meta_description: nextStore.meta_description ?? "",
       iban: nextStore.iban ?? "",
@@ -385,6 +408,7 @@ export default function StoreSettingsPage() {
       parcel_length_cm: stringValue(nextStore.parcel_length_cm),
       parcel_width_cm: stringValue(nextStore.parcel_width_cm),
       parcel_height_cm: stringValue(nextStore.parcel_height_cm),
+      website: isInternalStorefrontUrl(social.website, nextStore.slug) ? "" : social.website ?? "",
     });
 
     setFlatConfigId(flatConfig?.id ?? null);
@@ -471,6 +495,7 @@ export default function StoreSettingsPage() {
 
   const storeName = form.name_ar || form.name || (store ? getStoreDisplayName(store) : "");
   const storefrontHref = store?.slug ? storePath(store.slug, { preview: true }) : "";
+  const publicStoreUrl = store?.slug ? storefrontUrl(store.slug) : "";
   const enabledPaymentMethods = platformPaymob?.payment_methods?.filter((method) => method.enabled) ?? [];
   const hasPaymentConfig = Boolean(store?.paymentConfig ?? store?.payment_config ?? platformPaymob?.enabled);
   const hasAddress = Boolean(addressShort.trim() || nationalAddress.national_address_short);
@@ -574,6 +599,13 @@ export default function StoreSettingsPage() {
       return;
     }
 
+    const externalWebsite = form.website.trim();
+    if (externalWebsite && isInternalStorefrontUrl(externalWebsite, form.slug)) {
+      setActiveSection("identity");
+      setError("لا تضع رابط متاجر داسم في خانة الموقع الخارجي. استخدم حقل اسم رابط المتجر فقط، واترك الموقع الخارجي فارغًا إذا لا يوجد موقع مستقل.");
+      return;
+    }
+
     setSaving(true);
     setError(null);
     setSuccess(null);
@@ -583,7 +615,7 @@ export default function StoreSettingsPage() {
         x: form.x.trim(),
         tiktok: form.tiktok.trim(),
         snapchat: form.snapchat.trim(),
-        website: form.website.trim(),
+        website: externalWebsite,
       };
       const cleanSocialLinks = Object.fromEntries(
         Object.entries(socialLinks).filter(([, value]) => value.length > 0),
@@ -732,7 +764,7 @@ export default function StoreSettingsPage() {
                     {storeName || "متجر داسم"}
                   </h1>
                   <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                    {form.slug ? `/${form.slug}` : "حدد رابط المتجر"}
+                    {publicStoreUrl || "حدد اسم رابط المتجر"}
                   </p>
                 </div>
                 <div className="min-w-[190px] rounded-2xl bg-emerald-50 p-4 text-center dark:bg-emerald-950/30">
@@ -784,7 +816,14 @@ export default function StoreSettingsPage() {
                 <div className="grid gap-4 lg:grid-cols-2">
                   <Field label="اسم المتجر" value={form.name} onChange={(value) => setFormValue("name", value)} />
                   <Field label="الاسم العربي" value={form.name_ar} onChange={(value) => setFormValue("name_ar", value)} />
-                  <Field label="رابط المتجر" dir="ltr" value={form.slug} onChange={(value) => setFormValue("slug", value)} />
+                  <Field
+                    label="اسم رابط المتجر"
+                    dir="ltr"
+                    value={form.slug}
+                    onChange={(value) => setFormValue("slug", value)}
+                    placeholder="mazbrothers"
+                    description={`يظهر للعميل كرابط داخل متاجر داسم: ${publicStoreUrl || "https://stores.dasm.com.sa/mazbrothers"}`}
+                  />
                   <Field label="تصنيف المتجر" value={form.category} onChange={(value) => setFormValue("category", value)} placeholder="عطور، سيارات، قهوة..." />
                   <div className="lg:col-span-2">
                     <TextArea label="وصف المتجر" value={form.description} onChange={(value) => setFormValue("description", value)} maxLength={2000} />
@@ -792,7 +831,15 @@ export default function StoreSettingsPage() {
                   <Field label="رقم الجوال" dir="ltr" value={form.contact_phone} onChange={(value) => setFormValue("contact_phone", value)} />
                   <Field label="واتساب" dir="ltr" value={form.contact_whatsapp} onChange={(value) => setFormValue("contact_whatsapp", value)} />
                   <Field label="البريد الإلكتروني" dir="ltr" type="email" value={form.contact_email} onChange={(value) => setFormValue("contact_email", value)} />
-                  <Field label="الموقع الإلكتروني" dir="ltr" value={form.website} onChange={(value) => setFormValue("website", value)} />
+                  <Field
+                    label="موقع خارجي اختياري"
+                    dir="ltr"
+                    type="url"
+                    value={form.website}
+                    onChange={(value) => setFormValue("website", value)}
+                    placeholder="https://example.com"
+                    description="اتركه فارغًا إذا لا يوجد موقع مستقل خارج متاجر داسم."
+                  />
                 </div>
 
                 <div className="mt-5 grid gap-4 lg:grid-cols-2">
@@ -928,7 +975,7 @@ export default function StoreSettingsPage() {
                 <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                   <SectionTitle icon={ShieldCheck} title="جاهزية وتوثيق" />
                   <div className="grid gap-3 md:grid-cols-2">
-                    <CheckItem ready={Boolean(form.slug)} title="رابط المتجر" value={form.slug ? `/${form.slug}` : "لم يتم تحديد الرابط"} />
+                    <CheckItem ready={Boolean(form.slug)} title="اسم رابط المتجر" value={publicStoreUrl || "لم يتم تحديد الرابط"} />
                     <CheckItem ready={contactReady} title="بيانات التواصل" value={contactReady ? "بيانات التواصل موجودة" : "أضف رقم أو بريد أو واتساب"} />
                     <CheckItem ready={themeReady} title="الثيم" value={selectedTheme?.nameAr ?? "اختر ثيم للمتجر"} />
                     <CheckItem
