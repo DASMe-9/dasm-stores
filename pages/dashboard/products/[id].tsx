@@ -1,17 +1,14 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
-  GripVertical,
   ImagePlus,
   Package,
   Save,
   Star,
   Trash2,
-  Upload,
-  X as XIcon,
 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi, uploadApi } from "@/lib/api";
@@ -36,6 +33,8 @@ interface ProductData {
   status: string;
   is_featured: boolean;
   category_id: number | null;
+  import_provider?: string | null;
+  import_external_id?: string | null;
   images: ProductImage[];
   category: { id: number; name: string } | null;
 }
@@ -80,12 +79,7 @@ export default function EditProductPage() {
     setReady(true);
   }, [router]);
 
-  useEffect(() => {
-    if (!ready || !productId) return;
-    loadProduct();
-  }, [ready, productId]);
-
-  const loadProduct = async () => {
+  const loadProduct = useCallback(async () => {
     if (!productId) return;
 
     setLoading(true);
@@ -123,7 +117,12 @@ export default function EditProductPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [productId]);
+
+  useEffect(() => {
+    if (!ready || !productId) return;
+    loadProduct();
+  }, [loadProduct, ready, productId]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -326,6 +325,18 @@ export default function EditProductPage() {
             </div>
           )}
 
+          <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm dark:border-emerald-900 dark:bg-emerald-950/25">
+            <Package className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+            <div className="space-y-1">
+              <p className="font-bold text-emerald-900 dark:text-emerald-100">
+                يمكنك تحسين المنتج داخل متجرك
+              </p>
+              <p className="text-xs leading-6 text-emerald-800 dark:text-emerald-200">
+                اكتب وصفًا خاصًا بمتجرك، وأضف صورًا جديدة أو اختر صورة رئيسية حتى لو كان المنتج مستوردًا من مورد.
+              </p>
+            </div>
+          </div>
+
           <div className="grid gap-6 lg:grid-cols-[1fr,340px]">
             {/* العمود الأيسر — المعلومات الأساسية */}
             <div className="space-y-6">
@@ -343,10 +354,11 @@ export default function EditProductPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">الوصف</label>
+                  <label className="text-xs font-medium text-zinc-600 dark:text-zinc-400">الوصف التسويقي للعميل</label>
                   <textarea
-                    rows={4}
+                    rows={6}
                     value={form.description}
+                    placeholder="اكتب وصفًا واضحًا للمنتج، المزايا، الاستخدامات، وما يميز عرض متجرك."
                     onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
                     className="w-full rounded-xl border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100 resize-none focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                   />
@@ -406,7 +418,7 @@ export default function EditProductPage() {
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept="image/jpeg,image/png,image/webp"
+                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
                   multiple
                   onChange={handleFileSelect}
                   className="hidden"
@@ -426,7 +438,7 @@ export default function EditProductPage() {
                     <>
                       <ImagePlus className="h-8 w-8" />
                       <span className="text-xs">اضغط لإضافة صور — يمكنك اختيار عدة صور</span>
-                      <span className="text-[10px]">JPG, PNG, WebP — حتى 8 ميقابايت للصورة</span>
+                      <span className="text-[10px]">JPG, PNG, WebP, HEIC — حتى 8 ميقابايت للصورة</span>
                     </>
                   )}
                 </button>
