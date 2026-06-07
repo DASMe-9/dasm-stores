@@ -1,7 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
+
+const THEME_SYNC_EVENT = "dasm-stores-theme-change";
+
+function getThemeSnapshot() {
+  return typeof document !== "undefined" && document.documentElement.classList.contains("dark");
+}
+
+function subscribeTheme(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener(THEME_SYNC_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(THEME_SYNC_EVENT, callback);
+  };
+}
 
 /**
  * Storefront light/dark toggle. Mirrors the seller dashboard convention
@@ -13,18 +28,7 @@ import { Moon, Sun } from "lucide-react";
  * before first paint, so this component only needs to reflect + update state.
  */
 export function ThemeToggle({ className = "" }: { className?: string }) {
-  const [dark, setDark] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    setDark(document.documentElement.classList.contains("dark"));
-
-    // Keep multiple toggles / cross-tab changes in sync.
-    const sync = () => setDark(document.documentElement.classList.contains("dark"));
-    window.addEventListener("storage", sync);
-    return () => window.removeEventListener("storage", sync);
-  }, []);
+  const dark = useSyncExternalStore(subscribeTheme, getThemeSnapshot, () => false);
 
   const toggle = () => {
     const next = !document.documentElement.classList.contains("dark");
@@ -34,7 +38,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
     } catch {
       /* storage may be unavailable (private mode) — theme still applies for this session */
     }
-    setDark(next);
+    window.dispatchEvent(new Event(THEME_SYNC_EVENT));
   };
 
   // Avoid hydration mismatch: render a stable placeholder until mounted.
@@ -45,10 +49,11 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       type="button"
       onClick={toggle}
       aria-label={label}
+      aria-pressed={dark}
       title={label}
       className={`inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-emerald-700 dark:hover:text-emerald-300 ${className || "h-11 w-11"}`}
     >
-      {mounted && dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+      {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>
   );
 }

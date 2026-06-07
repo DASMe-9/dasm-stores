@@ -340,6 +340,11 @@ export function CheckoutClient({
     );
   }
 
+  const checkoutInputClass =
+    "w-full rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] outline-none transition focus:border-[var(--primary)]";
+  const checkoutHalfInputClass =
+    "rounded-xl border border-[var(--border)] bg-[var(--card)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder:text-[var(--muted-foreground)] outline-none transition focus:border-[var(--primary)]";
+
   return (
     <form onSubmit={onSubmit} className="grid gap-8 lg:grid-cols-[1fr_340px]">
       <div className="space-y-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5">
@@ -349,7 +354,7 @@ export function CheckoutClient({
           placeholder="الاسم الكامل"
           value={form.customer_name}
           onChange={(e) => setForm({ ...form, customer_name: e.target.value })}
-          className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+          className={checkoutInputClass}
         />
         <input
           required
@@ -357,14 +362,14 @@ export function CheckoutClient({
           placeholder="رقم الجوال"
           value={form.customer_phone}
           onChange={(e) => setForm({ ...form, customer_phone: e.target.value })}
-          className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+          className={checkoutInputClass}
         />
         <input
           type="email"
           placeholder="البريد الإلكتروني (اختياري)"
           value={form.customer_email}
           onChange={(e) => setForm({ ...form, customer_email: e.target.value })}
-          className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+          className={checkoutInputClass}
         />
         <input
           required
@@ -376,7 +381,7 @@ export function CheckoutClient({
               shipping_address: { ...form.shipping_address, city: e.target.value },
             })
           }
-          className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+          className={checkoutInputClass}
         />
         <input
           required
@@ -388,7 +393,7 @@ export function CheckoutClient({
               shipping_address: { ...form.shipping_address, district: e.target.value },
             })
           }
-          className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+          className={checkoutInputClass}
         />
         <input
           required
@@ -400,7 +405,7 @@ export function CheckoutClient({
               shipping_address: { ...form.shipping_address, street: e.target.value },
             })
           }
-          className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+          className={checkoutInputClass}
         />
         <div className="grid grid-cols-2 gap-2">
           <input
@@ -412,7 +417,7 @@ export function CheckoutClient({
                 shipping_address: { ...form.shipping_address, zip: e.target.value },
               })
             }
-            className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+            className={checkoutHalfInputClass}
           />
           <input
             placeholder="العنوان المختصر (مثال: AAAA1234)"
@@ -423,7 +428,7 @@ export function CheckoutClient({
                 shipping_address: { ...form.shipping_address, short_address: e.target.value },
               })
             }
-            className="rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+            className={checkoutHalfInputClass}
           />
         </div>
         <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/20 p-3">
@@ -588,7 +593,7 @@ export function CheckoutClient({
             value={couponLocal}
             onChange={(e) => setCouponLocal(e.target.value)}
             placeholder="إن وجد"
-            className="w-full rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm"
+            className={checkoutInputClass}
           />
         </label>
 
