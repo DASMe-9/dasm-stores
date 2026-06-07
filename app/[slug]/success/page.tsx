@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CheckoutSuccessTracker } from "@/components/store/CheckoutSuccessTracker";
-import { getStore } from "@/lib/api-server";
+import { getApiBase, getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 
 export default async function CheckoutSuccessPage({
@@ -14,10 +15,25 @@ export default async function CheckoutSuccessPage({
     order?: string;
     paymob_order?: string;
     paymob_transaction?: string;
+    id?: string;
+    hmac?: string;
+    success?: string;
   }>;
 }) {
   const { slug } = await params;
   const sp = await searchParams;
+  if (!sp.dasm_order && isLegacySignedPaymobReturn(sp)) {
+    const callbackUrl = new URL(`${getApiBase()}/api/stores/callback/payment`);
+    Object.entries(sp).forEach(([key, value]) => {
+      if (value != null) callbackUrl.searchParams.set(key, value);
+    });
+    callbackUrl.searchParams.set(
+      "redirect_to",
+      `${process.env.NEXT_PUBLIC_STORES_URL || "https://stores.dasm.com.sa"}/${slug}/success`,
+    );
+    redirect(callbackUrl.toString());
+  }
+
   const orderCandidates = [sp.dasm_order, sp.merchant_order_id, sp.order];
   const order = orderCandidates.find((value) => value?.startsWith("DASM-STR-"));
   const paymobReference = sp.paymob_transaction ?? sp.paymob_order ?? (order ? undefined : sp.order);
@@ -61,4 +77,13 @@ export default async function CheckoutSuccessPage({
       </div>
     </div>
   );
+}
+
+function isLegacySignedPaymobReturn(params: {
+  order?: string;
+  id?: string;
+  hmac?: string;
+  success?: string;
+}): boolean {
+  return Boolean(params.order && params.id && params.hmac && params.success);
 }
