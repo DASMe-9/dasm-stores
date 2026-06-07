@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Clock,
   DollarSign,
@@ -42,6 +42,30 @@ interface StoreProduct {
   created_at: string;
 }
 
+interface ProductsPagination {
+  currentPage: number;
+  lastPage: number;
+  perPage: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+}
+
+interface PaginatorMeta {
+  current_page?: unknown;
+  last_page?: unknown;
+  per_page?: unknown;
+  total?: unknown;
+  from?: unknown;
+  to?: unknown;
+}
+
+interface ProductsPayload extends PaginatorMeta {
+  products?: StoreProduct[];
+  data?: StoreProduct[];
+  meta?: PaginatorMeta;
+}
+
 interface StoreData {
   id: number;
   name: string;
@@ -60,6 +84,40 @@ interface StoreData {
 
 type TabKey = "overview" | "products" | "info";
 
+const PRODUCTS_PER_PAGE = 50;
+
+const defaultPagination: ProductsPagination = {
+  currentPage: 1,
+  lastPage: 1,
+  perPage: PRODUCTS_PER_PAGE,
+  total: 0,
+  from: null,
+  to: null,
+};
+
+function numberOr(value: unknown, fallback: number): number {
+  const next = Number(value);
+  return Number.isFinite(next) && next > 0 ? next : fallback;
+}
+
+function nullableNumber(value: unknown): number | null {
+  const next = Number(value);
+  return Number.isFinite(next) ? next : null;
+}
+
+function readPagination(payload: ProductsPayload | undefined, count: number, requestedPage: number): ProductsPagination {
+  const meta: PaginatorMeta = payload?.meta ?? payload ?? {};
+
+  return {
+    currentPage: numberOr(meta.current_page, requestedPage),
+    lastPage: numberOr(meta.last_page, 1),
+    perPage: numberOr(meta.per_page, PRODUCTS_PER_PAGE),
+    total: Number.isFinite(Number(meta.total)) ? Number(meta.total) : count,
+    from: nullableNumber(meta.from),
+    to: nullableNumber(meta.to),
+  };
+}
+
 export default function SellerDashboardHome() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -67,29 +125,27 @@ export default function SellerDashboardHome() {
   const [stats, setStats] = useState<StoreStats | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [productsPaging, setProductsPaging] = useState(false);
   const [activating, setActivating] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [storeOrigin, setStoreOrigin] = useState(STOREFRONT_ORIGIN);
+  const [pagination, setPagination] = useState<ProductsPagination>(defaultPagination);
   const STORES_URL = `${storeOrigin.replace(/\/+$/, "")}/store`;
 
-  useEffect(() => {
-    setStoreOrigin(browserStorefrontOrigin());
-    const t = localStorage.getItem("stores_token");
-    if (!t) {
-      router.replace("/auth/login?returnUrl=/dashboard");
-      return;
+  const load = useCallback(async (requestedPage = 1, options?: { pageOnly?: boolean }) => {
+    if (options?.pageOnly) {
+      setProductsPaging(true);
+    } else {
+      setLoading(true);
     }
-    setReady(true);
-    load();
-  }, [router]);
-
-  const load = async () => {
-    setLoading(true);
     try {
       const [storeRes, statsRes, productsRes] = await Promise.allSettled([
         sellerApi.getMyStore(),
         sellerApi.getStats(),
-        sellerApi.getProducts(),
+        sellerApi.getProducts({
+          page: requestedPage,
+          per_page: PRODUCTS_PER_PAGE,
+        }),
       ]);
 
       if (storeRes.status === "fulfilled" && storeRes.value.data?.store) {
@@ -99,15 +155,32 @@ export default function SellerDashboardHome() {
         setStats(statsRes.value.data as StoreStats);
       }
       if (productsRes.status === "fulfilled") {
-        const d = productsRes.value.data;
-        setProducts((d?.products ?? d?.data ?? []) as StoreProduct[]);
+        const d = productsRes.value.data as ProductsPayload | undefined;
+        const nextProducts = d?.products ?? d?.data ?? [];
+        setProducts(nextProducts);
+        setPagination(readPagination(d, nextProducts.length, requestedPage));
       }
     } catch {
       /* skip */
     } finally {
-      setLoading(false);
+      if (options?.pageOnly) {
+        setProductsPaging(false);
+      } else {
+        setLoading(false);
+      }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    setStoreOrigin(browserStorefrontOrigin());
+    const t = localStorage.getItem("stores_token");
+    if (!t) {
+      router.replace("/auth/login?returnUrl=/dashboard");
+      return;
+    }
+    setReady(true);
+    load(1);
+  }, [load, router]);
 
   const canActivate = store?.status === "draft" && !!store.payment_config && (stats?.active_products ?? 0) > 0;
 
@@ -137,12 +210,17 @@ export default function SellerDashboardHome() {
   const loadedProductsCount = products.length;
   const totalProductsCount = Math.max(
     loadedProductsCount,
+    pagination.total,
     stats?.total_products ?? stats?.active_products ?? loadedProductsCount,
   );
   const productsCountLabel =
     totalProductsCount > loadedProductsCount
       ? `${loadedProductsCount} من ${totalProductsCount}`
       : `${totalProductsCount}`;
+  const productsRangeLabel =
+    totalProductsCount > 0
+      ? `عرض ${pagination.from ?? 1} - ${pagination.to ?? loadedProductsCount} من ${totalProductsCount} منتج`
+      : "لا توجد منتجات";
 
   return (
     <>
@@ -324,15 +402,56 @@ export default function SellerDashboardHome() {
               {/* ── تبويب: المنتجات ── */}
               {activeTab === "products" && (
                 <div className="space-y-4">
-                  <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                    المنتجات المعروضة ({productsCountLabel})
-                  </h3>
-                  {products.length > 0 ? (
-                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                      {products.map((p) => (
-                        <ProductCard key={p.id} product={p} />
-                      ))}
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                        المنتجات المعروضة ({productsCountLabel})
+                      </h3>
+                      <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                        {productsRangeLabel}
+                      </p>
                     </div>
+                    <Link
+                      href="/dashboard/products"
+                      className="text-xs font-semibold text-emerald-600 transition hover:text-emerald-700"
+                    >
+                      إدارة المنتجات كاملة
+                    </Link>
+                  </div>
+                  {products.length > 0 ? (
+                    <>
+                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                        {products.map((p) => (
+                          <ProductCard key={p.id} product={p} />
+                        ))}
+                      </div>
+
+                      {pagination.lastPage > 1 ? (
+                        <div className="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between">
+                          <span className="text-center text-xs text-zinc-500 dark:text-zinc-400 sm:text-start">
+                            الصفحة {pagination.currentPage} من {pagination.lastPage} - {pagination.perPage} منتج في كل صفحة
+                          </span>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => load(pagination.currentPage - 1, { pageOnly: true })}
+                              disabled={loading || productsPaging || pagination.currentPage <= 1}
+                              className="rounded-xl border border-zinc-200 px-4 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                            >
+                              السابقة
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => load(pagination.currentPage + 1, { pageOnly: true })}
+                              disabled={loading || productsPaging || pagination.currentPage >= pagination.lastPage}
+                              className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+                            >
+                              {productsPaging ? "جاري التحميل..." : "التالية"}
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+                    </>
                   ) : (
                     <div className="rounded-2xl border border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800/50 py-12 text-center">
                       <Package className="mx-auto mb-3 h-12 w-12 text-zinc-300" />
