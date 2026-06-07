@@ -24,6 +24,40 @@ import { platformApiOrigin } from "@/lib/platform-api-url";
 
 const API_URL = platformApiOrigin();
 const ARABIC_NAME_RE = /^[\u0600-\u06FF\s]+$/;
+const PHONE_PREFIX = "966";
+
+const SAUDI_REGION_ALIASES: Record<string, string[]> = {
+  "منطقة الرياض": ["riyadh", "الرياض"],
+  "منطقة مكة المكرمة": ["makkah", "mecca", "jeddah", "taif", "مكة", "مكه", "جدة", "جده", "الطائف"],
+  "المنطقة الشرقية": [
+    "eastern province",
+    "ash sharqiyah",
+    "eastern",
+    "dammam",
+    "khobar",
+    "dhahran",
+    "jubail",
+    "al ahsa",
+    "الشرقية",
+    "الشرقيه",
+    "الدمام",
+    "الخبر",
+    "الظهران",
+    "الجبيل",
+    "الأحساء",
+    "الاحساء",
+  ],
+  "منطقة المدينة المنورة": ["madinah", "medina", "al madinah", "المدينة", "المدينه", "ينبع"],
+  "منطقة القصيم": ["qassim", "al qasim", "القصيم", "بريدة", "بريده", "عنيزة", "عنيزه"],
+  "منطقة عسير": ["asir", "aseer", "abha", "khamis mushait", "عسير", "أبها", "ابها", "خميس مشيط"],
+  "منطقة حائل": ["hail", "ha'il", "حائل"],
+  "منطقة تبوك": ["tabuk", "تبوك"],
+  "منطقة الحدود الشمالية": ["northern borders", "al hudud", "عرعر", "رفحاء", "طريف", "الحدود الشمالية"],
+  "منطقة جازان": ["jizan", "jazan", "جازان", "جيزان"],
+  "منطقة نجران": ["najran", "نجران"],
+  "منطقة الجوف": ["al jawf", "jawf", "sakaka", "الجوف", "سكاكا"],
+  "منطقة الباحة": ["al bahah", "baha", "الباحة", "الباحه"],
+};
 
 type AccountType = "venue_owner";
 
@@ -33,12 +67,19 @@ type Region = {
   code?: string;
 };
 
+type GpsStatus = "idle" | "locating" | "success" | "error";
+
+type SignupLocation = {
+  city: string;
+  region: string;
+  accuracyM: number | null;
+};
+
 type SignupFormState = {
   first_name: string;
   middle_name: string;
   last_name: string;
   email: string;
-  email_confirmation: string;
   phone: string;
   referral_code: string;
   area_id: string;
@@ -59,12 +100,55 @@ type ApiErrorBody = {
   errors?: Record<string, string[]>;
 };
 
+function normalizeLocationText(value?: string | null) {
+  return (value ?? "")
+    .toLowerCase()
+    .replace(/[إأآا]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/[^\u0600-\u06FFa-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function buildAreaLabel(regionName: string, city?: string | null) {
+  const cleanCity = (city ?? "").trim();
+  return cleanCity ? `${regionName} - ${cleanCity}` : regionName;
+}
+
+function findMatchingSaudiRegion(
+  regions: Region[],
+  regionName?: string | null,
+  cityName?: string | null,
+  preferredAreaId?: number | string | null,
+) {
+  if (preferredAreaId !== null && preferredAreaId !== undefined) {
+    const direct = regions.find((region) => String(region.id) === String(preferredAreaId));
+    if (direct) return direct;
+  }
+
+  const candidates = [
+    normalizeLocationText(regionName),
+    normalizeLocationText(cityName),
+  ].filter(Boolean);
+
+  return regions.find((region) => {
+    const names = [
+      normalizeLocationText(region.name),
+      normalizeLocationText(region.code),
+      ...(SAUDI_REGION_ALIASES[region.name] ?? []).map(normalizeLocationText),
+    ].filter(Boolean);
+
+    return candidates.some((candidate) =>
+      names.some((name) => candidate.includes(name) || name.includes(candidate)),
+    );
+  });
+}
+
 const initialForm: SignupFormState = {
   first_name: "",
   middle_name: "",
   last_name: "",
   email: "",
-  email_confirmation: "",
   phone: "",
   referral_code: "",
   area_id: "",
@@ -78,7 +162,6 @@ const initialForm: SignupFormState = {
 
 const errorPriority = [
   "email",
-  "email_confirmation",
   "phone",
   "first_name",
   "middle_name",
@@ -97,6 +180,9 @@ export default function SignupPage() {
   const [regions, setRegions] = useState<Region[]>([]);
   const [regionsLoading, setRegionsLoading] = useState(true);
   const [regionsError, setRegionsError] = useState("");
+  const [gpsStatus, setGpsStatus] = useState<GpsStatus>("idle");
+  const [gpsError, setGpsError] = useState("");
+  const [gpsLocation, setGpsLocation] = useState<SignupLocation | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -107,6 +193,14 @@ export default function SignupPage() {
     () => regions.find((region) => String(region.id) === form.area_id),
     [form.area_id, regions],
   );
+
+  const selectedAreaLabel = useMemo(() => {
+    if (gpsLocation && selectedRegion) {
+      return buildAreaLabel(selectedRegion.name, gpsLocation.city);
+    }
+
+    return selectedRegion?.name;
+  }, [gpsLocation, selectedRegion]);
 
   useEffect(() => {
     if (!router.isReady) return;
@@ -167,12 +261,105 @@ export default function SignupPage() {
     setForm((current) => ({ ...current, [field]: value }));
   }
 
+  function handleAreaChange(value: string) {
+    updateField("area_id", value);
+    setGpsStatus("idle");
+    setGpsError("");
+    setGpsLocation(null);
+  }
+
+  function normalizeSaudiPhoneInput(value: string) {
+    const raw = value.replace(/\D/g, "");
+    const withoutInternationalPrefix = raw.startsWith(PHONE_PREFIX) ? raw.slice(PHONE_PREFIX.length) : raw;
+    const withoutLeadingZero = withoutInternationalPrefix.startsWith("05")
+      ? withoutInternationalPrefix.slice(1)
+      : withoutInternationalPrefix.replace(/^0+/, "");
+
+    return withoutLeadingZero.slice(0, 9);
+  }
+
+  function handleDetectRegistrationLocation() {
+    if (typeof navigator === "undefined" || !navigator.geolocation) {
+      setGpsStatus("error");
+      setGpsError("المتصفح لا يدعم تحديد الموقع.");
+      return;
+    }
+
+    if (regionsLoading || regions.length === 0) {
+      setGpsStatus("error");
+      setGpsError("انتظر تحميل مناطق المملكة ثم حاول تحديد الموقع مرة أخرى.");
+      return;
+    }
+
+    setGpsStatus("locating");
+    setGpsError("");
+
+    navigator.geolocation.getCurrentPosition(
+      async (position) => {
+        const accuracyM = Math.round(position.coords.accuracy);
+
+        try {
+          const response = await fetch("/api/reverse-geocode", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            }),
+          });
+          const data = (await response.json().catch(() => ({}))) as {
+            area_id?: number | string | null;
+            city?: string | null;
+            region?: string | null;
+          };
+
+          if (!response.ok) {
+            throw new Error("reverse_geocode_failed");
+          }
+
+          const matchedRegion = findMatchingSaudiRegion(
+            regions,
+            data.region,
+            data.city,
+            data.area_id,
+          );
+
+          if (!matchedRegion) {
+            setGpsStatus("error");
+            setGpsError("تم تحديد الموقع، لكن لم نتمكن من مطابقته مع مناطق المملكة. اختر المنطقة يدوياً.");
+            return;
+          }
+
+          const city = data.city?.trim() || "غير محددة";
+          updateField("area_id", String(matchedRegion.id));
+          setGpsLocation({
+            city,
+            region: matchedRegion.name,
+            accuracyM,
+          });
+          setGpsStatus("success");
+        } catch {
+          setGpsStatus("error");
+          setGpsError("تعذر قراءة المدينة من الموقع. اختر المنطقة يدوياً أو حاول مرة أخرى.");
+        }
+      },
+      () => {
+        setGpsStatus("error");
+        setGpsError("لم يتم السماح بتحديد الموقع أو انتهت المهلة.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 12000,
+        maximumAge: 30000,
+      },
+    );
+  }
+
   function validateClientForm() {
     const firstName = form.first_name.trim();
     const middleName = form.middle_name.trim();
     const lastName = form.last_name.trim();
     const email = normalizeEmail(form.email);
-    const emailConfirmation = normalizeEmail(form.email_confirmation);
     const referralCode = form.referral_code.trim();
 
     if (firstName.length < 2 || !ARABIC_NAME_RE.test(firstName)) {
@@ -186,9 +373,6 @@ export default function SignupPage() {
     }
     if (!email || emailHasNonAscii(email) || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return "يرجى إدخال بريد إلكتروني صالح بحروف لاتينية.";
-    }
-    if (email !== emailConfirmation) {
-      return "تأكيد البريد الإلكتروني يجب أن يطابق البريد.";
     }
     if (!/^5\d{8}$/.test(form.phone)) {
       return "رقم الهاتف يجب أن يبدأ بـ 5 ويتكون من 9 أرقام بعد كود السعودية.";
@@ -234,15 +418,15 @@ export default function SignupPage() {
       middle_name: form.middle_name.trim() || undefined,
       last_name: form.last_name.trim(),
       email: normalizeEmail(form.email),
-      email_confirmation: normalizeEmail(form.email_confirmation),
-      phone: `+966${form.phone}`,
+      email_confirmation: normalizeEmail(form.email),
+      phone: `+${PHONE_PREFIX}${form.phone}`,
       password: form.password,
       password_confirmation: form.password_confirmation,
       account_type: form.account_type,
       product_context: "stores",
       return_url: returnUrl,
       area_id: form.area_id || undefined,
-      area_label: selectedRegion?.name,
+      area_label: selectedAreaLabel,
       referral_code: form.referral_code.trim().toUpperCase() || undefined,
       company_name: form.company_name.trim(),
       commercial_registry: form.commercial_registry.trim(),
@@ -405,54 +589,43 @@ export default function SignupPage() {
                   </Field>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field id="email" label="البريد الإلكتروني" icon={<Mail className="h-4 w-4" />}>
-                    <input
-                      id="email"
-                      type="email"
-                      dir="ltr"
-                      value={form.email}
-                      onChange={(event) => updateField("email", event.target.value)}
-                      autoComplete="email"
-                      required
-                      placeholder="name@example.com"
-                      className={inputClassName}
-                    />
-                  </Field>
-
-                  <Field id="email_confirmation" label="تأكيد البريد الإلكتروني" icon={<Mail className="h-4 w-4" />}>
-                    <input
-                      id="email_confirmation"
-                      type="email"
-                      dir="ltr"
-                      value={form.email_confirmation}
-                      onChange={(event) => updateField("email_confirmation", event.target.value)}
-                      autoComplete="email"
-                      required
-                      placeholder="name@example.com"
-                      className={inputClassName}
-                    />
-                  </Field>
-                </div>
+                <Field id="email" label="البريد الإلكتروني" icon={<Mail className="h-4 w-4" />}>
+                  <input
+                    id="email"
+                    type="email"
+                    dir="ltr"
+                    value={form.email}
+                    onChange={(event) => updateField("email", event.target.value)}
+                    autoComplete="email"
+                    required
+                    placeholder="name@example.com"
+                    className={inputClassName}
+                  />
+                </Field>
 
                 <div className="grid gap-4 md:grid-cols-2">
                   <Field id="phone" label="رقم الهاتف" icon={<Phone className="h-4 w-4" />}>
-                    <div className="flex overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition focus-within:border-transparent focus-within:ring-2 focus-within:ring-emerald-500 dark:border-gray-700 dark:bg-gray-900">
-                      <div className="grid min-w-20 place-items-center border-l border-slate-200 bg-white px-3 text-sm font-extrabold text-emerald-700 dark:border-gray-700 dark:bg-gray-950 dark:text-emerald-400">
-                        +966
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        dir="ltr"
+                        className="grid h-12 min-w-20 place-items-center rounded-xl border border-slate-200 bg-white px-3 text-sm font-extrabold text-emerald-700 select-none dark:border-gray-700 dark:bg-gray-950 dark:text-emerald-400"
+                        title="كود الدولة"
+                      >
+                        +{PHONE_PREFIX}
+                      </span>
                       <input
                         id="phone"
                         type="tel"
                         dir="ltr"
-                        inputMode="numeric"
+                        inputMode="tel"
+                        autoComplete="tel-national"
                         pattern="5[0-9]{8}"
                         maxLength={9}
                         required
                         value={form.phone}
-                        onChange={(event) => updateField("phone", event.target.value.replace(/\D/g, "").slice(0, 9))}
-                        placeholder="5XXXXXXXX"
-                        className="min-w-0 flex-1 bg-transparent px-4 py-3 text-sm text-slate-950 placeholder-slate-400 outline-none dark:text-white"
+                        onChange={(event) => updateField("phone", normalizeSaudiPhoneInput(event.target.value))}
+                        placeholder="5xxxxxxxx"
+                        className={`${inputClassName} min-w-0 flex-1`}
                       />
                     </div>
                   </Field>
@@ -480,22 +653,55 @@ export default function SignupPage() {
                   </Field>
 
                   <Field id="area_id" label="المنطقة / المدينة" icon={<MapPin className="h-4 w-4" />} hint={regionsError}>
-                    <select
-                      id="area_id"
-                      value={form.area_id}
-                      onChange={(event) => updateField("area_id", event.target.value)}
-                      disabled={regionsLoading && regions.length === 0}
-                      className={`${inputClassName} appearance-none disabled:cursor-wait disabled:opacity-70`}
-                    >
-                      <option value="">
-                        {regionsLoading ? "جار تحميل المناطق..." : "اختر منطقة المملكة"}
-                      </option>
-                      {regions.map((region) => (
-                        <option key={region.id} value={String(region.id)}>
-                          {region.name}
+                    <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+                      <select
+                        id="area_id"
+                        value={form.area_id}
+                        onChange={(event) => handleAreaChange(event.target.value)}
+                        disabled={regionsLoading && regions.length === 0}
+                        className={`${inputClassName} min-w-0 appearance-none disabled:cursor-wait disabled:opacity-70`}
+                      >
+                        <option value="">
+                          {regionsLoading ? "جار تحميل المناطق..." : "اختر منطقة المملكة"}
                         </option>
-                      ))}
-                    </select>
+                        {regions.map((region) => (
+                          <option key={region.id} value={String(region.id)}>
+                            {region.name}
+                          </option>
+                        ))}
+                      </select>
+
+                      <button
+                        type="button"
+                        onClick={handleDetectRegistrationLocation}
+                        disabled={busy || regionsLoading || gpsStatus === "locating"}
+                        title="تحديد المنطقة والمدينة من الموقع"
+                        className="inline-flex h-12 shrink-0 items-center justify-center gap-1.5 rounded-xl border border-emerald-600/40 bg-emerald-500/10 px-3 text-xs font-extrabold text-emerald-700 transition hover:bg-emerald-500/15 disabled:cursor-not-allowed disabled:opacity-60 dark:text-emerald-300"
+                      >
+                        <MapPin className="h-3.5 w-3.5" />
+                        {gpsStatus === "locating" ? "جار التحديد..." : "تحديد الموقع"}
+                      </button>
+                    </div>
+
+                    {gpsLocation && (
+                      <div className="mt-2 grid gap-2 rounded-lg border border-emerald-500/25 bg-emerald-500/10 p-2.5 text-xs sm:grid-cols-2">
+                        <div className="flex items-center justify-between gap-3 rounded-md bg-emerald-50 px-3 py-1.5 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+                          <span className="font-medium">المنطقة</span>
+                          <span>{gpsLocation.region}</span>
+                        </div>
+                        <div className="flex items-center justify-between gap-3 rounded-md bg-emerald-50 px-3 py-1.5 text-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-100">
+                          <span className="font-medium">المدينة</span>
+                          <span>{gpsLocation.city}</span>
+                        </div>
+                        {gpsLocation.accuracyM !== null && (
+                          <p className="text-[11px] text-emerald-700 dark:text-emerald-300 sm:col-span-2">
+                            دقة الموقع تقريباً ±{gpsLocation.accuracyM}م
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {gpsError && <p className="mt-2 text-xs text-amber-600 dark:text-amber-400">{gpsError}</p>}
                   </Field>
                 </div>
 
