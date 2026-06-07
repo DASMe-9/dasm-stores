@@ -35,6 +35,10 @@ function ownerLabel(type: string) {
   return ({ venue_owner: "معرض", dealer: "تاجر", user: "متجر" } as Record<string, string>)[type] || "متجر";
 }
 
+function productIdentity(product: FeaturedProduct) {
+  return product.id > 0 ? String(product.id) : product.slug || product.name;
+}
+
 async function getFeaturedProducts(storeItems: Awaited<ReturnType<typeof getExploreStores>>["data"]) {
   const results = await Promise.all(
     storeItems
@@ -108,20 +112,29 @@ function ProductTile({ product }: { product: FeaturedProduct }) {
   );
 }
 
-function SponsoredPlaceholder({ index }: { index: number }) {
-  const names = ["حذاء رياضي رجالي", "نظارة شمسية كلاسيك", "ساعة ذكية", "عطر فاخر", "سماعات لاسلكية"];
+function EmptyProductsState({ q }: { q?: string }) {
+  const message = q
+    ? "لا توجد منتجات مطابقة لهذا البحث حاليا. جرّب كلمة مختلفة أو استعرض المتاجر المتاحة."
+    : "لا توجد منتجات منشورة حاليا.";
+
   return (
-    <Link href="https://ads.dasm.com.sa/advertise" className="group overflow-hidden rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
-      <div className="relative aspect-[1.18] bg-[radial-gradient(circle_at_50%_35%,rgba(20,184,166,.2),transparent_34%),linear-gradient(145deg,#f8fafc,#e2e8f0)]">
-        <span className="absolute right-3 top-3 rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">ممول</span>
-        <div className="grid h-full place-items-center text-emerald-700 dark:text-emerald-300"><ShoppingBag className="h-14 w-14" /></div>
+    <div className="col-span-full rounded-2xl border border-dashed border-slate-300 bg-white px-5 py-10 text-center shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+      <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">
+        <ShoppingBag className="h-7 w-7" />
       </div>
-      <div className="space-y-2 p-4">
-        <h3 className="line-clamp-1 text-sm font-extrabold text-slate-950 dark:text-zinc-100">{names[index % names.length]}</h3>
-        <p className="line-clamp-1 text-xs text-slate-500 dark:text-zinc-400">مساحة منتج ممول</p>
-        <div className="flex items-center justify-between gap-3"><span className="text-sm font-extrabold text-slate-950 dark:text-zinc-100">أعلن الآن</span><span className="grid h-9 w-9 place-items-center rounded-xl bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 transition group-hover:bg-emerald-600 group-hover:text-white"><Megaphone className="h-4 w-4" /></span></div>
+      <h3 className="mt-4 text-base font-extrabold text-slate-950 dark:text-zinc-100">
+        لم نعثر على منتجات
+      </h3>
+      <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-slate-500 dark:text-zinc-400">
+        {message}
+      </p>
+      <div className="mt-5 flex justify-center">
+        <Link href="#stores" className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition hover:bg-emerald-700 dark:bg-zinc-700">
+          عرض المتاجر
+          <ArrowLeft className="h-4 w-4" />
+        </Link>
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -132,10 +145,10 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
   const stores = paginator.data;
   const products = (await getHomeProducts(q)) || [];
   const fallbackProducts = products.length >= 12 ? [] : await getFeaturedProducts(stores);
-  const productKeys = new Set(products.map((product) => `${product.storeSlug}-${product.id}`));
+  const productKeys = new Set(products.map((product) => `${product.storeSlug}-${productIdentity(product)}`));
   const visibleProducts = [
     ...products,
-    ...fallbackProducts.filter((product) => !productKeys.has(`${product.storeSlug}-${product.id}`)),
+    ...fallbackProducts.filter((product) => !productKeys.has(`${product.storeSlug}-${productIdentity(product)}`)),
   ].slice(0, 12);
   const featuredStores = stores.slice(0, 5);
   const shoppingHref = "#stores";
@@ -154,7 +167,7 @@ export default async function ExplorePage({ searchParams }: { searchParams: Prom
         </header>
         <main>
           <section className="px-4 pt-4"><div className="relative mx-auto min-h-[280px] max-w-6xl overflow-hidden rounded-3xl bg-[#021b1f] px-5 py-8 text-white shadow-2xl shadow-emerald-950/20 md:min-h-[295px] md:px-10 md:py-10"><HeroScene /><StoreAdSlot slotKey="store.home.banner" variant="hero" /><div className="relative z-10 mx-auto flex min-h-[200px] max-w-2xl flex-col items-center justify-center pb-24 text-center md:min-h-[215px] md:pb-28"><h1 className="text-3xl font-extrabold leading-tight md:text-5xl">اكتشف متاجر ومنتجات داسم</h1><p className="mt-3 text-base text-emerald-50/80 md:text-lg">كل المتاجر والمنتجات في واجهة واحدة</p></div><form action="/" className="absolute inset-x-5 bottom-7 z-10 mx-auto flex max-w-xl items-center gap-3 rounded-full bg-white dark:bg-zinc-800 p-2 shadow-xl md:bottom-8"><Search className="mr-4 h-5 w-5 text-slate-500 dark:text-zinc-400" /><input name="q" defaultValue={q} placeholder="ابحث عن منتج أو متجر..." className="min-w-0 flex-1 bg-transparent px-2 py-3 text-sm text-slate-950 dark:text-zinc-100 outline-none" /><button className="rounded-full bg-slate-950 dark:bg-zinc-700 px-5 py-3 text-sm font-bold text-white transition hover:bg-emerald-700">بحث</button></form></div></section>
-          <section className="mx-auto max-w-7xl px-4 py-8" id="products"><div className="mb-4 flex items-center justify-between"><h2 className="flex items-center gap-2 text-xl font-extrabold"><Sparkles className="h-5 w-5 text-emerald-600" /> منتجات من متاجر داسم</h2><Link href="#stores" className="inline-flex items-center gap-2 text-sm font-bold text-emerald-700">عرض المتاجر <ArrowLeft className="h-4 w-4" /></Link></div><div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{visibleProducts.length ? visibleProducts.map((product) => <ProductTile key={`${product.storeSlug}-${product.id}`} product={product} />) : stores.length ? stores.slice(0, 8).map((store) => <StoreCard key={store.id} store={store} />) : Array.from({ length: 8 }).map((_, index) => <SponsoredPlaceholder key={index} index={index} />)}</div><Link href="https://ads.dasm.com.sa/advertise" className="group relative mt-6 block overflow-hidden rounded-2xl bg-[#031b1e] px-6 py-5 text-white shadow-lg"><div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(45,212,191,.28),transparent_32%),linear-gradient(90deg,rgba(20,184,166,.22),transparent_55%)]" /><div className="relative z-10 flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-start"><span className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-extrabold">أعلن الآن <Megaphone className="h-4 w-4" /></span><div><p className="text-sm text-emerald-100">مساحة إعلان</p><h3 className="text-2xl font-extrabold">ظهور أوسع بين منتجات المتاجر</h3></div><Target className="hidden h-14 w-14 text-emerald-200 md:block" /></div></Link></section>
+          <section className="mx-auto max-w-7xl px-4 py-8" id="products"><div className="mb-4 flex items-center justify-between"><h2 className="flex items-center gap-2 text-xl font-extrabold"><Sparkles className="h-5 w-5 text-emerald-600" /> منتجات من متاجر داسم</h2><Link href="#stores" className="inline-flex items-center gap-2 text-sm font-bold text-emerald-700">عرض المتاجر <ArrowLeft className="h-4 w-4" /></Link></div><div className="grid grid-cols-2 gap-4 md:grid-cols-3 xl:grid-cols-4">{visibleProducts.length ? visibleProducts.map((product, index) => <ProductTile key={`${product.storeSlug}-${productIdentity(product)}-${index}`} product={product} />) : <EmptyProductsState q={q} />}</div>{!q ? <Link href="https://ads.dasm.com.sa/advertise" className="group relative mt-6 block overflow-hidden rounded-2xl bg-[#031b1e] px-6 py-5 text-white shadow-lg"><div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(45,212,191,.28),transparent_32%),linear-gradient(90deg,rgba(20,184,166,.22),transparent_55%)]" /><div className="relative z-10 flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-start"><span className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-extrabold">أعلن الآن <Megaphone className="h-4 w-4" /></span><div><p className="text-sm text-emerald-100">مساحة إعلان</p><h3 className="text-2xl font-extrabold">ظهور أوسع بين منتجات المتاجر</h3></div><Target className="hidden h-14 w-14 text-emerald-200 md:block" /></div></Link> : null}</section>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <section className="mx-auto max-w-7xl px-4 pb-8" id="stores"><div className="mb-4 flex items-center justify-between"><h2 className="flex items-center gap-2 text-xl font-extrabold"><BadgeCheck className="h-5 w-5 text-emerald-600" /> متاجر مميزة</h2><Link href="#all-stores" className="inline-flex items-center gap-2 text-sm font-bold text-emerald-700">عرض الكل <ArrowLeft className="h-4 w-4" /></Link></div><div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-5">{featuredStores.length ? featuredStores.map((store) => <Link key={store.id} href={`/${store.slug}`} className="group flex min-h-28 items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl"><div className="min-w-0"><p className="truncate text-sm font-extrabold">{getStoreDisplayName(store)}</p><p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">{ownerLabel(store.owner_type)} · {store.products_count ?? 0} منتج</p><span className="mt-4 inline-flex rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">زيارة المتجر</span></div><div className="grid h-16 w-16 shrink-0 place-items-center overflow-hidden rounded-2xl border border-slate-100 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900/50">{store.logo_url ? <img src={store.logo_url} alt="" className="h-full w-full object-cover" /> : <Store className="h-7 w-7 text-emerald-700 dark:text-emerald-300" />}</div></Link>) : Array.from({ length: 5 }).map((_, index) => <Link key={index} href="https://ads.dasm.com.sa/advertise" className="group flex min-h-28 items-center justify-between gap-4 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 p-4 shadow-sm transition hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl"><div><p className="text-sm font-extrabold">متجر مميز</p><p className="mt-1 text-xs text-slate-500 dark:text-zinc-400">مساحة ظهور للمتاجر</p><span className="mt-4 inline-flex rounded-lg bg-emerald-50 dark:bg-emerald-500/10 px-3 py-1.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">احجز الظهور</span></div><div className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl border border-slate-100 dark:border-zinc-700 bg-slate-50 dark:bg-zinc-900/50"><Store className="h-7 w-7 text-emerald-700 dark:text-emerald-300" /></div></Link>)}</div></section>
           <section className="mx-auto max-w-7xl px-4 pb-8"><Link href="https://ads.dasm.com.sa/advertise" className="relative block overflow-hidden rounded-2xl bg-[#031b1e] px-6 py-5 text-white shadow-lg"><div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_50%,rgba(45,212,191,.28),transparent_32%),linear-gradient(90deg,rgba(20,184,166,.22),transparent_55%)]" /><div className="relative z-10 flex flex-col items-center justify-between gap-4 text-center md:flex-row md:text-start"><span className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 px-5 py-3 text-sm font-extrabold">أعلن الآن <Megaphone className="h-4 w-4" /></span><div><h2 className="text-2xl font-extrabold">مساحة إعلان بانر واسعة</h2><p className="mt-1 text-sm text-emerald-50/75">وصل لآلاف العملاء يوميًا على متاجر داسم</p></div><Target className="hidden h-16 w-16 text-emerald-200 md:block" /></div></Link></section>
