@@ -34,16 +34,21 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "Invalid image source" }, { status: 400 });
   }
 
-  const upstream = await fetch(source.toString(), {
-    headers: {
-      Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-      "User-Agent": "DASM Stores image proxy",
-    },
-    next: { revalidate },
-  });
+  let upstream: Response;
+  try {
+    upstream = await fetch(source.toString(), {
+      headers: {
+        Accept: "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
+        "User-Agent": "DASM Stores image proxy",
+      },
+      next: { revalidate },
+    });
+  } catch {
+    return NextResponse.redirect(source.toString(), 307);
+  }
 
   if (!upstream.ok) {
-    return new NextResponse(null, { status: upstream.status });
+    return NextResponse.redirect(source.toString(), 307);
   }
 
   const contentType = upstream.headers.get("content-type") || "";
