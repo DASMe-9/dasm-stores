@@ -143,25 +143,25 @@ export function StoreHeader({
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto w-full max-w-[1600px] px-4 pb-4 pt-0 sm:px-6 lg:px-8">
-        <div className="-mt-12 flex flex-col gap-5 rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 p-5 shadow-xl shadow-black/5 backdrop-blur md:-mt-16 md:flex-row md:items-center md:p-6">
-          <div className="order-1 flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-3xl border-4 border-[var(--card)] bg-[var(--muted)] shadow md:order-none">
+      <div className="relative z-10 mx-auto w-full max-w-[1280px] px-4 pb-3 pt-0 sm:px-6 lg:px-8">
+        <div className="-mt-8 flex flex-col gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)]/95 p-3 shadow-lg shadow-black/5 backdrop-blur md:-mt-10 md:flex-row md:items-center md:p-4">
+          <div className="order-1 flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-2 border-[var(--card)] bg-[var(--muted)] shadow md:order-none md:h-20 md:w-20">
             {store.logo_url ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={store.logo_url} alt="" className="h-full w-full object-cover" />
             ) : (
-              <StoreIcon className="h-11 w-11" style={{ color: "var(--primary-text,var(--primary))" }} />
+              <StoreIcon className="h-8 w-8" style={{ color: "var(--primary-text,var(--primary))" }} />
             )}
           </div>
 
           <div className="order-2 min-w-0 flex-1 md:order-none">
-            <h1 className="text-2xl font-extrabold text-[var(--foreground)] md:text-3xl">{storeName}</h1>
+            <h1 className="text-xl font-extrabold text-[var(--foreground)] md:text-2xl">{storeName}</h1>
             {store.description ? (
-              <p className="mt-1 line-clamp-2 text-sm text-[var(--muted-foreground)]">
+              <p className="mt-0.5 line-clamp-1 text-xs text-[var(--muted-foreground)] md:text-sm">
                 {store.description}
               </p>
             ) : null}
-            <div className="mt-3 flex flex-wrap items-center gap-4 text-xs text-[var(--muted-foreground)]">
+            <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[var(--muted-foreground)]">
               {areaName ? (
                 <span className="flex items-center gap-1">
                   <MapPin className="h-3.5 w-3.5" />
@@ -179,7 +179,7 @@ export function StoreHeader({
                 </a>
               ) : null}
             </div>
-            <div className="mt-5 flex flex-wrap items-center gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               <ShareButton title={storeName} url={canonicalUrl(`/${slug}`)} />
               <WhatsAppButton phone={store.contact_whatsapp} />
               <ProfileFollowButton
