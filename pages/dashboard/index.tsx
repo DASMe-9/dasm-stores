@@ -239,7 +239,7 @@ export default function SellerDashboardHome() {
         storeName={storeDisplayName}
         storeStatus={store?.status}
       >
-        <div className="mx-auto max-w-6xl space-y-6">
+        <div className="mx-auto max-w-[1600px] space-y-6">
           {!loading && (
             <StoreAdSlot
               slotKey="store.home.banner"
@@ -377,7 +377,7 @@ export default function SellerDashboardHome() {
                           عرض الكل
                         </button>
                       </div>
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
                         {products.slice(0, 12).map((p) => (
                           <ProductCard key={p.id} product={p} />
                         ))}
@@ -420,7 +420,7 @@ export default function SellerDashboardHome() {
                   </div>
                   {products.length > 0 ? (
                     <>
-                      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
                         {products.map((p) => (
                           <ProductCard key={p.id} product={p} />
                         ))}
