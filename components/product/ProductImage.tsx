@@ -10,15 +10,18 @@ import { proxiedProductImageSrc } from "@/lib/image-proxy";
  */
 export function ProductImage({ src, alt }: { src?: string | null; alt: string }) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
-  const normalizedSrc = useMemo(() => {
+  const [directFallbackSrc, setDirectFallbackSrc] = useState<string | null>(null);
+  const directSrc = useMemo(() => {
     const value = src?.trim();
     if (!value) return null;
-    return proxiedProductImageSrc(value.replace(/ /g, "%20"));
+    return value.replace(/ /g, "%20");
   }, [src]);
 
-  const failed = Boolean(normalizedSrc && failedSrc === normalizedSrc);
+  const proxiedSrc = useMemo(() => proxiedProductImageSrc(directSrc), [directSrc]);
+  const activeSrc = directFallbackSrc === directSrc ? directSrc : proxiedSrc;
+  const failed = Boolean(activeSrc && failedSrc === activeSrc);
 
-  if (!normalizedSrc || failed) {
+  if (!activeSrc || failed) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,var(--muted),color-mix(in_srgb,var(--primary)_10%,var(--muted)))] text-xs text-[var(--muted-foreground)]">
         <span className="rounded-full border border-[var(--border)] bg-[var(--card)]/80 px-3 py-1">
@@ -31,12 +34,18 @@ export function ProductImage({ src, alt }: { src?: string | null; alt: string })
   return (
     // eslint-disable-next-line @next/next/no-img-element
     <img
-      src={normalizedSrc}
+      src={activeSrc}
       alt={alt}
       loading="lazy"
       decoding="async"
       referrerPolicy="no-referrer"
-      onError={() => setFailedSrc(normalizedSrc)}
+      onError={() => {
+        if (directSrc && activeSrc !== directSrc) {
+          setDirectFallbackSrc(directSrc);
+          return;
+        }
+        setFailedSrc(activeSrc);
+      }}
       className="h-full w-full object-cover transition group-hover:scale-[1.02]"
     />
   );
