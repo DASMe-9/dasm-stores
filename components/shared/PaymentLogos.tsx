@@ -36,13 +36,13 @@ export function PaymentLogos({ className = "" }: { className?: string }) {
         </span>
 
         {/* Apple Pay */}
-        <span className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-black shadow-sm ring-1 ring-white/10">
+        <span className="inline-flex h-11 w-full items-center justify-center rounded-xl border border-zinc-200 bg-white text-zinc-950 shadow-sm ring-1 ring-black/5 dark:border-zinc-700 dark:bg-black dark:text-white dark:ring-white/10">
           <svg viewBox="0 0 40 16" className="h-4 w-auto" aria-label="Apple Pay" role="img">
             <path
-              fill="#fff"
+              fill="currentColor"
               d="M8 3.1c-.45.53-1.17.95-1.89.89-.09-.72.26-1.49.67-1.97.45-.54 1.23-.93 1.86-.96.08.75-.21 1.49-.64 2.04zm.63 1.0c-1.04-.06-1.93.59-2.43.59-.5 0-1.27-.56-2.1-.55-1.08.02-2.08.63-2.63 1.6-1.12 1.95-.29 4.83.8 6.42.53.78 1.17 1.66 2 1.63.8-.03 1.1-.52 2.07-.52.96 0 1.24.52 2.09.5.86-.01 1.41-.79 1.94-1.58.61-.9.86-1.78.88-1.83-.02-.01-1.69-.65-1.71-2.58-.01-1.61 1.32-2.38 1.38-2.42-.76-1.11-1.93-1.24-2.34-1.27z"
             />
-            <text x="14" y="12" fill="#fff" fontFamily="system-ui,-apple-system,Segoe UI,sans-serif" fontWeight="600" fontSize="9">
+            <text x="14" y="12" fill="currentColor" fontFamily="system-ui,-apple-system,Segoe UI,sans-serif" fontWeight="600" fontSize="9">
               Pay
             </text>
           </svg>
