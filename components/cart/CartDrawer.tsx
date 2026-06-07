@@ -64,7 +64,7 @@ export function CartDrawer({ slug }: { slug: string }) {
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold leading-snug">{item.name}</p>
-                    <p className="mt-1 text-sm font-bold" style={{ color: "var(--primary-text,var(--primary))" }}>
+                    <p className="mt-1 text-sm font-bold text-[var(--foreground)]">
                       {Number(item.price).toFixed(0)} ر.س
                     </p>
                     <div className="mt-2 flex items-center gap-2">
