@@ -1,7 +1,7 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Package, Plus, Trash2, Edit3, Eye } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi } from "@/lib/api";
@@ -17,6 +17,64 @@ interface StoreProduct {
   images?: { url: string; is_primary?: boolean }[];
 }
 
+interface ProductsPagination {
+  currentPage: number;
+  lastPage: number;
+  perPage: number;
+  total: number;
+  from: number | null;
+  to: number | null;
+}
+
+interface PaginatorMeta {
+  current_page?: unknown;
+  last_page?: unknown;
+  per_page?: unknown;
+  total?: unknown;
+  from?: unknown;
+  to?: unknown;
+}
+
+interface ProductsPayload extends PaginatorMeta {
+  products?: StoreProduct[];
+  data?: StoreProduct[];
+  meta?: PaginatorMeta;
+}
+
+const PRODUCTS_PER_PAGE = 50;
+
+const defaultPagination: ProductsPagination = {
+  currentPage: 1,
+  lastPage: 1,
+  perPage: PRODUCTS_PER_PAGE,
+  total: 0,
+  from: null,
+  to: null,
+};
+
+function numberOr(value: unknown, fallback: number): number {
+  const next = Number(value);
+  return Number.isFinite(next) && next > 0 ? next : fallback;
+}
+
+function nullableNumber(value: unknown): number | null {
+  const next = Number(value);
+  return Number.isFinite(next) ? next : null;
+}
+
+function readPagination(payload: ProductsPayload | undefined, count: number, requestedPage: number): ProductsPagination {
+  const meta: PaginatorMeta = payload?.meta ?? payload ?? {};
+
+  return {
+    currentPage: numberOr(meta.current_page, requestedPage),
+    lastPage: numberOr(meta.last_page, 1),
+    perPage: numberOr(meta.per_page, PRODUCTS_PER_PAGE),
+    total: Number.isFinite(Number(meta.total)) ? Number(meta.total) : count,
+    from: nullableNumber(meta.from),
+    to: nullableNumber(meta.to),
+  };
+}
+
 export default function ProductsListPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -25,18 +83,9 @@ export default function ProductsListPage() {
   const [deleting, setDeleting] = useState<string | number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [storeSlug, setStoreSlug] = useState("");
+  const [pagination, setPagination] = useState<ProductsPagination>(defaultPagination);
 
-  useEffect(() => {
-    const t = localStorage.getItem("stores_token");
-    if (!t) {
-      router.replace("/auth/login?returnUrl=/dashboard/products");
-      return;
-    }
-    setReady(true);
-    load();
-  }, [router]);
-
-  const load = async () => {
+  const load = useCallback(async (requestedPage = 1) => {
     setLoading(true);
     setError(null);
     try {
@@ -48,23 +97,42 @@ export default function ProductsListPage() {
       }
       setStoreSlug(store.slug || "");
 
-      const res = await sellerApi.getProducts();
-      const d = res.data;
-      setProducts((d?.products ?? d?.data ?? []) as StoreProduct[]);
+      const res = await sellerApi.getProducts({
+        page: requestedPage,
+        per_page: PRODUCTS_PER_PAGE,
+      });
+      const d = res.data as ProductsPayload | undefined;
+      const nextProducts = d?.products ?? d?.data ?? [];
+      setProducts(nextProducts);
+      setPagination(readPagination(d, nextProducts.length, requestedPage));
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } }; message?: string };
       setError(err.response?.data?.message ?? err.message ?? "تعذر تحميل المنتجات حالياً.");
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    const t = localStorage.getItem("stores_token");
+    if (!t) {
+      router.replace("/auth/login?returnUrl=/dashboard/products");
+      return;
+    }
+    setReady(true);
+    load(1);
+  }, [load, router]);
 
   const handleDelete = async (id: string | number) => {
     if (!confirm("هل تريد حذف هذا المنتج؟")) return;
     setDeleting(id);
     try {
       await sellerApi.deleteProduct(id);
-      setProducts((prev) => prev.filter((p) => p.id !== id));
+      const nextPage =
+        products.length === 1 && pagination.currentPage > 1
+          ? pagination.currentPage - 1
+          : pagination.currentPage;
+      await load(nextPage);
     } catch {
       alert("فشل حذف المنتج");
     } finally {
@@ -131,10 +199,13 @@ export default function ProductsListPage() {
             </div>
           ) : (
             <>
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h2 className="text-sm font-bold text-gray-900 dark:text-zinc-100">
-                  جميع المنتجات ({products.length})
+                  جميع المنتجات ({pagination.total || products.length})
                 </h2>
+                <p className="text-xs text-gray-500 dark:text-zinc-400">
+                  عرض {pagination.from ?? 1} - {pagination.to ?? products.length} من {pagination.total || products.length} منتج
+                </p>
               </div>
 
               <div className="space-y-3">
@@ -222,6 +293,32 @@ export default function ProductsListPage() {
                   );
                 })}
               </div>
+
+              {pagination.lastPage > 1 ? (
+                <div className="flex flex-col gap-3 rounded-2xl border border-gray-100 bg-white p-3 text-sm dark:border-zinc-800 dark:bg-zinc-900 sm:flex-row sm:items-center sm:justify-between">
+                  <span className="text-center text-xs text-gray-500 dark:text-zinc-400 sm:text-start">
+                    الصفحة {pagination.currentPage} من {pagination.lastPage} - {pagination.perPage} منتج في كل صفحة
+                  </span>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => load(pagination.currentPage - 1)}
+                      disabled={loading || pagination.currentPage <= 1}
+                      className="rounded-xl border border-gray-200 px-4 py-2 text-xs font-semibold text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    >
+                      السابقة
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => load(pagination.currentPage + 1)}
+                      disabled={loading || pagination.currentPage >= pagination.lastPage}
+                      className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      التالية
+                    </button>
+                  </div>
+                </div>
+              ) : null}
             </>
           )}
         </div>
