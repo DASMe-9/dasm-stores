@@ -298,21 +298,21 @@ export default function SellerDashboardHome() {
           {!loading && store && (
             <>
               {/* الإحصائيات */}
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+              <div className="grid max-w-6xl grid-cols-2 gap-3 md:grid-cols-4">
                 {[
                   { label: "المنتجات النشطة", total: stats?.total_products, value: stats?.active_products, icon: Package, color: "text-emerald-700 dark:text-emerald-400", iconBg: "bg-emerald-100 dark:bg-emerald-950", bg: "bg-gradient-to-br from-emerald-50 to-teal-50/50 dark:from-zinc-800 dark:to-zinc-800 border-emerald-100/60 dark:border-zinc-700" },
                   { label: "الطلبات", value: stats?.total_orders, icon: ShoppingCart, color: "text-violet-700 dark:text-violet-400", iconBg: "bg-violet-100 dark:bg-violet-950", bg: "bg-gradient-to-br from-violet-50 to-purple-50/50 dark:from-zinc-800 dark:to-zinc-800 border-violet-100/60 dark:border-zinc-700" },
                   { label: "طلبات معلقة", value: stats?.pending_orders, icon: Clock, color: "text-amber-700 dark:text-amber-400", iconBg: "bg-amber-100 dark:bg-amber-950", bg: "bg-gradient-to-br from-amber-50 to-orange-50/50 dark:from-zinc-800 dark:to-zinc-800 border-amber-100/60 dark:border-zinc-700" },
                   { label: "إجمالي المبيعات", value: stats?.total_revenue != null ? `${Number(stats.total_revenue).toLocaleString("ar-SA")} ر.س` : null, icon: DollarSign, color: "text-sky-700 dark:text-sky-400", iconBg: "bg-sky-100 dark:bg-sky-950", bg: "bg-gradient-to-br from-sky-50 to-blue-50/50 dark:from-zinc-800 dark:to-zinc-800 border-sky-100/60 dark:border-zinc-700" },
                 ].map((stat) => (
-                  <div key={stat.label} className={`rounded-2xl border p-4 space-y-2 ${stat.bg}`}>
-                    <div className={`h-8 w-8 rounded-lg ${stat.iconBg} flex items-center justify-center`}>
-                      <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                  <div key={stat.label} className={`rounded-xl border p-3 ${stat.bg}`}>
+                    <div className={`mb-2 flex h-7 w-7 items-center justify-center rounded-lg ${stat.iconBg}`}>
+                      <stat.icon className={`h-3.5 w-3.5 ${stat.color}`} />
                     </div>
-                    <div className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                    <div className="text-xl font-bold leading-tight text-zinc-900 dark:text-zinc-100">
                       {stat.value ?? "—"}
                     </div>
-                    <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                    <div className="mt-1 text-[11px] leading-5 text-zinc-500 dark:text-zinc-400">
                       {stat.label}
                       {"total" in stat && stat.total != null && (
                         <span className="text-zinc-400 dark:text-zinc-500"> / {stat.total} إجمالي</span>
