@@ -5,10 +5,12 @@ export function ProductsPagination({
   slug,
   paginator,
   query,
+  basePath,
 }: {
   slug: string;
   paginator: Paginated<unknown>;
   query: URLSearchParams;
+  basePath?: string;
 }) {
   const prev = paginator.current_page > 1 ? paginator.current_page - 1 : null;
   const next =
@@ -18,7 +20,7 @@ export function ProductsPagination({
     const qs = new URLSearchParams(query.toString());
     qs.set("page", String(page));
     const s = qs.toString();
-    return `/${slug}/products${s ? `?${s}` : ""}`;
+    return `${basePath ?? `/${slug}/products`}${s ? `?${s}` : ""}`;
   }
 
   if (paginator.last_page <= 1) return null;

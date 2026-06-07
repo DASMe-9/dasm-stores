@@ -2,24 +2,31 @@ import Link from "next/link";
 import { PackageCheck, Search, ShoppingCart, Tags } from "lucide-react";
 import { StoreAdSlot } from "@/components/ads/StoreAdSlot";
 import { ProductGrid } from "@/components/product/ProductGrid";
+import { ProductsPagination } from "@/components/product/ProductsPagination";
 import { getCategories, getProducts, getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import { ensurePublicStore } from "@/lib/storefront-guards";
 
-export const revalidate = 300;
+export const revalidate = 60;
 
 export default async function StoreHomePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { slug } = await params;
+  const sp = await searchParams;
   const requestContext = await getStorefrontRequestContext();
   const data = await getStore(slug, requestContext);
   if (!ensurePublicStore(data, requestContext)) return null;
 
-  const [featured, categories] = await Promise.all([
-    getProducts(slug, new URLSearchParams({ sort: "featured", per_page: "12" }), requestContext),
+  const page = typeof sp.page === "string" ? sp.page : "1";
+  const qs = new URLSearchParams({ sort: "newest", page, per_page: "50" });
+
+  const [products, categories] = await Promise.all([
+    getProducts(slug, qs, requestContext),
     getCategories(slug, requestContext),
   ]);
   const visibleCategories = categories.categories.slice(0, 6);
@@ -103,12 +110,18 @@ export default async function StoreHomePage({
 
       <section>
         <div className="mb-4 flex items-center justify-between gap-2">
-          <h2 className="text-base font-bold">منتجات مميزة</h2>
-          <Link href={`/${slug}/products?sort=featured`} className="text-sm hover:underline">
-            عرض الكل
+          <div>
+            <h2 className="text-base font-bold">منتجات المتجر</h2>
+            <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+              يعرض {products.data.length} من {products.total} منتجًا
+            </p>
+          </div>
+          <Link href={`/${slug}/products`} className="text-sm hover:underline">
+            عرض الكتالوج
           </Link>
         </div>
-        <ProductGrid products={featured.data} slug={slug} />
+        <ProductGrid products={products.data} slug={slug} />
+        <ProductsPagination slug={slug} paginator={products} query={qs} basePath={`/${slug}`} />
       </section>
     </div>
   );

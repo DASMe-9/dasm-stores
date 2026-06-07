@@ -36,7 +36,7 @@ export default async function StoreProductsPage({
   if (sort) qs.set("sort", sort);
   if (q) qs.set("q", q);
   qs.set("page", page);
-  qs.set("per_page", "24");
+  qs.set("per_page", "50");
 
   const [cats, products] = await Promise.all([
     getCategories(slug, requestContext),

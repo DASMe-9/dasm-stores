@@ -80,7 +80,7 @@ export default async function StoreLayout({ children, params }: Props) {
           viewerState={data.viewer_state ?? null}
         />
         <StoreTabsNav slug={slug} tabs={store.tabs ?? []} />
-        <div className="mx-auto max-w-6xl px-4 py-6">{children}</div>
+        <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">{children}</div>
         <footer className="border-t border-[var(--border)] bg-[var(--card)] py-8 text-center text-xs text-[var(--muted-foreground)]">
           <span className="inline-flex flex-wrap items-center justify-center gap-1.5" dir="rtl">
             <span>{storeName}</span>

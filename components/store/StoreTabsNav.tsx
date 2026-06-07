@@ -11,11 +11,11 @@ export function StoreTabsNav({
   if (!tabs?.length) return null;
 
   return (
-    <nav className="sticky top-0 z-20 border-b border-[var(--border)] bg-[var(--card)]/95 backdrop-blur-md">
-      <div className="mx-auto flex max-w-6xl gap-2 overflow-x-auto px-4 py-3 text-sm font-medium scrollbar-hide">
+    <nav className="border-b border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-md">
+      <div className="mx-auto flex w-full max-w-[1600px] gap-2 overflow-x-auto px-4 py-3 text-sm font-medium scrollbar-hide sm:px-6 lg:px-8">
         <Link
           href={`/${slug}/products`}
-          className="whitespace-nowrap rounded-xl px-4 py-2 transition hover:bg-[var(--muted)]"
+          className="whitespace-nowrap rounded-full px-4 py-2 transition hover:bg-[var(--muted)]"
           style={{ border: "1px solid var(--border)" }}
         >
           الكل
@@ -24,7 +24,7 @@ export function StoreTabsNav({
           <Link
             key={t.id}
             href={`/${slug}/products?tab=${encodeURIComponent(t.slug)}`}
-            className="whitespace-nowrap rounded-xl px-4 py-2 transition hover:bg-[var(--muted)]"
+            className="whitespace-nowrap rounded-full px-4 py-2 transition hover:bg-[var(--muted)]"
             style={{ border: "1px solid var(--border)" }}
           >
             {t.name}
