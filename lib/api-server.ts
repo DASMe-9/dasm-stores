@@ -186,7 +186,8 @@ export type StoreProductVariant = {
 };
 
 export type StoreProductCard = {
-  id: number;
+  // UUID string (services DB). `| number` kept for any legacy int payloads.
+  id: string | number;
   name: string;
   slug: string;
   description?: string | null;

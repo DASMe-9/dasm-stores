@@ -36,7 +36,7 @@ function ownerLabel(type: string) {
 }
 
 function productIdentity(product: FeaturedProduct) {
-  return product.id > 0 ? String(product.id) : product.slug || product.name;
+  return product.id ? String(product.id) : product.slug || product.name;
 }
 
 async function getFeaturedProducts(storeItems: Awaited<ReturnType<typeof getExploreStores>>["data"]) {
