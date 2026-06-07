@@ -1,6 +1,9 @@
 /**
- * Injects merchant theme tokens into :root (SSR-safe).
+ * Injects merchant theme tokens on the storefront scope.
  * Keys from API may be `primary` or `--primary`; both normalize to `--primary`.
+ *
+ * Keep this scoped away from :root so the global `.dark` theme can still
+ * switch checkout and storefront surfaces.
  */
 export function StoreThemeApplier({
   vars,
@@ -16,10 +19,19 @@ export function StoreThemeApplier({
     })
     .join(" ");
 
+  const darkSurfaceCss = [
+    "--background: #0a0a0a;",
+    "--foreground: #ededed;",
+    "--muted: #27272a;",
+    "--muted-foreground: #a1a1aa;",
+    "--card: #18181b;",
+    "--border: #3f3f46;",
+  ].join(" ");
+
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: `:root { ${css} }`,
+        __html: `.store-front-root { ${css} } .dark .store-front-root { ${darkSurfaceCss} }`,
       }}
     />
   );
