@@ -500,7 +500,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
 
               <div className="space-y-1.5">
                 <label className="text-sm font-medium text-gray-700">
-                  رابط المتجر <span className="text-red-500">*</span>
+                  رابط المتجر العام <span className="text-red-500">*</span>
                 </label>
                 <div className="flex items-center rounded-xl border border-gray-200 bg-gray-50 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent">
                   <span
@@ -741,7 +741,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
               <div className="rounded-2xl border border-gray-200 divide-y divide-gray-100">
                 <Row label="الاسم بالعربي" value={form.name_ar} />
                 <Row label="الاسم بالإنجليزي" value={form.name} />
-                <Row label="الرابط" value={`stores.dasm.com.sa/${form.slug}`} />
+                <Row label="رابط المتجر العام" value={`stores.dasm.com.sa/${form.slug}`} />
                 <Row label="التصنيف" value={CATEGORIES.find((c) => c.value === form.category)?.label} />
                 <Row label="اللون الأساسي" value={active.label} swatch={active.primary} />
                 <Row label="الشعار" value={form.logo_url ? "تم رفع الشعار" : "لم يتم رفع شعار"} />
