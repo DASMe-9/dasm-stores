@@ -4,13 +4,13 @@
  */
 export function PaymentLogos({ className = "" }: { className?: string }) {
   const tile =
-    "inline-flex h-9 w-[3.75rem] items-center justify-center rounded-lg border border-zinc-200 bg-white shadow-sm ring-1 ring-black/5";
+    "inline-flex h-11 w-full items-center justify-center rounded-xl border border-zinc-200 bg-white shadow-sm ring-1 ring-black/5 dark:border-zinc-700 dark:bg-zinc-950";
 
   return (
-    <div className={`flex flex-col items-center gap-3 ${className}`}>
+    <div className={`w-full rounded-2xl border border-[var(--border)] bg-[var(--muted)]/20 p-3 text-center ${className}`}>
       <p className="text-[11px] font-semibold tracking-wide text-zinc-500 dark:text-zinc-300">مدفوعات آمنة عبر</p>
 
-      <div className="flex flex-wrap items-center justify-center gap-2">
+      <div className="mt-2 grid grid-cols-2 gap-2">
         {/* mada */}
         <span className={tile}>
           <svg viewBox="0 0 60 24" className="h-5 w-auto" aria-label="mada" role="img">
@@ -41,7 +41,7 @@ export function PaymentLogos({ className = "" }: { className?: string }) {
         </span>
 
         {/* Apple Pay */}
-        <span className="inline-flex h-9 w-[3.75rem] items-center justify-center rounded-lg bg-black shadow-sm ring-1 ring-white/10">
+        <span className="inline-flex h-11 w-full items-center justify-center rounded-xl bg-black shadow-sm ring-1 ring-white/10">
           <svg viewBox="0 0 40 16" className="h-4 w-auto" aria-label="Apple Pay" role="img">
             <path
               fill="#fff"
@@ -54,7 +54,7 @@ export function PaymentLogos({ className = "" }: { className?: string }) {
         </span>
       </div>
 
-      <div className="flex items-center gap-1.5 rounded-full border border-zinc-200 bg-white px-3 py-1 shadow-sm dark:border-zinc-700 dark:bg-zinc-800">
+      <div className="mt-2 flex w-full items-center justify-center gap-1.5 rounded-xl border border-zinc-200 bg-white px-3 py-2 shadow-sm dark:border-zinc-700 dark:bg-zinc-950">
         <svg
           viewBox="0 0 12 12"
           className="h-3 w-3 text-emerald-500"
