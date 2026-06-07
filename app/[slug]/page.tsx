@@ -32,57 +32,42 @@ export default async function StoreHomePage({
   const visibleCategories = categories.categories.slice(0, 6);
 
   return (
-    <div className="space-y-8">
-      <section className="grid gap-3 md:grid-cols-4">
+    <div className="space-y-6">
+      <nav
+        aria-label="روابط المتجر"
+        className="-mx-4 overflow-x-auto border-y border-[var(--border)] bg-[var(--card)]/80 px-4 py-2.5 shadow-sm backdrop-blur scrollbar-hide sm:mx-0 sm:rounded-2xl sm:border"
+      >
+        <div className="flex min-w-max items-center gap-2 sm:min-w-0 sm:grid sm:grid-cols-4">
         <Link
           href={`/${slug}/products`}
-          className="group flex min-h-28 items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
         >
-          <div>
-            <p className="text-sm font-extrabold text-[var(--foreground)]">كل المنتجات</p>
-            <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-              تصفح كامل كتالوج المتجر مع البحث والترتيب.
-            </p>
-          </div>
-          <Search className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
+          <Search className="h-4 w-4 shrink-0 text-[var(--foreground)]" />
+          كل المنتجات
         </Link>
         <Link
           href={`/${slug}/products?sort=featured`}
-          className="group flex min-h-28 items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
         >
-          <div>
-            <p className="text-sm font-extrabold text-[var(--foreground)]">المنتجات المميزة</p>
-            <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-              عرض المنتجات التي فعلها صاحب المتجر كواجهة أولى.
-            </p>
-          </div>
-          <PackageCheck className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
+          <PackageCheck className="h-4 w-4 shrink-0 text-[var(--foreground)]" />
+          المنتجات المميزة
         </Link>
         <Link
           href={`/${slug}/cart`}
-          className="group flex min-h-28 items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
         >
-          <div>
-            <p className="text-sm font-extrabold text-[var(--foreground)]">السلة</p>
-            <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-              راجع منتجات هذا المتجر قبل إكمال الطلب.
-            </p>
-          </div>
-          <ShoppingCart className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
+          <ShoppingCart className="h-4 w-4 shrink-0 text-[var(--foreground)]" />
+          السلة
         </Link>
         <Link
           href={`/${slug}/products`}
-          className="group flex min-h-28 items-center justify-between gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
         >
-          <div>
-            <p className="text-sm font-extrabold text-[var(--foreground)]">الأقسام</p>
-            <p className="mt-1 text-xs leading-5 text-[var(--muted-foreground)]">
-              انتقل للتصنيفات عندما تكون متاحة في المتجر.
-            </p>
-          </div>
-          <Tags className="h-7 w-7 shrink-0 text-[var(--primary-text,var(--primary))]" />
+          <Tags className="h-4 w-4 shrink-0 text-[var(--foreground)]" />
+          الأقسام
         </Link>
-      </section>
+        </div>
+      </nav>
 
       {visibleCategories.length ? (
         <section>
