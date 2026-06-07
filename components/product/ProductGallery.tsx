@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { proxiedProductImageSrc } from "@/lib/image-proxy";
 
 export function ProductGallery({
   images,
@@ -26,8 +27,9 @@ export function ProductGallery({
       <div className="overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--muted)]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={main.url}
+          src={proxiedProductImageSrc(main.url) ?? main.url}
           alt={main.alt_text || alt}
+          referrerPolicy="no-referrer"
           className="aspect-square w-full object-cover"
         />
       </div>
@@ -43,7 +45,12 @@ export function ProductGallery({
               }`}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={im.url} alt="" className="h-full w-full object-cover" />
+              <img
+                src={proxiedProductImageSrc(im.url) ?? im.url}
+                alt=""
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover"
+              />
             </button>
           ))}
         </div>

@@ -9,6 +9,8 @@ import {
 import { StoreCard } from "@/components/explore/StoreCard";
 import { HomeHeaderActions } from "@/components/home/HomeHeaderActions";
 import { getExploreProducts, getExploreStores, getProducts, type StoreProductCard } from "@/lib/api-server";
+import { proxiedProductImageSrc } from "@/lib/image-proxy";
+import { productImageAlt, productImageUrl } from "@/lib/product-image";
 import { SITE, buildTitle, canonicalUrl, itemListSchema, jsonLdString } from "@/lib/seo";
 import { getStoreDisplayName } from "@/lib/store-display";
 
@@ -85,13 +87,20 @@ function HeroScene() {
 
 function ProductTile({ product }: { product: FeaturedProduct }) {
   const price = Number(product.price);
+  const imageUrl = productImageUrl(product);
+  const imageSrc = proxiedProductImageSrc(imageUrl);
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 shadow-sm transition hover:-translate-y-1 hover:shadow-xl">
       <Link href={`/${product.storeSlug}/products/${product.id}`} className="block">
         <div className="relative aspect-[1.18] bg-slate-50 dark:bg-zinc-900/50">
-          {product.primary_image?.url ? (
+          {imageSrc ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={product.primary_image.url} alt={product.primary_image.alt_text || product.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+            <img
+              src={imageSrc}
+              alt={productImageAlt(product)}
+              referrerPolicy="no-referrer"
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+            />
           ) : <div className="flex h-full items-center justify-center text-sm text-slate-400 dark:text-zinc-400">بدون صورة</div>}
           {product.is_featured ? (
             <span className="absolute right-3 top-3 rounded-full bg-emerald-100 dark:bg-emerald-500/15 px-2.5 py-1 text-xs font-bold text-emerald-700 dark:text-emerald-300">مميز</span>

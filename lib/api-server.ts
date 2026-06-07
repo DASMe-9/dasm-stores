@@ -194,7 +194,9 @@ export type StoreProductCard = {
   price: string | number;
   compare_at_price?: string | number | null;
   is_featured: boolean;
-  primary_image?: { url: string; alt_text?: string | null } | null;
+  primary_image?: { url?: string | null; alt_text?: string | null } | string | null;
+  image_url?: string | null;
+  images?: { url?: string | null; alt_text?: string | null; is_primary?: boolean; sort_order?: number }[];
   variants?: StoreProductVariant[];
 };
 
@@ -232,7 +234,7 @@ export type StoreReview = {
 export type StoreProductDetail = StoreProductCard & {
   description?: string | null;
   sku?: string | null;
-  images?: { url: string; alt_text?: string | null; sort_order?: number }[];
+  images?: { url?: string | null; alt_text?: string | null; is_primary?: boolean; sort_order?: number }[];
   category?: { id: number; name: string; slug: string } | null;
   tab?: { id: number; name: string; slug: string } | null;
   reviews?: StoreReview[];

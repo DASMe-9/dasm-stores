@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Trash2, Plus, Minus, ShoppingCart } from "lucide-react";
 import type { StoreProductDetail } from "@/lib/api-server";
+import { proxiedProductImageSrc } from "@/lib/image-proxy";
+import { productImageUrl } from "@/lib/product-image";
 import { useCartStore } from "@/store/cartStore";
 
 export function CartPageClient({ slug }: { slug: string }) {
@@ -88,17 +90,20 @@ export function CartPageClient({ slug }: { slug: string }) {
           <ul className="space-y-3">
             {items.map((item) => {
               const p = products[String(item.productId)];
+              const imageUrl = productImageUrl(p) ?? item.image;
+              const imageSrc = proxiedProductImageSrc(imageUrl);
               return (
                 <li
                   key={`${item.productId}-${item.variantId ?? "x"}`}
                   className="flex gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-4"
                 >
                   <div className="h-24 w-24 shrink-0 overflow-hidden rounded-xl bg-[var(--muted)]">
-                    {p?.primary_image?.url || item.image ? (
+                    {imageSrc ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
-                        src={p?.primary_image?.url ?? item.image}
+                        src={imageSrc}
                         alt=""
+                        referrerPolicy="no-referrer"
                         className="h-full w-full object-cover"
                       />
                     ) : null}

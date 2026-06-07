@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { StoreProductCard } from "@/lib/api-server";
+import { productImageAlt, productImageUrl } from "@/lib/product-image";
 import { productCardClassName } from "@/lib/themes/product-card-class";
 import { ProductImage } from "./ProductImage";
 
@@ -18,14 +19,15 @@ export function ProductCard({
     compare && compare > price ? Math.round(((compare - price) / compare) * 100) : null;
 
   const cardClass = productCardClassName(cardStyle);
+  const imageUrl = productImageUrl(product);
 
   return (
     <article className={cardClass}>
       <Link href={`/${slug}/products/${product.id}`} className="store-product-card__link block">
         <div className="store-product-card__media relative aspect-square bg-[var(--muted)]">
           <ProductImage
-            src={product.primary_image?.url}
-            alt={product.primary_image?.alt_text || product.name}
+            src={imageUrl}
+            alt={productImageAlt(product)}
           />
           {product.is_featured ? (
             <span className="absolute top-2 right-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">

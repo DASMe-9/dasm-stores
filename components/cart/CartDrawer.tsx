@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { X, Plus, Minus, Trash2 } from "lucide-react";
+import { proxiedProductImageSrc } from "@/lib/image-proxy";
 import { useCartStore } from "@/store/cartStore";
 
 export function CartDrawer({ slug }: { slug: string }) {
@@ -43,16 +44,23 @@ export function CartDrawer({ slug }: { slug: string }) {
             <p className="py-12 text-center text-sm text-[var(--muted-foreground)]">السلة فارغة</p>
           ) : (
             <ul className="space-y-3">
-              {items.map((item) => (
-                <li
-                  key={`${item.productId}-${item.variantId ?? "x"}`}
-                  className="flex gap-3 rounded-xl border border-[var(--border)] p-3"
-                >
-                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
-                    {item.image ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.image} alt="" className="h-full w-full object-cover" />
-                    ) : null}
+              {items.map((item) => {
+                const imageSrc = proxiedProductImageSrc(item.image);
+                return (
+                  <li
+                    key={`${item.productId}-${item.variantId ?? "x"}`}
+                    className="flex gap-3 rounded-xl border border-[var(--border)] p-3"
+                  >
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-[var(--muted)]">
+                      {imageSrc ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={imageSrc}
+                          alt=""
+                          referrerPolicy="no-referrer"
+                          className="h-full w-full object-cover"
+                        />
+                      ) : null}
                   </div>
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-semibold leading-snug">{item.name}</p>
@@ -90,7 +98,8 @@ export function CartDrawer({ slug }: { slug: string }) {
                     </div>
                   </div>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </div>

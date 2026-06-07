@@ -7,6 +7,7 @@ import { ProductViewTracker } from "@/components/store/ProductViewTracker";
 import { ShareButton } from "@/components/shared/ShareButton";
 import { WhatsAppButton } from "@/components/shared/WhatsAppButton";
 import { getProduct, getStore } from "@/lib/api-server";
+import { productImageAlt, productImageUrl } from "@/lib/product-image";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import { ensurePublicStore } from "@/lib/storefront-guards";
 import {
@@ -36,11 +37,15 @@ export default async function ProductDetailPage({
 
   const product = prod.product;
   const storeName = getStoreDisplayName(storeData.store);
+  const primaryImageUrl = productImageUrl(product);
+  const productImages = (product.images ?? []).filter(
+    (image): image is { url: string; alt_text?: string | null; sort_order?: number } => Boolean(image.url),
+  );
   const gallery =
-    product.images && product.images.length > 0
-      ? product.images
-      : product.primary_image?.url
-        ? [{ url: product.primary_image.url, alt_text: product.primary_image.alt_text }]
+    productImages.length > 0
+      ? productImages
+      : primaryImageUrl
+        ? [{ url: primaryImageUrl, alt_text: productImageAlt(product) }]
         : [];
 
   const crumbs = breadcrumbSchema([

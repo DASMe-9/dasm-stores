@@ -5,6 +5,7 @@ import { ShoppingBag } from "lucide-react";
 import type { StoreProductDetail, StoreProductVariant } from "@/lib/api-server";
 import type { MarketingTrackingConfig } from "@/lib/marketing-tracking";
 import { trackAddToCart } from "@/lib/marketing-tracking";
+import { productImageUrl } from "@/lib/product-image";
 import { useCartStore } from "@/store/cartStore";
 
 export function ProductPurchaseSection({
@@ -33,8 +34,7 @@ export function ProductPurchaseSection({
   const openDrawer = useCartStore((s) => s.openDrawer);
   const ensureStoreSlug = useCartStore((s) => s.ensureStoreSlug);
 
-  const primaryImage =
-    product.images?.[0]?.url ?? product.primary_image?.url ?? undefined;
+  const primaryImage = productImageUrl(product) ?? undefined;
 
   function handleAdd() {
     ensureStoreSlug(slug);
