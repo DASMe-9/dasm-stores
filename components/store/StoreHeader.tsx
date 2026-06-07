@@ -2,7 +2,6 @@ import Link from "next/link";
 import type { CSSProperties } from "react";
 import {
   ArrowRight,
-  Grid2X2,
   Headphones,
   MapPin,
   Phone,
@@ -11,7 +10,6 @@ import {
   Store as StoreIcon,
   Watch,
 } from "lucide-react";
-import { CartBadge } from "./CartBadge";
 import { StoreAuthActions } from "./StoreAuthActions";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 import { ShareButton } from "@/components/shared/ShareButton";
@@ -82,12 +80,6 @@ export function StoreHeader({
             <Link href={`/${slug}`} className="rounded-full px-3 py-2 font-semibold text-[var(--foreground)] transition hover:bg-[var(--muted)]">
               الرئيسية
             </Link>
-            <Link href={`/${slug}/products`} className="rounded-full px-3 py-2 font-semibold text-[var(--foreground)] transition hover:bg-[var(--muted)]">
-              المنتجات
-            </Link>
-            <Link href={`/${slug}/cart`} className="rounded-full px-3 py-2 font-semibold text-[var(--foreground)] transition hover:bg-[var(--muted)]">
-              السلة
-            </Link>
             <Link href="/" className="flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]">
               <ArrowRight className="h-3.5 w-3.5" />
               متاجر داسم
@@ -95,7 +87,6 @@ export function StoreHeader({
           </nav>
 
           <div className="ms-auto flex items-center gap-2">
-            <CartBadge slug={slug} />
             <StoreAuthActions slug={slug} />
             <ThemeToggle className="h-10 w-10" />
           </div>
@@ -189,13 +180,6 @@ export function StoreHeader({
               ) : null}
             </div>
             <div className="mt-5 flex flex-wrap items-center gap-2">
-              <Link
-                href={`/${slug}/products`}
-                className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] px-4 py-2.5 text-sm font-bold text-[var(--foreground)] hover:bg-[var(--muted)]"
-              >
-                <Grid2X2 className="h-4 w-4" />
-                تصفح المنتجات
-              </Link>
               <ShareButton title={storeName} url={canonicalUrl(`/${slug}`)} />
               <WhatsAppButton phone={store.contact_whatsapp} />
               <ProfileFollowButton
