@@ -602,7 +602,7 @@ export default function StoreSettingsPage() {
     const externalWebsite = form.website.trim();
     if (externalWebsite && isInternalStorefrontUrl(externalWebsite, form.slug)) {
       setActiveSection("identity");
-      setError("لا تضع رابط متاجر داسم في خانة الموقع الخارجي. استخدم حقل اسم رابط المتجر فقط، واترك الموقع الخارجي فارغًا إذا لا يوجد موقع مستقل.");
+      setError("هذا الحقل للموقع الإلكتروني المستقل خارج متاجر داسم فقط. رابط متجرك العام على متاجر داسم يتحدد من حقل رابط المتجر العام.");
       return;
     }
 
@@ -764,7 +764,7 @@ export default function StoreSettingsPage() {
                     {storeName || "متجر داسم"}
                   </h1>
                   <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-                    {publicStoreUrl || "حدد اسم رابط المتجر"}
+                    {publicStoreUrl || "حدد رابط المتجر العام"}
                   </p>
                 </div>
                 <div className="min-w-[190px] rounded-2xl bg-emerald-50 p-4 text-center dark:bg-emerald-950/30">
@@ -817,12 +817,12 @@ export default function StoreSettingsPage() {
                   <Field label="اسم المتجر" value={form.name} onChange={(value) => setFormValue("name", value)} />
                   <Field label="الاسم العربي" value={form.name_ar} onChange={(value) => setFormValue("name_ar", value)} />
                   <Field
-                    label="اسم رابط المتجر"
+                    label="رابط المتجر العام"
                     dir="ltr"
                     value={form.slug}
                     onChange={(value) => setFormValue("slug", value)}
                     placeholder="mazbrothers"
-                    description={`يظهر للعميل كرابط داخل متاجر داسم: ${publicStoreUrl || "https://stores.dasm.com.sa/mazbrothers"}`}
+                    description={`هذا هو رابط متجرك العام الذي يستطيع العملاء فتحه وحفظه ومشاركته من أي مكان: ${publicStoreUrl || "https://stores.dasm.com.sa/mazbrothers"}`}
                   />
                   <Field label="تصنيف المتجر" value={form.category} onChange={(value) => setFormValue("category", value)} placeholder="عطور، سيارات، قهوة..." />
                   <div className="lg:col-span-2">
@@ -832,13 +832,13 @@ export default function StoreSettingsPage() {
                   <Field label="واتساب" dir="ltr" value={form.contact_whatsapp} onChange={(value) => setFormValue("contact_whatsapp", value)} />
                   <Field label="البريد الإلكتروني" dir="ltr" type="email" value={form.contact_email} onChange={(value) => setFormValue("contact_email", value)} />
                   <Field
-                    label="موقع خارجي اختياري"
+                    label="موقع إلكتروني مستقل (اختياري)"
                     dir="ltr"
                     type="url"
                     value={form.website}
                     onChange={(value) => setFormValue("website", value)}
                     placeholder="https://example.com"
-                    description="اتركه فارغًا إذا لا يوجد موقع مستقل خارج متاجر داسم."
+                    description="استخدمه فقط إذا كان لديك موقع مستقل خارج متاجر داسم، وليس رابط المتجر العام أعلاه."
                   />
                 </div>
 
@@ -975,7 +975,7 @@ export default function StoreSettingsPage() {
                 <div className="rounded-2xl border border-zinc-100 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                   <SectionTitle icon={ShieldCheck} title="جاهزية وتوثيق" />
                   <div className="grid gap-3 md:grid-cols-2">
-                    <CheckItem ready={Boolean(form.slug)} title="اسم رابط المتجر" value={publicStoreUrl || "لم يتم تحديد الرابط"} />
+                    <CheckItem ready={Boolean(form.slug)} title="رابط المتجر العام" value={publicStoreUrl || "لم يتم تحديد الرابط"} />
                     <CheckItem ready={contactReady} title="بيانات التواصل" value={contactReady ? "بيانات التواصل موجودة" : "أضف رقم أو بريد أو واتساب"} />
                     <CheckItem ready={themeReady} title="الثيم" value={selectedTheme?.nameAr ?? "اختر ثيم للمتجر"} />
                     <CheckItem
