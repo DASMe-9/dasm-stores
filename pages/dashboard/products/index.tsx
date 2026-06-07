@@ -7,7 +7,7 @@ import { SellerShell } from "@/components/seller/SellerShell";
 import { sellerApi } from "@/lib/api";
 
 interface StoreProduct {
-  id: number;
+  id: string | number;
   name: string;
   price: string;
   status: string;
@@ -22,7 +22,7 @@ export default function ProductsListPage() {
   const [ready, setReady] = useState(false);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState<number | null>(null);
+  const [deleting, setDeleting] = useState<string | number | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [storeSlug, setStoreSlug] = useState("");
 
@@ -59,7 +59,7 @@ export default function ProductsListPage() {
     }
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string | number) => {
     if (!confirm("هل تريد حذف هذا المنتج؟")) return;
     setDeleting(id);
     try {

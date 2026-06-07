@@ -33,7 +33,7 @@ interface StoreStats {
 }
 
 interface StoreProduct {
-  id: number;
+  id: string | number;
   name: string;
   price: string;
   status: string;

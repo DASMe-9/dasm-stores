@@ -148,7 +148,7 @@ export const publicApi = {
   getStore: (slug: string, params?: QueryParams) => api.get(`/public/${slug}`, { params }),
   getProducts: (slug: string, params?: QueryParams) =>
     api.get(`/public/${slug}/products`, { params }),
-  getProduct: (slug: string, id: number, params?: QueryParams) =>
+  getProduct: (slug: string, id: string | number, params?: QueryParams) =>
     api.get(`/public/${slug}/products/${id}`, { params }),
   getCategories: (slug: string) => api.get(`/public/${slug}/categories`),
   explore: (params?: QueryParams) =>
@@ -179,9 +179,9 @@ export const sellerApi = {
   // المنتجات
   getProducts: (params?: QueryParams) => api.get("/my-store/products", { params }),
   createProduct: (data: StorePayload) => api.post("/my-store/products", data),
-  getProduct: (id: number) => api.get(`/my-store/products/${id}`),
-  updateProduct: (id: number, data: StorePayload) => api.put(`/my-store/products/${id}`, data),
-  deleteProduct: (id: number) => api.delete(`/my-store/products/${id}`),
+  getProduct: (id: string | number) => api.get(`/my-store/products/${id}`),
+  updateProduct: (id: string | number, data: StorePayload) => api.put(`/my-store/products/${id}`, data),
+  deleteProduct: (id: string | number) => api.delete(`/my-store/products/${id}`),
 
   // التابات
   getTabs: () => api.get("/my-store/tabs"),
