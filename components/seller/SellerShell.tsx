@@ -103,6 +103,13 @@ const MAIN_NAV: NavItem[] = [
     requiresStore: true,
   },
   {
+    href: "/dashboard/orders",
+    label: "الطلبات",
+    icon: ShoppingCart,
+    match: (p) => p.startsWith("/dashboard/orders"),
+    requiresStore: true,
+  },
+  {
     href: "/dashboard/import",
     label: "استيراد وترحيل",
     icon: Download,
@@ -403,16 +410,6 @@ export function SellerShell({
                 إنشاء متجر جديد
               </Link>
             )}
-            <div
-              className={`${navLinkClass(false)} cursor-not-allowed opacity-50 pointer-events-none select-none`}
-              aria-disabled
-            >
-              <ShoppingCart className="h-4 w-4 shrink-0 opacity-80" />
-              الطلبات
-              <span className="mr-auto rounded-full bg-emerald-100/60 dark:bg-zinc-800 px-2 py-0.5 text-[10px] text-emerald-700/60 dark:text-zinc-400">
-                قريباً
-              </span>
-            </div>
           </div>
         </div>
       </nav>
