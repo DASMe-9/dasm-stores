@@ -14,6 +14,7 @@ export function NationalAddressCard() {
   const [data, setData] = useState<AddressData | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [openingDocument, setOpeningDocument] = useState(false);
   const [shortCode, setShortCode] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +71,33 @@ export function NationalAddressCard() {
     }
   };
 
+  const handleOpenDocument = async () => {
+    setOpeningDocument(true);
+    setError(null);
+
+    try {
+      const res = await sellerApi.getNationalAddressDocument();
+      const contentType = String(res.headers["content-type"] || "application/octet-stream");
+      const blob =
+        res.data instanceof Blob ? res.data : new Blob([res.data], { type: contentType });
+      const url = URL.createObjectURL(blob);
+      const opened = window.open(url, "_blank", "noopener,noreferrer");
+
+      if (!opened) {
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "national-address-document";
+        link.click();
+      }
+
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch {
+      setError("تعذر فتح الوثيقة. أعد رفعها إذا كان الملف مفقودا من التخزين.");
+    } finally {
+      setOpeningDocument(false);
+    }
+  };
+
   if (loading) {
     return <div className="h-16 bg-emerald-100/40 dark:bg-zinc-800 rounded-xl animate-pulse mx-3" />;
   }
@@ -104,16 +132,17 @@ export function NationalAddressCard() {
           {data?.national_address_short}
         </div>
         {data?.national_address_doc_url && (
-          <a
-            href={data.national_address_doc_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-1.5 inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline"
+          <button
+            type="button"
+            onClick={handleOpenDocument}
+            disabled={openingDocument}
+            className="mt-1.5 inline-flex items-center gap-1 text-[10px] text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-60"
           >
             <Upload className="h-3 w-3" />
             عرض الوثيقة
-          </a>
+          </button>
         )}
+        {error && <p className="mt-1 text-[10px] text-red-600">{error}</p>}
       </div>
     );
   }

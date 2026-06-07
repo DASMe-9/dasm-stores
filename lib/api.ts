@@ -206,6 +206,8 @@ export const sellerApi = {
 
   // العنوان الوطني (على مستوى المستخدم — ثابت في كل المنصات)
   getNationalAddress: () => platformApi.get("/user/national-address"),
+  getNationalAddressDocument: () =>
+    platformApi.get("/user/national-address/document", { responseType: "blob" }),
   submitNationalAddress: (formData: FormData) =>
     platformApi.post("/user/national-address", formData, {
       headers: { "Content-Type": "multipart/form-data" },
