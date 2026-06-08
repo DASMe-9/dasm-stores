@@ -199,6 +199,7 @@ export const sellerApi = {
   getOrders: (params?: QueryParams) => api.get("/my-store/orders", { params }),
   getOrder: (id: number) => api.get(`/my-store/orders/${id}`),
   updateOrderStatus: (id: number, data: JsonRecord) => api.put(`/my-store/orders/${id}/status`, data),
+  deleteTestOrders: () => api.delete("/my-store/orders/test-records"),
 
   // بوابة الدفع (legacy)
   getPaymentConfig: () => api.get("/my-store/payment-config"),
