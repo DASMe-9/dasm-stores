@@ -53,6 +53,15 @@ type ShippingAddress = {
   [key: string]: unknown;
 };
 
+type SupplierFulfillment = {
+  status?: string;
+  label?: string;
+  orders_count?: number;
+  supplier_items_count?: number;
+  providers?: string[];
+  manual_required?: boolean;
+};
+
 type StoreOrder = {
   id: number;
   order_number: string;
@@ -75,6 +84,7 @@ type StoreOrder = {
   created_at?: string | null;
   updated_at?: string | null;
   items?: OrderItem[];
+  supplier_fulfillment?: SupplierFulfillment | null;
 };
 
 type OrdersPagination = {
@@ -150,6 +160,17 @@ const paymentBadge: Record<string, string> = {
   refunded: "border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300",
 };
 
+const supplierBadge: Record<string, string> = {
+  not_supplier: "border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300",
+  awaiting_payment: "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200",
+  pending_creation: "border-orange-200 bg-orange-50 text-orange-800 dark:border-orange-900 dark:bg-orange-950/30 dark:text-orange-200",
+  pending: "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200",
+  submitted: "border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900 dark:bg-sky-950/30 dark:text-sky-200",
+  confirmed: "border-indigo-200 bg-indigo-50 text-indigo-800 dark:border-indigo-900 dark:bg-indigo-950/30 dark:text-indigo-200",
+  shipped: "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200",
+  failed: "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200",
+};
+
 const defaultPagination: OrdersPagination = {
   currentPage: 1,
   lastPage: 1,
@@ -199,6 +220,17 @@ function badgeClass(kind: "status" | "payment", value: string): string {
     "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold",
     map[value] ?? "border-zinc-200 bg-zinc-50 text-zinc-700 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300",
   ].join(" ");
+}
+
+function supplierBadgeClass(value?: string): string {
+  return [
+    "inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-bold",
+    supplierBadge[value || ""] ?? supplierBadge.not_supplier,
+  ].join(" ");
+}
+
+function supplierLabel(order: StoreOrder): string {
+  return order.supplier_fulfillment?.label || "غير معروف";
 }
 
 function getAddressLine(order: StoreOrder): string {
@@ -390,7 +422,7 @@ export default function DashboardOrdersPage() {
         }
       >
         <div className="mx-auto max-w-[1600px] space-y-5">
-          <section className="grid gap-3 md:grid-cols-3">
+          <section className="grid gap-2 md:grid-cols-3">
             <SummaryCard label="إجمالي الطلبات" value={pagination.total || orders.length} icon={ClipboardList} />
             <SummaryCard label="مدفوعة في هذه الصفحة" value={paidCountOnPage} icon={CreditCard} />
             <SummaryCard label="المعروض حالياً" value={`${pagination.from ?? 0} - ${pagination.to ?? orders.length}`} icon={Package} />
@@ -486,6 +518,9 @@ export default function DashboardOrdersPage() {
                           <span className={badgeClass("payment", order.payment_status)}>
                             {paymentLabels[order.payment_status] ?? order.payment_status}
                           </span>
+                          <span className={supplierBadgeClass(order.supplier_fulfillment?.status)}>
+                            {supplierLabel(order)}
+                          </span>
                         </div>
                         <div className="grid gap-2 text-xs text-zinc-500 dark:text-zinc-400 sm:grid-cols-3">
                           <span className="flex items-center gap-1">
@@ -566,11 +601,11 @@ function SummaryCard({
   icon: typeof ClipboardList;
 }) {
   return (
-    <div className="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
+    <div className="rounded-xl border border-zinc-200 bg-white p-3 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300">
         <Icon className="h-4 w-4" />
       </div>
-      <div className="text-2xl font-black text-zinc-950 dark:text-zinc-50">{value}</div>
+      <div className="text-xl font-black text-zinc-950 dark:text-zinc-50">{value}</div>
       <div className="mt-1 text-xs font-medium text-zinc-500 dark:text-zinc-400">{label}</div>
     </div>
   );
@@ -643,6 +678,12 @@ function OrderDetails({
         <InfoLine icon={Phone} label="الجوال" value={order.customer_phone || "-"} ltr />
         <InfoLine icon={MapPin} label="العنوان" value={addressLine || "-"} />
         <InfoLine icon={CreditCard} label="طريقة الدفع" value={order.payment_method || "-"} />
+        <InfoLine
+          icon={Package}
+          label="حالة المورد"
+          value={`${supplierLabel(order)}${order.supplier_fulfillment?.providers?.length ? ` (${order.supplier_fulfillment.providers.join(", ")})` : ""}`}
+          ltr={false}
+        />
       </div>
 
       <div className="rounded-xl bg-zinc-50 p-3 dark:bg-zinc-950">
