@@ -72,7 +72,7 @@ function getCurrentStoreUserId(): string | null {
   }
 }
 
-function sellerCacheKey(userId: string, field: "slug" | "name" | "status") {
+function sellerCacheKey(userId: string, field: "slug" | "name" | "status" | "themeColor") {
   return `store_${field}:${userId}`;
 }
 
