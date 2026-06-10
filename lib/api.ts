@@ -268,7 +268,7 @@ type UploadResponse = {
   context?: string;
   source?: string;
 };
-type UploadContext = "store_product_image" | "store_logo" | "store_banner";
+type UploadContext = "store_product_image" | "store_product_video" | "store_logo" | "store_banner";
 
 function buildUploadFormData(file: File, context: string): FormData {
   const formData = new FormData();
@@ -303,6 +303,7 @@ export const uploadApi = {
   uploadStoreLogo: (file: File) => uploadWithFallback(file, "store_logo"),
   uploadStoreBanner: (file: File) => uploadWithFallback(file, "store_banner"),
   uploadStoreProductImage: (file: File) => uploadWithFallback(file, "store_product_image"),
+  uploadStoreProductVideo: (file: File) => uploadWithFallback(file, "store_product_video"),
 };
 
 export { platformApi };

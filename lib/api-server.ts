@@ -183,6 +183,7 @@ export type StoreProductVariant = {
   sku?: string | null;
   price?: string | number | null;
   is_active?: boolean;
+  option_values?: Record<string, string> | null;
 };
 
 export type StoreProductCard = {

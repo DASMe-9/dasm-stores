@@ -6,6 +6,7 @@ import {
   Clock,
   DollarSign,
   Edit3,
+  Info,
   LayoutDashboard,
   Package,
   Plus,
@@ -13,6 +14,7 @@ import {
   Settings,
   ShoppingCart,
   Store,
+  AlertTriangle,
 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { StoreAdSlot } from "@/components/ads/StoreAdSlot";
@@ -126,7 +128,6 @@ export default function SellerDashboardHome() {
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [productsPaging, setProductsPaging] = useState(false);
-  const [activating, setActivating] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>("overview");
   const [storeOrigin, setStoreOrigin] = useState(STOREFRONT_ORIGIN);
   const [pagination, setPagination] = useState<ProductsPagination>(defaultPagination);
@@ -182,20 +183,7 @@ export default function SellerDashboardHome() {
     load(1);
   }, [load, router]);
 
-  const canActivate = store?.status === "draft" && !!store.payment_config && (stats?.active_products ?? 0) > 0;
-
-  const activateStore = async () => {
-    if (!canActivate) return;
-    setActivating(true);
-    try {
-      await sellerApi.activateStore();
-      await load();
-    } catch {
-      /* skip */
-    } finally {
-      setActivating(false);
-    }
-  };
+  // The store is activated by the admin via Control Room.
 
   if (!ready) {
     return (
@@ -282,13 +270,16 @@ export default function SellerDashboardHome() {
                 </Link>
               </div>
 
-              <div className="rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4 text-sm text-emerald-700">
-                <strong>كيف يعمل؟</strong>
-                <ol className="mt-2 list-decimal pr-5 space-y-1 text-xs leading-relaxed">
+              <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/80 p-5 dark:border-emerald-800/30 dark:bg-emerald-950/20">
+                <div className="flex items-center gap-2 mb-3 text-emerald-800 dark:text-emerald-300">
+                  <Info className="h-5 w-5" />
+                  <strong className="text-sm font-bold">كيف يعمل؟</strong>
+                </div>
+                <ol className="list-decimal pr-5 space-y-2 text-sm leading-relaxed text-emerald-700/90 dark:text-emerald-300/80">
                   <li>أنشئ متجرك واختر اسمه ورابطه وتصنيفه.</li>
-                  <li>سجّل عنوانك الوطني (الرقم المخت��ر من سبل).</li>
+                  <li>سجّل عنوانك الوطني (الرقم المختصر من سبل).</li>
                   <li>أضف منتجاتك مع الأسعار والصور والأوزان.</li>
-                  <li>فعّل المتجر — الدفع يعمل تلقائياً عبر بوابة داسم!</li>
+                  <li className="font-medium text-emerald-800 dark:text-emerald-200">فعّل المتجر — الدفع يعمل تلقائياً عبر بوابة داسم!</li>
                 </ol>
               </div>
             </div>
@@ -350,22 +341,27 @@ export default function SellerDashboardHome() {
               {/* ── تبويب: نظرة عامة ── */}
               {activeTab === "overview" && (
                 <div className="space-y-4">
-                  {store.status === "draft" && canActivate && (
-                    <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/40 dark:to-teal-950/30 dark:border-emerald-800 p-4 text-sm">
-                      <Rocket className="h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                  {store.status === "draft" && (
+                    <div className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 dark:border-amber-800/60 p-4 text-sm shadow-sm">
+                      <Clock className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
                       <div className="flex-1 min-w-0">
-                        <strong className="text-emerald-900 dark:text-emerald-200">متجرك جاهز للتفعيل!</strong>
-                        <p className="mt-0.5 text-emerald-700 dark:text-emerald-300 text-xs">بوابة الدفع مربوطة ولديك منتج نشط — فعّل متجرك ليظهر للعملاء</p>
+                        <strong className="text-amber-900 dark:text-amber-200">متجرك بانتظار موافقة الإدارة</strong>
+                        <p className="mt-0.5 text-amber-700 dark:text-amber-300 text-xs leading-relaxed">
+                          متجرك حالياً مسودة، وهو قيد المراجعة من قِبل فريق الإدارة لاعتماده وتفعيله للجمهور. سيتم التفعيل قريباً.
+                        </p>
                       </div>
-                      <button
-                        type="button"
-                        onClick={activateStore}
-                        disabled={activating}
-                        className="shrink-0 inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg shadow-emerald-600/25 hover:bg-emerald-700 disabled:opacity-60 transition"
-                      >
-                        <Rocket className="h-4 w-4" />
-                        {activating ? "جاري التفعيل..." : "فعّل المتجر الآن"}
-                      </button>
+                    </div>
+                  )}
+
+                  {store.status === "suspended" && (
+                    <div className="flex items-center gap-3 rounded-2xl border border-red-200 bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/40 dark:to-rose-950/30 dark:border-red-800/60 p-4 text-sm shadow-sm">
+                      <AlertTriangle className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+                      <div className="flex-1 min-w-0">
+                        <strong className="text-red-900 dark:text-red-200">المتجر معلق من الإدارة</strong>
+                        <p className="mt-0.5 text-red-700 dark:text-red-300 text-xs leading-relaxed">
+                          المتجر معلق من الإدارة يرجى التواصل. لا يمكن للعملاء الدخول إلى المتجر حالياً، ويمكنك فقط الدخول عبر وضع المعاينة (Preview).
+                        </p>
+                      </div>
                     </div>
                   )}
 

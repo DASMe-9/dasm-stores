@@ -1,17 +1,12 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  ArrowRight,
-  ImagePlus,
-  Package,
-  Save,
-  Star,
-  Trash2,
-} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { ArrowRight, Package, Save, Trash2 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
-import { sellerApi, uploadApi } from "@/lib/api";
+import { sellerApi } from "@/lib/api";
+import { ProductMediaUploader, type MediaItem } from "@/components/seller/ProductMediaUploader";
+import { ProductVariationsBuilder, type Variant, type ProductOption } from "@/components/seller/ProductVariationsBuilder";
 
 interface ProductImage {
   id: string | number;
@@ -33,10 +28,27 @@ interface ProductData {
   status: string;
   is_featured: boolean;
   category_id: number | null;
-  import_provider?: string | null;
-  import_external_id?: string | null;
   images: ProductImage[];
+  variants?: any[];
   category: { id: number; name: string } | null;
+}
+
+function reconstructOptions(variants: any[]): ProductOption[] {
+  if (!variants || variants.length === 0) return [];
+  const optionsMap = new Map<string, Set<string>>();
+  for (const v of variants) {
+    if (v.option_values) {
+      for (const [key, val] of Object.entries(v.option_values)) {
+        if (!optionsMap.has(key)) optionsMap.set(key, new Set());
+        optionsMap.get(key)!.add(String(val));
+      }
+    }
+  }
+  const options: ProductOption[] = [];
+  optionsMap.forEach((values, name) => {
+    options.push({ name, values: Array.from(values) });
+  });
+  return options;
 }
 
 export default function EditProductPage() {
@@ -63,11 +75,13 @@ export default function EditProductPage() {
     is_featured: false,
   });
 
-  const [images, setImages] = useState<ProductImage[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
   const [originalImageIds, setOriginalImageIds] = useState<Set<string | number>>(new Set());
   const [removedImageIds, setRemovedImageIds] = useState<Array<string | number>>([]);
-  const [uploading, setUploading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
+  const [productVariants, setProductVariants] = useState<Variant[]>([]);
+
   const productId = Array.isArray(id) ? id[0] : id;
 
   useEffect(() => {
@@ -92,9 +106,23 @@ export default function EditProductPage() {
       if (prodRes.status === "fulfilled") {
         const p = prodRes.value.data.product as ProductData;
         setProduct(p);
-        setImages(p.images || []);
-        setOriginalImageIds(new Set((p.images || []).map((img: ProductImage) => img.id)));
+        
+        const initialMedia: MediaItem[] = (p.images || []).map(img => ({
+          id: img.id,
+          url: img.url,
+          is_primary: img.is_primary,
+          alt_text: img.alt_text,
+          type: "image",
+        }));
+        setMedia(initialMedia);
+        setOriginalImageIds(new Set(initialMedia.map(m => m.id as string | number)));
         setRemovedImageIds([]);
+
+        if (p.variants && p.variants.length > 0) {
+          setProductOptions(reconstructOptions(p.variants));
+          setProductVariants(p.variants);
+        }
+
         setForm({
           name: p.name,
           description: p.description || "",
@@ -124,56 +152,10 @@ export default function EditProductPage() {
     loadProduct();
   }, [loadProduct, ready, productId]);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    if (!files.length) return;
-
-    setUploading(true);
-    setError(null);
-    try {
-      for (const file of files) {
-        if (file.size > 8 * 1024 * 1024) {
-          setError("حجم الصورة يجب أن يكون أقل من 8 ميقابايت");
-          continue;
-        }
-        const { data } = await uploadApi.uploadStoreProductImage(file);
-        setImages((prev) => [
-          ...prev,
-          {
-            id: Date.now() + Math.random(),
-            url: data.secure_url,
-            alt_text: null,
-            is_primary: prev.length === 0,
-            sort_order: prev.length,
-          },
-        ]);
-      }
-    } catch {
-      setError("فشل رفع الصورة — تأكد من اتصال الإنترنت");
-    } finally {
-      setUploading(false);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+  const handleRemoveExistingMedia = (id: string | number) => {
+    if (originalImageIds.has(id)) {
+      setRemovedImageIds((prev) => [...prev, id]);
     }
-  };
-
-  const setPrimaryImage = (idx: number) => {
-    setImages((prev) =>
-      prev.map((img, i) => ({ ...img, is_primary: i === idx })),
-    );
-  };
-
-  const removeImage = (idx: number) => {
-    setImages((prev) => {
-      const removed = prev[idx];
-      if (removed && originalImageIds.has(removed.id)) {
-        setRemovedImageIds((ids) => [...ids, removed.id]);
-      }
-      const next = prev.filter((_, i) => i !== idx);
-      if (next.length > 0 && !next.some((img) => img.is_primary)) {
-        next[0].is_primary = true;
-      }
-      return next;
-    });
   };
 
   const submit = async () => {
@@ -187,23 +169,31 @@ export default function EditProductPage() {
         return;
       }
 
-      const newImages = images
-        .filter((img) => !originalImageIds.has(img.id))
-        .map((img) => ({ url: img.url, alt_text: img.alt_text, is_primary: img.is_primary }));
+      const numericPrice = Number(form.price);
 
-      const primaryImg = images.find((img) => img.is_primary);
-      const primaryImageId = primaryImg && originalImageIds.has(primaryImg.id) ? primaryImg.id : null;
+      const newImages = media
+        .filter((m) => m.type === "image" && (!m.id || !originalImageIds.has(m.id)))
+        .map((m) => ({ url: m.url, alt_text: m.alt_text, is_primary: m.is_primary }));
+
+      const primaryImg = media.find((m) => m.is_primary && m.type === "image");
+      const primaryImageId = primaryImg && primaryImg.id && originalImageIds.has(primaryImg.id) ? primaryImg.id : null;
 
       const payload: Record<string, unknown> = {
         name: form.name.trim(),
         description: form.description.trim() || null,
         sku: form.sku.trim() || null,
-        price: Number(form.price),
+        price: numericPrice,
         compare_at_price: form.compare_at_price ? Number(form.compare_at_price) : null,
         weight: form.weight ? Number(form.weight) : null,
         status: form.status,
         is_featured: form.is_featured,
         category_id: form.category_id ? parseInt(form.category_id, 10) : null,
+        variants: productVariants.length > 0 ? productVariants.map(v => ({
+           name: v.name,
+           price: Number(v.price) || numericPrice,
+           option_values: v.option_values,
+           stock_quantity: v.stock_quantity || 0
+        })) : [], // Empty array will clear variants if any were removed
       };
 
       if (removedImageIds.length > 0) payload.remove_image_ids = removedImageIds;
@@ -218,9 +208,20 @@ export default function EditProductPage() {
       const { data } = await sellerApi.updateProduct(productId, payload);
       const updated = data?.product as ProductData | undefined;
       if (updated) {
-        setImages(updated.images || []);
-        setOriginalImageIds(new Set((updated.images || []).map((img: ProductImage) => img.id)));
+        const updatedMedia: MediaItem[] = (updated.images || []).map(img => ({
+          id: img.id,
+          url: img.url,
+          is_primary: img.is_primary,
+          alt_text: img.alt_text,
+          type: "image",
+        }));
+        setMedia(updatedMedia);
+        setOriginalImageIds(new Set(updatedMedia.map(m => m.id as string | number)));
         setRemovedImageIds([]);
+        if (updated.variants) {
+           setProductVariants(updated.variants);
+           setProductOptions(reconstructOptions(updated.variants));
+        }
       }
       setSuccess("تم حفظ التغييرات بنجاح");
       setTimeout(() => setSuccess(null), 3000);
@@ -243,7 +244,7 @@ export default function EditProductPage() {
       }
 
       await sellerApi.deleteProduct(productId);
-      router.push("/dashboard");
+      router.push("/dashboard/products");
     } catch {
       setError("فشل حذف المنتج");
       setDeleting(false);
@@ -264,15 +265,15 @@ export default function EditProductPage() {
         <div className="text-center py-20">
           <Package className="mx-auto mb-4 h-12 w-12 text-zinc-300" />
           <p className="text-zinc-500 mb-4">لم يتم العثور على هذا المنتج</p>
-          <Link href="/dashboard" className="text-emerald-600 text-sm hover:underline">
-            العودة للوحة التحكم
+          <Link href="/dashboard/products" className="text-emerald-600 text-sm hover:underline">
+            العودة للمنتجات
           </Link>
         </div>
       </SellerShell>
     );
   }
 
-  const primaryImage = images.find((img) => img.is_primary) ?? images[0];
+  const primaryImage = media.find((m) => m.is_primary && m.type === "image") ?? media.find(m => m.type === "image");
 
   return (
     <>
@@ -282,15 +283,14 @@ export default function EditProductPage() {
       </Head>
 
       <SellerShell title={`تعديل: ${product.name}`} icon={Package} hasStore>
-        <div className="mx-auto max-w-4xl space-y-6">
-          {/* الهيدر */}
+        <div className="mx-auto max-w-4xl space-y-6 pb-20">
           <div className="flex items-center justify-between">
             <Link
-              href="/dashboard"
+              href="/dashboard/products"
               className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
             >
               <ArrowRight className="h-3.5 w-3.5" />
-              العودة للوحة التحكم
+              العودة للمنتجات
             </Link>
             <div className="flex items-center gap-2">
               <button
@@ -325,23 +325,9 @@ export default function EditProductPage() {
             </div>
           )}
 
-          <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm dark:border-emerald-900 dark:bg-emerald-950/25">
-            <Package className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600 dark:text-emerald-400" />
-            <div className="space-y-1">
-              <p className="font-bold text-emerald-900 dark:text-emerald-100">
-                يمكنك تحسين المنتج داخل متجرك
-              </p>
-              <p className="text-xs leading-6 text-emerald-800 dark:text-emerald-200">
-                اكتب وصفًا خاصًا بمتجرك، وأضف صورًا جديدة أو اختر صورة رئيسية حتى لو كان المنتج مستوردًا من مورد.
-              </p>
-            </div>
-          </div>
-
           <div className="grid gap-6 lg:grid-cols-[1fr,340px]">
-            {/* العمود الأيسر — المعلومات الأساسية */}
             <div className="space-y-6">
-              {/* معلومات المنتج */}
-              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 space-y-4">
+              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 space-y-4 shadow-sm">
                 <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">معلومات المنتج</h2>
 
                 <div className="space-y-1.5">
@@ -365,90 +351,34 @@ export default function EditProductPage() {
                 </div>
               </div>
 
-              {/* معرض الصور */}
-              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 space-y-4">
+              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 space-y-4 shadow-sm">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">صور المنتج</h2>
-                  <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{images.length} صورة</span>
+                  <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">صور وفيديوهات المنتج</h2>
+                  <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{media.length} وسائط</span>
                 </div>
-
-                {images.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-3">
-                    {images.map((img, idx) => (
-                      <div
-                        key={img.id}
-                        className={`relative group aspect-square rounded-xl overflow-hidden border-2 transition ${
-                          img.is_primary
-                            ? "border-emerald-500 shadow-md shadow-emerald-500/20"
-                            : "border-zinc-200 dark:border-zinc-700 hover:border-zinc-300 dark:hover:border-zinc-600"
-                        }`}
-                      >
-                        <img src={img.url} alt={img.alt_text || ""} className="h-full w-full object-cover" />
-                        {img.is_primary && (
-                          <span className="absolute top-1 right-1 flex items-center gap-0.5 bg-emerald-500 text-white text-[9px] px-1.5 py-0.5 rounded-full font-bold">
-                            <Star className="h-2.5 w-2.5" />
-                            رئيسية
-                          </span>
-                        )}
-                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                          {!img.is_primary && (
-                            <button
-                              type="button"
-                              onClick={() => setPrimaryImage(idx)}
-                              className="rounded-lg bg-white/90 p-1.5 text-emerald-600 hover:bg-white transition"
-                              title="تعيين كصورة رئيسية"
-                            >
-                              <Star className="h-3.5 w-3.5" />
-                            </button>
-                          )}
-                          <button
-                            type="button"
-                            onClick={() => removeImage(idx)}
-                            className="rounded-lg bg-white/90 p-1.5 text-red-600 hover:bg-white transition"
-                            title="حذف الصورة"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-                  multiple
-                  onChange={handleFileSelect}
-                  className="hidden"
+                <ProductMediaUploader 
+                  media={media} 
+                  setMedia={setMedia} 
+                  onRemoveExisting={handleRemoveExistingMedia} 
                 />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={uploading}
-                  className="w-full flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 py-6 text-zinc-400 dark:text-zinc-500 hover:border-emerald-400 dark:hover:border-emerald-600 hover:text-emerald-600 dark:hover:text-emerald-400 transition disabled:opacity-50"
-                >
-                  {uploading ? (
-                    <>
-                      <div className="h-8 w-8 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-xs">جاري الرفع...</span>
-                    </>
-                  ) : (
-                    <>
-                      <ImagePlus className="h-8 w-8" />
-                      <span className="text-xs">اضغط لإضافة صور — يمكنك اختيار عدة صور</span>
-                      <span className="text-[10px]">JPG, PNG, WebP, HEIC — حتى 8 ميقابايت للصورة</span>
-                    </>
-                  )}
-                </button>
+              </div>
+
+              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 space-y-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">خيارات المتغيرات</h2>
+                </div>
+                <ProductVariationsBuilder
+                  basePrice={form.price}
+                  options={productOptions}
+                  setOptions={setProductOptions}
+                  variants={productVariants}
+                  setVariants={setProductVariants}
+                />
               </div>
             </div>
 
-            {/* العمود الأيمن — الإعدادات */}
             <div className="space-y-6">
-              {/* التسعير */}
-              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-4">
+              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-4 shadow-sm">
                 <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">التسعير</h2>
 
                 <div className="space-y-1.5">
@@ -482,8 +412,7 @@ export default function EditProductPage() {
                 </div>
               </div>
 
-              {/* الحالة والتصنيف */}
-              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-4">
+              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-4 shadow-sm">
                 <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">الحالة والتصنيف</h2>
 
                 <div className="space-y-1.5">
@@ -525,8 +454,7 @@ export default function EditProductPage() {
                 </label>
               </div>
 
-              {/* الشحن */}
-              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-4">
+              <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-4 shadow-sm">
                 <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">الشحن والمخزون</h2>
 
                 <div className="space-y-1.5">
@@ -553,9 +481,8 @@ export default function EditProductPage() {
                 </div>
               </div>
 
-              {/* معاينة سريعة */}
               {primaryImage && (
-                <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-3">
+                <div className="rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-5 space-y-3 shadow-sm">
                   <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">معاينة البطاقة</h2>
                   <div className="rounded-xl overflow-hidden border border-zinc-200 dark:border-zinc-700">
                     <div className="aspect-square bg-zinc-100 dark:bg-zinc-800">

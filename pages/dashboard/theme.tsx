@@ -112,6 +112,7 @@ export default function StoreThemePage() {
         storeSlug={storeSlug}
         storeName={storeName}
         storeStatus={storeStatus}
+        themeColor={typeof previewPreset?.theme_config?.primary_color === 'string' ? previewPreset.theme_config.primary_color : undefined}
         actions={
           storeSlug ? (
             <div className="flex flex-wrap items-center gap-2">

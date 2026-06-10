@@ -12,8 +12,14 @@ import {
   Rocket,
   Check,
   X,
+  Plus,
+  Trash2,
+  Video,
+  Image as ImageIcon
 } from "lucide-react";
 import { sellerApi, storeSelection, uploadApi } from "@/lib/api";
+import { ProductMediaUploader, type MediaItem } from "./ProductMediaUploader";
+import { ProductVariationsBuilder, type Variant, type ProductOption } from "./ProductVariationsBuilder";
 
 export type SellerNavHandlers = {
   replace: (path: string) => void;
@@ -22,14 +28,14 @@ export type SellerNavHandlers = {
 };
 
 const CATEGORIES = [
-  { value: "fashion", label: "أزياء وملابس", emoji: "👗" },
-  { value: "electronics", label: "إلكترونيات", emoji: "📱" },
-  { value: "food", label: "مأكولات ومشروبات", emoji: "🍽️" },
-  { value: "home", label: "منزل وديكور", emoji: "🏠" },
-  { value: "automotive", label: "سيارات وقطع غيار", emoji: "🚗" },
-  { value: "beauty", label: "عطور ومستحضرات", emoji: "💄" },
-  { value: "sports", label: "رياضة ولياقة", emoji: "⚽" },
-  { value: "general", label: "متنوع", emoji: "🛍️" },
+  { value: "fashion", label: "أزياء وملابس", emoji: "👗", options: ["المقاس", "اللون"] },
+  { value: "electronics", label: "إلكترونيات", emoji: "📱", options: ["اللون", "سعة التخزين"] },
+  { value: "food", label: "مأكولات ومشروبات", emoji: "🍽️", options: ["الحجم"] },
+  { value: "home", label: "منزل وديكور", emoji: "🏠", options: ["اللون", "الخامة"] },
+  { value: "automotive", label: "سيارات وقطع غيار", emoji: "🚗", options: [] },
+  { value: "beauty", label: "عطور ومستحضرات", emoji: "💄", options: ["الحجم"] },
+  { value: "sports", label: "رياضة ولياقة", emoji: "⚽", options: ["المقاس", "اللون"] },
+  { value: "general", label: "متنوع", emoji: "🛍️", options: ["النوع"] },
 ];
 
 const PALETTES = [
@@ -58,46 +64,30 @@ function slugify(s: string) {
 }
 
 const RESERVED_SLUGS = new Set([
-  "api",
-  "auth",
-  "dashboard",
-  "explore",
-  "stores",
-  "store",
-  "_next",
-  "favicon.ico",
-  "sitemap.xml",
-  "robots.txt",
-  "admin",
-  "login",
-  "signup",
-  "register",
-  "logout",
-  "about",
-  "contact",
-  "terms",
-  "privacy",
+  "api", "auth", "dashboard", "explore", "stores", "store", "_next",
+  "favicon.ico", "sitemap.xml", "robots.txt", "admin", "login",
+  "signup", "register", "logout", "about", "contact", "terms", "privacy",
 ]);
 
 const IMAGE_ACCEPT = "image/jpeg,image/png,image/webp,image/heic,image/heif";
+const VIDEO_ACCEPT = "video/mp4,video/webm,video/quicktime";
+
 const MAX_IMAGE_BYTES = {
   logo: 5 * 1024 * 1024,
   banner: 8 * 1024 * 1024,
   product: 8 * 1024 * 1024,
 };
+const MAX_VIDEO_BYTES = 20 * 1024 * 1024;
+
 const ALLOWED_IMAGE_TYPES = new Set([
-  "image/jpeg",
-  "image/pjpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-  "image/heic-sequence",
-  "image/heif-sequence",
+  "image/jpeg", "image/pjpeg", "image/png", "image/webp", "image/heic", "image/heif",
 ]);
 const ALLOWED_IMAGE_EXTENSIONS = new Set(["jpg", "jpeg", "png", "webp", "heic", "heif"]);
 
-type UploadSlot = "logo" | "banner" | "product";
+const ALLOWED_VIDEO_TYPES = new Set(["video/mp4", "video/webm", "video/quicktime"]);
+const ALLOWED_VIDEO_EXTENSIONS = new Set(["mp4", "webm", "mov"]);
+
+type UploadSlot = "logo" | "banner";
 
 function revokeIfObjectUrl(url: string | null | undefined) {
   if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
@@ -105,7 +95,7 @@ function revokeIfObjectUrl(url: string | null | undefined) {
 
 function uploadErrorMessage(error: unknown) {
   const err = error as { response?: { data?: { message?: string } }; message?: string };
-  return err.response?.data?.message ?? err.message ?? "تعذّر رفع الصورة حالياً.";
+  return err.response?.data?.message ?? err.message ?? "تعذّر رفع الملف حالياً.";
 }
 
 function isAllowedImageFile(file: File) {
@@ -113,6 +103,14 @@ function isAllowedImageFile(file: File) {
   const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
   return ALLOWED_IMAGE_EXTENSIONS.has(extension);
 }
+
+function isAllowedVideoFile(file: File) {
+  if (ALLOWED_VIDEO_TYPES.has(file.type)) return true;
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  return ALLOWED_VIDEO_EXTENSIONS.has(extension);
+}
+
+
 
 export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
   const [token, setToken] = useState<string | null>(null);
@@ -124,13 +122,19 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const bannerInputRef = useRef<HTMLInputElement>(null);
   const productImageInputRef = useRef<HTMLInputElement>(null);
+  const productVideoInputRef = useRef<HTMLInputElement>(null);
+  
   const [previews, setPreviews] = useState<Partial<Record<UploadSlot, string>>>({});
   const [uploading, setUploading] = useState<Record<UploadSlot, boolean>>({
     logo: false,
     banner: false,
-    product: false,
   });
   const [uploadErrors, setUploadErrors] = useState<Partial<Record<UploadSlot, string>>>({});
+
+  // Product specific states
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
+  const [productVariants, setProductVariants] = useState<Variant[]>([]);
 
   const [form, setForm] = useState({
     name_ar: "",
@@ -141,7 +145,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
     logo_url: "",
     banner_url: "",
     palette: "emerald",
-    first_product: { name: "", price: "", image_url: "" },
+    first_product: { name: "", price: "" },
   });
 
   useEffect(() => () => {
@@ -155,8 +159,20 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
       return;
     }
     setToken(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- تهيئة مرة واحدة عند التحميل
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const cat = CATEGORIES.find(c => c.value === form.category);
+    if (cat && cat.options.length > 0) {
+      setProductOptions(cat.options.map(opt => ({ name: opt, values: [] })));
+    } else {
+      setProductOptions([]);
+    }
+    setProductVariants([]);
+  }, [form.category]);
+
+
 
   const setField = (k: keyof typeof form, v: unknown) => {
     setForm((f) => {
@@ -167,7 +183,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
   };
 
   const canNext = () => {
-    const uploadInProgress = uploading.logo || uploading.banner || uploading.product;
+    const uploadInProgress = uploading.logo || uploading.banner || media.some((m) => m.url.startsWith('blob:') || m.url.includes('uploading'));
     if (uploadInProgress) return false;
 
     if (step === 0) {
@@ -196,7 +212,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
         : null;
 
   const handleSubmit = async () => {
-    if (uploading.logo || uploading.banner || uploading.product) {
+    if (uploading.logo || uploading.banner || media.some((m) => m.url.startsWith('blob:') || m.url.includes('uploading'))) {
       setError("انتظر اكتمال رفع الصور أولاً.");
       return;
     }
@@ -238,50 +254,47 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
           preset_version: 1,
         },
       };
+      
       const { data: createdStoreData } = await sellerApi.createStore(payload);
       if (createdStoreData?.store?.id != null) {
         storeSelection.set(String(createdStoreData.store.id));
       }
 
       if (form.first_product.name && form.first_product.price) {
+        const productPayload = {
+          name: form.first_product.name,
+          price: Number(form.first_product.price),
+          weight: 1,
+          status: "active",
+          product_type: "physical",
+          images: media.map(m => ({ url: m.url, is_primary: m.is_primary })),
+          variants: productVariants.length > 0 ? productVariants.map(v => ({
+             name: v.name,
+             price: Number(v.price) || Number(form.first_product.price),
+             option_values: v.option_values,
+             stock_quantity: 0
+          })) : undefined
+        };
         try {
-          await sellerApi.createProduct({
-            name: form.first_product.name,
-            price: Number(form.first_product.price),
-            weight: 1,
-            status: "active",
-            product_type: "physical",
-            images: form.first_product.image_url
-              ? [{ url: form.first_product.image_url, is_primary: true }]
-              : undefined,
-          });
-        } catch {
-          /* غير حاجز */
+          await sellerApi.createProduct(productPayload);
+        } catch (err: any) {
+          console.error("Failed to create first product", err);
+          // Not blocking store creation if product fails
         }
       }
 
       setDone(true);
       setTimeout(() => nav.push("/dashboard"), 2500);
     } catch (e: unknown) {
-      const err = e as {
-        response?: {
-          data?: {
-            message?: string;
-            trace_id?: string;
-            errors?: Record<string, string[]>;
-          };
-        };
-        message?: string;
-      };
+      const err = e as any;
       const data = err?.response?.data;
       const firstValidation =
         data?.errors && typeof data.errors === "object"
-          ? Object.values(data.errors).flat().find(Boolean)
+          ? Object.values(data.errors).flat().find(Boolean) as string
           : undefined;
       let msg = data?.message ?? firstValidation ?? err?.message ?? "حدث خطأ";
-      const tid = data?.trace_id;
-      if (tid) {
-        msg = `${msg}\nمعرّف التتبع: ${tid}`;
+      if (data?.trace_id) {
+        msg = `${msg}\nمعرّف التتبع: ${data.trace_id}`;
       }
       setError(msg);
     } finally {
@@ -291,18 +304,11 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
 
   const uploadImage = async (slot: UploadSlot, file: File) => {
     if (!isAllowedImageFile(file)) {
-      setUploadErrors((current) => ({
-        ...current,
-        [slot]: "نوع الصورة غير مدعوم. استخدم JPG أو PNG أو WebP أو HEIC.",
-      }));
+      setUploadErrors((current) => ({ ...current, [slot]: "نوع الصورة غير مدعوم. استخدم JPG, PNG, WebP." }));
       return;
     }
-
     if (file.size > MAX_IMAGE_BYTES[slot]) {
-      setUploadErrors((current) => ({
-        ...current,
-        [slot]: `حجم الصورة أكبر من الحد المسموح (${slot === "logo" ? "5" : "8"}MB).`,
-      }));
+      setUploadErrors((current) => ({ ...current, [slot]: `حجم الصورة أكبر من الحد المسموح (${slot === "logo" ? "5" : "8"}MB).` }));
       return;
     }
 
@@ -316,35 +322,16 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
     setUploadErrors((current) => ({ ...current, [slot]: undefined }));
 
     try {
-      const response =
-        slot === "logo"
-          ? await uploadApi.uploadStoreLogo(file)
-          : slot === "banner"
-            ? await uploadApi.uploadStoreBanner(file)
-            : await uploadApi.uploadStoreProductImage(file);
+      const response = slot === "logo" ? await uploadApi.uploadStoreLogo(file) : await uploadApi.uploadStoreBanner(file);
       const secureUrl = response.data?.secure_url;
       if (!secureUrl) throw new Error("لم يرجع الخادم رابط الصورة.");
 
-      if (slot === "logo") {
-        setField("logo_url", secureUrl);
-      } else if (slot === "banner") {
-        setField("banner_url", secureUrl);
-      } else {
-        setForm((current) => ({
-          ...current,
-          first_product: { ...current.first_product, image_url: secureUrl },
-        }));
-      }
+      if (slot === "logo") setField("logo_url", secureUrl);
+      if (slot === "banner") setField("banner_url", secureUrl);
     } catch (caughtError: unknown) {
       setUploadErrors((current) => ({ ...current, [slot]: uploadErrorMessage(caughtError) }));
       if (slot === "logo") setField("logo_url", "");
       if (slot === "banner") setField("banner_url", "");
-      if (slot === "product") {
-        setForm((current) => ({
-          ...current,
-          first_product: { ...current.first_product, image_url: "" },
-        }));
-      }
     } finally {
       setUploading((current) => ({ ...current, [slot]: false }));
     }
@@ -356,16 +343,11 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
       return { ...current, [slot]: undefined };
     });
     setUploadErrors((current) => ({ ...current, [slot]: undefined }));
-
     if (slot === "logo") setField("logo_url", "");
     if (slot === "banner") setField("banner_url", "");
-    if (slot === "product") {
-      setForm((current) => ({
-        ...current,
-        first_product: { ...current.first_product, image_url: "" },
-      }));
-    }
   };
+
+
 
   if (!token) {
     return (
@@ -400,7 +382,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
         <button
           type="button"
           onClick={() => nav.back()}
-          className="p-2 rounded-xl hover:bg-gray-100"
+          className="p-2 rounded-xl hover:bg-gray-100 shrink-0"
           aria-label="رجوع"
         >
           <ArrowRight className="w-5 h-5 text-gray-600" />
@@ -441,7 +423,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                   </div>
                   <span
                     className={`text-xs md:text-sm font-medium truncate ${
-                      current ? "text-gray-900" : stepDone ? "text-emerald-700" : "text-gray-400"
+                      current ? "text-gray-900 block" : stepDone ? "text-emerald-700 hidden md:block" : "text-gray-400 hidden md:block"
                     }`}
                   >
                     {s.title}
@@ -502,9 +484,9 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                 <label className="text-sm font-medium text-gray-700">
                   رابط المتجر العام <span className="text-red-500">*</span>
                 </label>
-                <div className="flex items-center rounded-xl border border-gray-200 bg-gray-50 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent">
+                <div className="flex flex-col sm:flex-row sm:items-center rounded-xl border border-gray-200 bg-gray-50 overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500 focus-within:border-transparent">
                   <span
-                    className="px-3 py-2.5 text-xs text-gray-500 bg-gray-100 border-l border-gray-200"
+                    className="px-3 py-2.5 text-xs text-gray-500 bg-gray-100 border-b sm:border-b-0 sm:border-l border-gray-200 shrink-0"
                     dir="ltr"
                   >
                     stores.dasm.com.sa/
@@ -657,7 +639,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                       <div className="mt-2 text-sm font-bold text-gray-900">
                         {form.name_ar || "اسم متجرك"}
                       </div>
-                      <div className="text-[11px] text-gray-400" dir="ltr">
+                      <div className="text-[11px] text-gray-400 truncate" dir="ltr">
                         stores.dasm.com.sa/{form.slug || "your-store"}
                       </div>
                     </div>
@@ -668,63 +650,67 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
           )}
 
           {step === 2 && (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div>
                 <h2 className="text-lg font-bold text-gray-900">أضف أول منتج (اختياري)</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  يمكنك تخطّي هذه الخطوة وإضافة منتجات لاحقاً من لوحة التحكم.
+                  دعنا نجهز أول منتج ليظهر للعملاء فور اعتماد المتجر. يمكنك تخطي هذه الخطوة والمتابعة لإطلاق متجرك.
                 </p>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">اسم المنتج</label>
-                <input
-                  type="text"
-                  maxLength={120}
-                  placeholder="مثال: تيشيرت قطن"
-                  value={form.first_product.name}
-                  onChange={(e) =>
-                    setField("first_product", { ...form.first_product, name: e.target.value })
-                  }
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
+              <div className="space-y-4 bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-700">اسم المنتج</label>
+                    <input
+                      type="text"
+                      maxLength={120}
+                      placeholder="مثال: تيشيرت قطن"
+                      value={form.first_product.name}
+                      onChange={(e) => setField("first_product", { ...form.first_product, name: e.target.value })}
+                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="text-sm font-medium text-gray-700">السعر (ر.س)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={form.first_product.price}
+                      onChange={(e) => setField("first_product", { ...form.first_product, price: e.target.value })}
+                      className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-1.5">
-                <label className="text-sm font-medium text-gray-700">السعر (ر.س)</label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={form.first_product.price}
-                  onChange={(e) =>
-                    setField("first_product", { ...form.first_product, price: e.target.value })
-                  }
-                  className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                />
-              </div>
+              <div className="space-y-4 bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+                   <div className="flex items-center justify-between mb-4">
+                     <div>
+                       <label className="text-sm font-medium text-gray-700">صور وفيديوهات المنتج</label>
+                       <p className="text-[11px] text-gray-400 mt-0.5">حتى 10 صور، 2 فيديو</p>
+                     </div>
+                   </div>
+                   <ProductMediaUploader media={media} setMedia={setMedia} />
+                </div>
 
-              <div className="space-y-1.5">
-                <MediaUploadField
-                  label="صورة المنتج"
-                  hint="يمكنك رفع صورة المنتج الآن أو تركها وإضافتها لاحقاً."
-                  inputRef={productImageInputRef}
-                  accept={IMAGE_ACCEPT}
-                  previewUrl={previews.product || form.first_product.image_url}
-                  uploading={uploading.product}
-                  error={uploadErrors.product}
-                  buttonLabel="اختيار صورة المنتج"
-                  onSelect={(file) => void uploadImage("product", file)}
-                  onRemove={() => removeUploadedImage("product")}
+              {/* Variations Builder */}
+              <div className="space-y-4 bg-white rounded-xl border border-gray-100 p-5 shadow-sm">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-900">خيارات المنتج</h3>
+                    <p className="text-xs text-gray-500 mt-0.5">خصص المتغيرات المتاحة لهذا المنتج (مثل المقاسات أو الألوان).</p>
+                  </div>
+                </div>
+                <ProductVariationsBuilder 
+                  basePrice={form.first_product.price}
+                  options={productOptions}
+                  setOptions={setProductOptions}
+                  variants={productVariants}
+                  setVariants={setProductVariants}
                 />
-              </div>
-
-              <div className="rounded-xl bg-emerald-50 border border-emerald-100 p-3 flex gap-2 items-start">
-                <Upload className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                <p className="text-xs text-emerald-800">
-                  يتم حفظ صورة المنتج مباشرة، ويمكنك استبدالها لاحقاً من لوحة المنتجات.
-                </p>
               </div>
             </div>
           )}
@@ -749,11 +735,11 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
                 {form.first_product.name ? (
                   <Row
                     label="أول منتج"
-                    value={`${form.first_product.name} — ${form.first_product.price || 0} ر.س`}
+                    value={`${form.first_product.name} — ${form.first_product.price || 0} ر.س (${productVariants.length ? productVariants.length + ' متغيرات' : 'بدون متغيرات'})`}
                   />
                 ) : null}
-                {form.first_product.image_url ? (
-                  <Row label="صورة أول منتج" value="تم رفع صورة المنتج" />
+                {media.length > 0 ? (
+                  <Row label="وسائط المنتج" value={`${media.filter(m => m.type === 'image').length} صور، ${media.filter(m => m.type === 'video').length} فيديو`} />
                 ) : null}
               </div>
 
@@ -774,8 +760,8 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
           <button
             type="button"
             onClick={() => setStep((s) => Math.max(0, s - 1))}
-            disabled={step === 0}
-            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-white disabled:opacity-40"
+            disabled={step === 0 || loading || uploading.logo || uploading.banner || media.some((m) => m.url.startsWith('blob:') || m.url.includes('uploading'))}
+            className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-sm font-semibold text-gray-600 hover:bg-white disabled:opacity-40 transition"
           >
             <ArrowRight className="w-4 h-4" />
             السابق
@@ -795,7 +781,7 @@ export function StoreNewWizard({ nav }: { nav: SellerNavHandlers }) {
             <button
               type="button"
               onClick={() => void handleSubmit()}
-              disabled={loading || uploading.logo || uploading.banner || uploading.product}
+              disabled={loading || uploading.logo || uploading.banner || media.some((m) => m.url.startsWith('blob:') || m.url.includes('uploading'))}
               className="flex items-center gap-1.5 px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 disabled:opacity-60 transition"
             >
               {loading ? "جاري الإرسال..." : "إطلاق المتجر"}
@@ -919,10 +905,10 @@ function Row({
   swatch?: string;
 }) {
   return (
-    <div className="flex items-center justify-between px-4 py-3 text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className="font-medium text-gray-900 flex items-center gap-2">
-        {swatch ? <span className="w-4 h-4 rounded-full" style={{ background: swatch }} /> : null}
+    <div className="flex flex-col sm:flex-row sm:items-center justify-between px-4 py-3 text-sm gap-1 sm:gap-4">
+      <span className="text-gray-500 shrink-0">{label}</span>
+      <span className="font-medium text-gray-900 flex items-center gap-2 text-right sm:text-left break-all sm:break-normal">
+        {swatch ? <span className="w-4 h-4 rounded-full shrink-0" style={{ background: swatch }} /> : null}
         {value || "—"}
       </span>
     </div>

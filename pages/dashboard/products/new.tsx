@@ -1,10 +1,12 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Package, Upload, X as XIcon } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { Package } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
-import { sellerApi, uploadApi } from "@/lib/api";
+import { sellerApi } from "@/lib/api";
+import { ProductMediaUploader, type MediaItem } from "@/components/seller/ProductMediaUploader";
+import { ProductVariationsBuilder, type Variant, type ProductOption } from "@/components/seller/ProductVariationsBuilder";
 
 type ApiErrorShape = {
   response?: {
@@ -27,12 +29,6 @@ function firstErrorMessage(error: unknown, fallback: string): string {
   return err.response?.data?.message ?? err.message ?? fallback;
 }
 
-function revokeIfObjectUrl(url: string | null) {
-  if (url?.startsWith("blob:")) {
-    URL.revokeObjectURL(url);
-  }
-}
-
 export default function NewProductPage() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
@@ -47,13 +43,11 @@ export default function NewProductPage() {
     price: "",
     weight_kg: "1",
     status: "active" as "draft" | "active",
-    primary_image_url: "",
   });
-  const [uploading, setUploading] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => () => revokeIfObjectUrl(imagePreview), [imagePreview]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [productOptions, setProductOptions] = useState<ProductOption[]>([]);
+  const [productVariants, setProductVariants] = useState<Variant[]>([]);
 
   const init = useCallback(async () => {
     setLoading(true);
@@ -81,45 +75,6 @@ export default function NewProductPage() {
     init();
   }, [init, router]);
 
-  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 8 * 1024 * 1024) {
-      setError("حجم الصورة يجب أن يكون أقل من 8 ميقابايت");
-      return;
-    }
-
-    const objectUrl = URL.createObjectURL(file);
-    setImagePreview((current) => {
-      revokeIfObjectUrl(current);
-      return objectUrl;
-    });
-    setUploading(true);
-    setError(null);
-    try {
-      const { data } = await uploadApi.uploadStoreProductImage(file);
-      setForm((f) => ({ ...f, primary_image_url: data.secure_url }));
-    } catch (e: unknown) {
-      setError(firstErrorMessage(e, "تعذّر رفع الصورة حالياً. حاول مرة أخرى."));
-      setImagePreview((current) => {
-        revokeIfObjectUrl(current);
-        return null;
-      });
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const removeImage = () => {
-    setForm((f) => ({ ...f, primary_image_url: "" }));
-    setImagePreview((current) => {
-      revokeIfObjectUrl(current);
-      return null;
-    });
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
-
   const submit = async () => {
     setSaving(true);
     setError(null);
@@ -145,16 +100,16 @@ export default function NewProductPage() {
         weight: Number(form.weight_kg) > 0 ? Number(form.weight_kg) : 1,
         status: form.status,
         product_type: "physical",
+        images: media.map((m) => ({ url: m.url, is_primary: m.is_primary })),
+        variants: productVariants.length > 0
+          ? productVariants.map((v) => ({
+              name: v.name,
+              price: Number(v.price) || numericPrice,
+              option_values: v.option_values,
+              stock_quantity: 0,
+            }))
+          : undefined,
       };
-
-      if (form.primary_image_url.trim()) {
-        payload.images = [
-          {
-            url: form.primary_image_url.trim(),
-            is_primary: true,
-          },
-        ];
-      }
 
       await sellerApi.createProduct(payload);
       router.push("/dashboard/products");
@@ -194,7 +149,7 @@ export default function NewProductPage() {
           </Link>
         }
       >
-        <div className="mx-auto max-w-xl space-y-6">
+        <div className="mx-auto max-w-xl space-y-6 pb-20">
           <div className="space-y-4 rounded-2xl border border-zinc-100 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 shadow-sm">
             <div className="space-y-1.5">
               <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">اسم المنتج</label>
@@ -206,100 +161,86 @@ export default function NewProductPage() {
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">السعر (ر.س)</label>
-              <input
-                required
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.price}
-                onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">السعر (ر.س)</label>
+                <input
+                  required
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={form.price}
+                  onChange={(e) => setForm((f) => ({ ...f, price: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">الوزن للشحن (كجم)</label>
+                <input
+                  type="number"
+                  min="0.01"
+                  step="0.01"
+                  value={form.weight_kg}
+                  onChange={(e) => setForm((f) => ({ ...f, weight_kg: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">الوزن للشحن (كجم)</label>
-              <input
-                type="number"
-                min="0.01"
-                step="0.01"
-                value={form.weight_kg}
-                onChange={(e) => setForm((f) => ({ ...f, weight_kg: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">الحالة</label>
-              <select
-                value={form.status}
-                onChange={(e) =>
-                  setForm((f) => ({
-                    ...f,
-                    status: e.target.value === "draft" ? "draft" : "active",
-                  }))
-                }
-                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
-              >
-                <option value="active">نشط</option>
-                <option value="draft">مسودة</option>
-              </select>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">SKU (اختياري)</label>
-              <input
-                value={form.sku}
-                onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
-                className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">صورة المنتج</label>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/heic,image/heif"
-                onChange={handleFileSelect}
-                className="hidden"
-              />
-              {imagePreview || form.primary_image_url ? (
-                <div className="relative w-full aspect-square max-w-[200px] rounded-xl overflow-hidden border border-gray-200 dark:border-zinc-700">
-                  <img
-                    src={imagePreview || form.primary_image_url}
-                    alt="معاينة"
-                    className="w-full h-full object-cover"
-                  />
-                  {uploading && (
-                    <div className="absolute inset-0 bg-white/70 flex items-center justify-center">
-                      <div className="h-6 w-6 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin" />
-                    </div>
-                  )}
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="absolute top-1 left-1 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
-                  >
-                    <XIcon className="w-3 h-3" />
-                  </button>
-                </div>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="w-full flex flex-col items-center gap-2 rounded-xl border-2 border-dashed border-gray-300 dark:border-zinc-700 py-8 text-gray-400 dark:text-zinc-500 hover:border-emerald-400 dark:hover:border-emerald-600 hover:text-emerald-600 dark:hover:text-emerald-400 transition"
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">الحالة</label>
+                <select
+                  value={form.status}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      status: e.target.value === "draft" ? "draft" : "active",
+                    }))
+                  }
+                  className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
                 >
-                  <Upload className="w-8 h-8" />
-                  <span className="text-sm">اضغط لاختيار صورة من جهازك</span>
-                  <span className="text-[10px]">JPG, PNG, WebP — حتى 8 ميقابايت</span>
-                </button>
-              )}
+                  <option value="active">نشط</option>
+                  <option value="draft">مسودة</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">SKU (اختياري)</label>
+                <input
+                  value={form.sku}
+                  onChange={(e) => setForm((f) => ({ ...f, sku: e.target.value }))}
+                  className="w-full rounded-xl border border-gray-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 px-4 py-2.5 text-sm text-zinc-900 dark:text-zinc-100"
+                />
+              </div>
             </div>
 
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 pt-2">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">صور وفيديوهات المنتج</label>
+                <span className="text-[11px] text-gray-400">حتى 10 صور، 2 فيديو</span>
+              </div>
+              <ProductMediaUploader media={media} setMedia={setMedia} />
+            </div>
+
+            <div className="space-y-1.5 pt-4">
+              <div className="flex items-center justify-between mb-2">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900 dark:text-zinc-100">خيارات المتغيرات</h3>
+                  <p className="text-xs text-gray-500 mt-0.5">خصص المتغيرات المتاحة لهذا المنتج (مثل المقاسات أو الألوان).</p>
+                </div>
+              </div>
+              <ProductVariationsBuilder
+                basePrice={form.price}
+                options={productOptions}
+                setOptions={setProductOptions}
+                variants={productVariants}
+                setVariants={setProductVariants}
+              />
+            </div>
+
+            <div className="space-y-1.5 pt-2">
               <label className="text-sm font-medium text-gray-700 dark:text-zinc-300">الوصف</label>
               <textarea
                 rows={3}
