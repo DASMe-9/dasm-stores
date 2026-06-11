@@ -82,6 +82,15 @@ export function ProductPurchaseSection({
       ? Number(selectedVariant.price)
       : basePrice;
 
+  // Defensive stock guard: the listing already hides out_of_stock products, but
+  // a product can sell out while this (ISR) page is open — block "add to cart"
+  // and tell the customer instead of letting a sold-out item into the cart.
+  const outOfStock =
+    product.status === "out_of_stock" ||
+    (product.track_stock === true &&
+      product.stock_quantity != null &&
+      Number(product.stock_quantity) <= 0);
+
   const addItem = useCartStore((s) => s.addItem);
   const openDrawer = useCartStore((s) => s.openDrawer);
   const ensureStoreSlug = useCartStore((s) => s.ensureStoreSlug);
@@ -89,6 +98,7 @@ export function ProductPurchaseSection({
   const primaryImage = productImageUrl(product) ?? undefined;
 
   function handleAdd() {
+    if (outOfStock) return;
     ensureStoreSlug(slug);
     // If there are options but no matching variant is found (unavailable combination)
     if (options.length > 0 && !selectedVariant) {
@@ -209,14 +219,17 @@ export function ProductPurchaseSection({
         <button
           type="button"
           onClick={handleAdd}
-          disabled={options.length > 0 && !selectedVariant}
-          className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] hover:shadow-2xl sm:w-auto sm:min-w-[240px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
+          disabled={outOfStock || (options.length > 0 && !selectedVariant)}
+          aria-disabled={outOfStock || (options.length > 0 && !selectedVariant)}
+          className="group relative flex w-full items-center justify-center gap-2 overflow-hidden rounded-2xl bg-primary py-4 text-base font-bold text-primary-foreground shadow-xl shadow-primary/20 transition-all hover:scale-[1.02] hover:shadow-2xl sm:w-auto sm:min-w-[240px] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 disabled:hover:shadow-xl"
         >
-          <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
-            <div className="relative h-full w-8 bg-white/20" />
-          </div>
+          {!outOfStock && (
+            <div className="absolute inset-0 flex h-full w-full justify-center [transform:skew(-12deg)_translateX(-100%)] group-hover:duration-1000 group-hover:[transform:skew(-12deg)_translateX(100%)]">
+              <div className="relative h-full w-8 bg-white/20" />
+            </div>
+          )}
           <ShoppingBag className="h-5 w-5 transition-transform group-hover:-translate-y-1" />
-          <span>أضف للسلة الآن</span>
+          <span>{outOfStock ? "نفد المخزون" : "أضف للسلة الآن"}</span>
         </button>
       </div>
     </div>
