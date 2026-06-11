@@ -70,7 +70,7 @@ export default async function StoreLayout({ children, params }: Props) {
     <>
       <StoreTrackingPixels config={data.marketing_tracking} />
       <StoreThemeApplier vars={vars} />
-      <div data-product-card-style={productCardStyle} data-store-slug={slug} className="store-front-root">
+      <div data-product-card-style={productCardStyle} data-store-slug={slug} className="store-front-root bg-background text-foreground min-h-screen">
         <StoreChrome slug={slug} whatsapp={store.contact_whatsapp} />
         <StoreHeader
           store={store}

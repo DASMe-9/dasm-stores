@@ -22,6 +22,8 @@ import {
   Sun,
   Truck,
   X,
+  User as UserIcon,
+  LogOut,
 } from "lucide-react";
 import { syncStoresTokenCookie } from "@/lib/auth-token";
 import { sellerApi, storeSelection } from "@/lib/api";
@@ -70,7 +72,7 @@ function getCurrentStoreUserId(): string | null {
   }
 }
 
-function sellerCacheKey(userId: string, field: "slug" | "name" | "status") {
+function sellerCacheKey(userId: string, field: "slug" | "name" | "status" | "themeColor") {
   return `store_${field}:${userId}`;
 }
 
@@ -163,6 +165,7 @@ export function SellerShell({
   storeSlug,
   storeName,
   storeStatus,
+  themeColor,
 }: {
   title: string;
   subtitle?: string;
@@ -173,6 +176,7 @@ export function SellerShell({
   storeSlug?: string;
   storeName?: string;
   storeStatus?: string;
+  themeColor?: string;
 }) {
   const router = useRouter();
   const pathname = router.pathname || "";
@@ -182,12 +186,14 @@ export function SellerShell({
   const [cachedSlug, setCachedSlug] = useState("");
   const [cachedName, setCachedName] = useState("");
   const [cachedStatus, setCachedStatus] = useState("");
+  const [cachedThemeColor, setCachedThemeColor] = useState("");
   const [stores, setStores] = useState<SellerStoreOption[]>([]);
   const [selectedStoreId, setSelectedStoreId] = useState("");
   const [storeOrigin, setStoreOrigin] = useState(STOREFRONT_ORIGIN);
   const resolvedSlug = storeSlug || cachedSlug;
   const resolvedName = storeName || cachedName;
   const resolvedStatus = storeStatus || cachedStatus;
+  const resolvedThemeColor = themeColor || cachedThemeColor;
 
   useEffect(() => {
     // Defer theme init to the next microtask so the first paint + hydration settle
@@ -212,11 +218,13 @@ export function SellerShell({
       const savedSlug = userId ? sessionStorage.getItem(sellerCacheKey(userId, "slug")) : null;
       const savedName = userId ? sessionStorage.getItem(sellerCacheKey(userId, "name")) : null;
       const savedStatus = userId ? sessionStorage.getItem(sellerCacheKey(userId, "status")) : null;
+      const savedThemeColor = userId ? sessionStorage.getItem(sellerCacheKey(userId, "themeColor")) : null;
       if (savedSlug && savedName && savedStatus) {
         if (!cancelled) {
           setCachedSlug(savedSlug);
           setCachedName(savedName);
           setCachedStatus(savedStatus);
+          if (savedThemeColor) setCachedThemeColor(savedThemeColor);
         }
         return;
       }
@@ -227,14 +235,17 @@ export function SellerShell({
           if (cancelled || !data?.store?.slug) return;
           const name = getStoreDisplayName(data.store);
           const status = data.store.status || "";
+          const color = typeof data.store.theme_config?.primary_color === 'string' ? data.store.theme_config.primary_color : "";
           setCachedSlug(data.store.slug);
           setCachedName(name);
           setCachedStatus(status);
+          setCachedThemeColor(color);
           const resolvedUserId = getCurrentStoreUserId();
           if (resolvedUserId) {
             sessionStorage.setItem(sellerCacheKey(resolvedUserId, "slug"), data.store.slug);
             sessionStorage.setItem(sellerCacheKey(resolvedUserId, "name"), name);
             sessionStorage.setItem(sellerCacheKey(resolvedUserId, "status"), status);
+            sessionStorage.setItem(sellerCacheKey(resolvedUserId, "themeColor"), color);
           }
         })
         .catch(() => {});
@@ -267,14 +278,17 @@ export function SellerShell({
           if (selectedStore?.slug) {
             const name = getStoreDisplayName(selectedStore);
             const status = selectedStore.status || "";
+            const color = typeof (selectedStore as any).theme_config?.primary_color === 'string' ? (selectedStore as any).theme_config.primary_color : "";
             setCachedSlug(selectedStore.slug);
             setCachedName(name);
             setCachedStatus(status);
+            if (color) setCachedThemeColor(color);
             const resolvedUserId = getCurrentStoreUserId();
             if (resolvedUserId) {
               sessionStorage.setItem(sellerCacheKey(resolvedUserId, "slug"), selectedStore.slug);
               sessionStorage.setItem(sellerCacheKey(resolvedUserId, "name"), name);
               sessionStorage.setItem(sellerCacheKey(resolvedUserId, "status"), status);
+              sessionStorage.setItem(sellerCacheKey(resolvedUserId, "themeColor"), color);
             }
           }
         } else {
@@ -398,9 +412,14 @@ export function SellerShell({
                 معاينة المتجر
               </a>
             )}
-            {resolvedSlug && resolvedStatus && resolvedStatus !== "active" ? (
+            {resolvedSlug && resolvedStatus && resolvedStatus === "draft" ? (
               <div className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
-                المتجر غير منشور بعد
+                المتجر مسودة
+              </div>
+            ) : null}
+            {resolvedSlug && resolvedStatus && resolvedStatus === "suspended" ? (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-200">
+                المتجر معلق
               </div>
             ) : null}
             {!hasStore && (
@@ -444,8 +463,38 @@ export function SellerShell({
   );
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 rtl flex">
-      <aside className="hidden w-[260px] shrink-0 border-l border-emerald-200/50 dark:border-zinc-800 bg-gradient-to-b from-emerald-50 via-teal-50/60 to-white dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 lg:block lg:sticky lg:top-0 lg:h-screen lg:shadow-[4px_0_32px_-8px_rgba(16,185,129,0.12)]">
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 rtl flex seller-dashboard-root">
+      {resolvedThemeColor ? (
+        <style dangerouslySetInnerHTML={{ __html: `
+          .seller-dashboard-root {
+             --color-emerald-50: color-mix(in srgb, ${resolvedThemeColor} 5%, white);
+             --color-emerald-100: color-mix(in srgb, ${resolvedThemeColor} 10%, white);
+             --color-emerald-200: color-mix(in srgb, ${resolvedThemeColor} 20%, white);
+             --color-emerald-300: color-mix(in srgb, ${resolvedThemeColor} 30%, white);
+             --color-emerald-400: color-mix(in srgb, ${resolvedThemeColor} 50%, white);
+             --color-emerald-500: color-mix(in srgb, ${resolvedThemeColor} 80%, white);
+             --color-emerald-600: ${resolvedThemeColor};
+             --color-emerald-700: color-mix(in srgb, ${resolvedThemeColor} 80%, black);
+             --color-emerald-800: color-mix(in srgb, ${resolvedThemeColor} 60%, black);
+             --color-emerald-900: color-mix(in srgb, ${resolvedThemeColor} 40%, black);
+             --color-emerald-950: color-mix(in srgb, ${resolvedThemeColor} 20%, black);
+          }
+          .dark .seller-dashboard-root {
+             --color-emerald-50: color-mix(in srgb, ${resolvedThemeColor} 10%, black);
+             --color-emerald-100: color-mix(in srgb, ${resolvedThemeColor} 20%, black);
+             --color-emerald-200: color-mix(in srgb, ${resolvedThemeColor} 30%, black);
+             --color-emerald-300: color-mix(in srgb, ${resolvedThemeColor} 40%, black);
+             --color-emerald-400: color-mix(in srgb, ${resolvedThemeColor} 60%, black);
+             --color-emerald-500: color-mix(in srgb, ${resolvedThemeColor} 80%, black);
+             --color-emerald-600: ${resolvedThemeColor};
+             --color-emerald-700: color-mix(in srgb, ${resolvedThemeColor} 80%, white);
+             --color-emerald-800: color-mix(in srgb, ${resolvedThemeColor} 60%, white);
+             --color-emerald-900: color-mix(in srgb, ${resolvedThemeColor} 40%, white);
+             --color-emerald-950: color-mix(in srgb, ${resolvedThemeColor} 20%, white);
+          }
+        ` }} />
+      ) : null}
+      <aside className="hidden w-[260px] shrink-0 border-l border-emerald-200/50 dark:border-zinc-800 bg-gradient-to-b from-emerald-50 via-teal-50 to-white dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 lg:block lg:sticky lg:top-0 lg:h-screen lg:shadow-[4px_0_32px_-8px_rgba(16,185,129,0.12)]">
         {sidebarInner}
       </aside>
 
@@ -459,11 +508,11 @@ export function SellerShell({
       ) : null}
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 w-[min(86vw,280px)] transform bg-gradient-to-b from-emerald-50 via-teal-50/60 to-white dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 shadow-xl transition-transform duration-200 lg:hidden ${
+        className={`fixed inset-y-0 right-0 z-50 flex flex-col h-full w-[min(86vw,280px)] transform bg-gradient-to-b from-emerald-50 via-teal-50 to-white dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 shadow-2xl transition-transform duration-200 lg:hidden ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex justify-end border-b border-emerald-200/40 dark:border-zinc-800 p-2">
+        <div className="flex shrink-0 justify-end border-b border-emerald-200/40 dark:border-zinc-800 p-2">
           <button
             type="button"
             onClick={() => setDrawerOpen(false)}
@@ -473,7 +522,9 @@ export function SellerShell({
             <X className="h-5 w-5" />
           </button>
         </div>
-        {sidebarInner}
+        <div className="flex-1 overflow-hidden">
+          {sidebarInner}
+        </div>
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -486,9 +537,10 @@ export function SellerShell({
           >
             <Menu className="h-5 w-5" />
           </button>
-          {actions ? (
-            <div className="flex items-center gap-2">{actions}</div>
-          ) : null}
+          <div className="flex items-center gap-3">
+            {actions ? <div className="flex items-center gap-2">{actions}</div> : null}
+            <UserDropdown />
+          </div>
         </header>
 
         <main className="flex-1 px-4 py-6 md:px-8 md:py-8">
@@ -512,11 +564,77 @@ export function SellerShell({
                 </div>
               </div>
             </div>
-            {actions ? <div className="shrink-0">{actions}</div> : null}
+            <div className="flex shrink-0 items-center gap-4">
+              {actions ? <div>{actions}</div> : null}
+              <UserDropdown />
+            </div>
           </div>
           {children}
         </main>
       </div>
+    </div>
+  );
+}
+
+function UserDropdown() {
+  const [open, setOpen] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("stores_token");
+    localStorage.removeItem("stores_user");
+    window.location.href = "/auth/login";
+  };
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900 transition shadow-sm"
+      >
+        <UserIcon className="h-5 w-5" />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 top-full mt-2 w-52 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 z-50 overflow-hidden">
+            <Link
+              href="/dashboard/settings"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-emerald-300 transition"
+            >
+              <Settings className="h-4 w-4" />
+              إعدادات المتجر
+            </Link>
+            <Link
+              href="/dashboard/products"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-emerald-300 transition"
+            >
+              <Package className="h-4 w-4" />
+              المنتجات
+            </Link>
+            <Link
+              href="/dashboard/orders"
+              onClick={() => setOpen(false)}
+              className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-zinc-700 hover:bg-emerald-50 hover:text-emerald-800 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-emerald-300 transition"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              الطلبات
+            </Link>
+            <div className="my-1 h-px bg-zinc-100 dark:bg-zinc-800" />
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950/30 transition"
+            >
+              <LogOut className="h-4 w-4" />
+              تسجيل الخروج
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
