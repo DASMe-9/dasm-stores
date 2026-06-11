@@ -238,6 +238,10 @@ export type StoreProductDetail = StoreProductCard & {
   category?: { id: number; name: string; slug: string } | null;
   tab?: { id: number; name: string; slug: string } | null;
   reviews?: StoreReview[];
+  // Stock state — public detail returns the raw product, so these are present.
+  status?: string | null;
+  track_stock?: boolean | null;
+  stock_quantity?: number | null;
 };
 
 async function parseJson<T>(res: Response): Promise<T> {

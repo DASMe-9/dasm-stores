@@ -30,6 +30,15 @@ export function ProductPurchaseSection({
       ? Number(selected.price)
       : basePrice;
 
+  // Defensive stock guard: the listing already hides out_of_stock products, but
+  // a product can sell out while this (ISR) page is open — block "add to cart"
+  // and tell the customer instead of letting a sold-out item into the cart.
+  const outOfStock =
+    product.status === "out_of_stock" ||
+    (product.track_stock === true &&
+      product.stock_quantity != null &&
+      Number(product.stock_quantity) <= 0);
+
   const addItem = useCartStore((s) => s.addItem);
   const openDrawer = useCartStore((s) => s.openDrawer);
   const ensureStoreSlug = useCartStore((s) => s.ensureStoreSlug);
@@ -37,6 +46,7 @@ export function ProductPurchaseSection({
   const primaryImage = productImageUrl(product) ?? undefined;
 
   function handleAdd() {
+    if (outOfStock) return;
     ensureStoreSlug(slug);
     addItem({
       productId: product.id,
@@ -94,11 +104,13 @@ export function ProductPurchaseSection({
       <button
         type="button"
         onClick={handleAdd}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-[var(--primary-foreground)] shadow-sm transition hover:opacity-95 sm:w-auto sm:min-w-[200px]"
-        style={{ backgroundColor: "var(--primary)" }}
+        disabled={outOfStock}
+        aria-disabled={outOfStock}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl py-3 text-sm font-bold text-[var(--primary-foreground)] shadow-sm transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:opacity-60 sm:w-auto sm:min-w-[200px]"
+        style={{ backgroundColor: outOfStock ? "var(--muted-foreground)" : "var(--primary)" }}
       >
         <ShoppingBag className="h-4 w-4" />
-        أضف للسلة
+        {outOfStock ? "نفد المخزون" : "أضف للسلة"}
       </button>
     </div>
   );
