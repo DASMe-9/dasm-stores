@@ -2,6 +2,7 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
+import { isAxiosError } from "axios";
 import {
   ArrowRight,
   CheckCircle2,
@@ -30,6 +31,8 @@ type ImportConnection = {
   provider: string;
   external_store_id?: string | null;
   connected?: boolean;
+  token_status?: "connected" | "expired" | "needs_reconnect" | "not_connected" | string | null;
+  token_expires_at?: string | null;
   last_sync_at?: string | null;
   last_sync_status?: string | null;
   last_sync_message?: string | null;
@@ -44,8 +47,39 @@ type ImportConnection = {
 type ImportStatusResponse = {
   connections?: ImportConnection[];
   salla_configured?: boolean;
+  salla_config?: {
+    configured?: boolean;
+    missing_config?: string[];
+    redirect_uri?: string | null;
+    required_config?: string[];
+  };
   shopify_configured?: boolean;
 };
+
+function apiErrorMessage(error: unknown, fallback: string): string {
+  if (isAxiosError(error)) {
+    const body = error.response?.data as { message?: string; missing_config?: string[] } | undefined;
+    if (body?.missing_config && body.missing_config.length > 0) {
+      return `${body.message ?? fallback} Missing: ${body.missing_config.join(", ")}`;
+    }
+    if (body?.message) {
+      return body.message;
+    }
+  }
+
+  return fallback;
+}
+
+function sallaStatusLabel(connection?: ImportConnection): string {
+  if (!connection?.connected) return "غير مربوط";
+  if (connection.token_status === "expired") return "Token expired";
+  if (connection.token_status === "needs_reconnect") return "Needs reconnect";
+  return "متصل";
+}
+
+function sallaImportInProgress(connection?: ImportConnection): boolean {
+  return Boolean(connection?.recent_runs?.some((run) => run.status === "running"));
+}
 
 function statusLabel(status?: string | null): string {
   switch (status) {
@@ -95,6 +129,10 @@ function DashboardImportPage() {
 
   const sallaConnection = data?.connections?.find((c) => c.provider === "salla");
   const shopifyConnection = data?.connections?.find((c) => c.provider === "shopify");
+  const sallaConfig = data?.salla_config;
+  const sallaMissingConfig = sallaConfig?.missing_config ?? [];
+  const sallaNeedsReconnect = sallaConnection?.token_status === "needs_reconnect";
+  const sallaRunning = sallaImportInProgress(sallaConnection) || busy === "import";
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -190,8 +228,9 @@ function DashboardImportPage() {
       const url = (res.data as { authorize_url?: string }).authorize_url;
       if (!url) throw new Error("missing authorize_url");
       window.location.href = url;
-    } catch {
-      setFlash("تعذّر بدء ربط Salla. تأكد أن الخدمة مفعّلة على المنصة.");
+    } catch (error) {
+      setFlashTone("error");
+      setFlash(apiErrorMessage(error, "Unable to start Salla connection."));
       setBusy(null);
     }
   }
@@ -204,9 +243,10 @@ function DashboardImportPage() {
       const res = await sellerApi.previewSallaImport({ limit: 200 });
       const payload = (res.data as { data?: ImportPreview }).data;
       setPreview(payload ?? null);
-    } catch {
-      setFlash("تعذّرت معاينة المنتجات. تأكد أن Salla مربوطة.");
-    } finally {
+      setBusy(null);
+    } catch (error) {
+      setFlashTone("error");
+      setFlash(apiErrorMessage(error, "Unable to preview Salla products."));
       setBusy(null);
     }
   }
@@ -218,9 +258,10 @@ function DashboardImportPage() {
       await sellerApi.runSallaImport({ limit: 200 });
       setFlash("بدأ استيراد المنتجات في الخلفية. حدّث الصفحة بعد دقيقة.");
       await load();
-    } catch {
-      setFlash("تعذّر بدء الاستيراد. تأكد أن Salla مربوطة.");
-    } finally {
+      setBusy(null);
+    } catch (error) {
+      setFlashTone("error");
+      setFlash(apiErrorMessage(error, "Unable to start Salla import."));
       setBusy(null);
     }
   }
@@ -419,27 +460,41 @@ function DashboardImportPage() {
                 <p className="mt-1 text-sm text-zinc-600 dark:text-zinc-400">
                   OAuth آمن — لا نخزّن كلمة مرور Salla. الاستيراد الأولي للمنتجات والصور.
                 </p>
+                <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
+                  Invite Salla Merchant: Each Salla merchant must connect their own store to authorize DASM to import their products.
+                </p>
               </div>
               <span
                 className={[
                   "rounded-full px-3 py-1 text-xs font-semibold",
-                  sallaConnection?.connected
+                  sallaConnection?.connected && !sallaNeedsReconnect
                     ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
+                    : sallaNeedsReconnect
+                      ? "bg-amber-100 text-amber-900 dark:bg-amber-950/40 dark:text-amber-100"
                     : "bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300",
                 ].join(" ")}
               >
-                {loading ? "…" : sallaConnection?.connected ? "متصل" : "غير مربوط"}
+                {loading ? "..." : sallaRunning ? "Import in progress" : sallaStatusLabel(sallaConnection)}
               </span>
             </div>
 
-            {!loading && data?.salla_configured === false && (
-              <p className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
-                ربط Salla غير مفعّل على الخادم بعد. سجّل تطبيق Salla على Render ثم أعد المحاولة.
-              </p>
+            {!loading && sallaConfig?.configured === false && (
+              <div className="mt-4 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+                <p className="font-semibold">Salla server configuration is incomplete.</p>
+                <p className="mt-1">Missing server config: {sallaMissingConfig.length > 0 ? sallaMissingConfig.join(", ") : "unknown"}</p>
+                <p className="mt-1 text-xs">Set the missing keys on the API server/Render and make sure the Salla Partner redirect URI matches {sallaConfig?.redirect_uri ?? "the configured callback URL"}.</p>
+              </div>
             )}
 
             {sallaConnection?.connected && (
               <dl className="mt-4 grid gap-2 text-sm text-zinc-700 dark:text-zinc-300">
+                <div>
+                  <dt className="inline font-medium">Connection status: </dt>
+                  <dd className="inline">{sallaStatusLabel(sallaConnection)}</dd>
+                </div>
+                {sallaRunning && (
+                  <div className="text-emerald-700 dark:text-emerald-300">Import in progress</div>
+                )}
                 {sallaConnection.settings?.external_name && (
                   <div>
                     <dt className="inline font-medium">المتجر: </dt>
@@ -462,15 +517,15 @@ function DashboardImportPage() {
             )}
 
             <div className="mt-6 flex flex-wrap gap-3">
-              {!sallaConnection?.connected ? (
+              {!sallaConnection?.connected || sallaNeedsReconnect ? (
                 <button
                   type="button"
-                  disabled={busy !== null || data?.salla_configured === false}
+                  disabled={busy !== null || sallaConfig?.configured === false}
                   onClick={() => void connectSalla()}
                   className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50"
                 >
                   <Link2 className="h-4 w-4" />
-                  {busy === "connect" ? "جاري التحويل…" : "ربط Salla"}
+                  {busy === "connect" ? "Redirecting..." : sallaNeedsReconnect ? "Reconnect Salla" : "Connect Salla"}
                 </button>
               ) : (
                 <>
