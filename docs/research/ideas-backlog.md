@@ -6,6 +6,7 @@
 |---------|--------|--------|---------------|----------|--------|
 | 2026-06-11 | competitors/2026-26 | **sold-out في listing pages:** منتجات نافدة تبقى ظاهرة في شبكة ISR حتى انتهاء cache (120ث). Shopify/Salla يُخفونها فور البيع عبر webhook+revalidation. قد يتسبب في تجربة سيئة لمتسوق ينقر منتجاً نافداً. | `app/page.tsx` + `app/api/` (webhook endpoint جديد) | 🟡 متوسطة | مؤجلة |
 | 2026-06-12 | competitors/2026-27 | **sold-out overlay على بطاقة المنتج (store pages):** `components/product/ProductCard.tsx` لا يُظهر أي مؤشر بصري للمنتج النافد في شبكة المنتجات. المتسوق يُضغط على بطاقة منتج نافد دون أي إنذار مسبق. الإصلاح: overlay نصي "نفد" أو تعتيم البطاقة عند `product.stock === 0`. | `components/product/ProductCard.tsx` | 🟡 متوسطة | مؤجلة |
+| 2026-06-13 | competitors/2026-28 | **Wishlist header badge count:** Salla wishlist page guide يكشف أن المفضلة الكاملة تتطلب badge عداد على أيقونة القلب في الـ header. المفضلة الراهنة (specs المعلّقة) تعتمد localStorage — تحويلها إلى context/state مشترك يتيح عرض count في `components/home/HomeHeaderActions.tsx` وأيضاً في `components/store/StoreChrome.tsx`. | `components/home/HomeHeaderActions.tsx` + مكوّن WishlistContext جديد | 🟡 متوسطة | مؤجلة |
 
 ---
 
