@@ -6,7 +6,6 @@ import axios, { isAxiosError } from "axios";
 import {
   AlertCircle,
   ArrowLeft,
-  Building2,
   CheckCircle2,
   ClipboardList,
   Eye,
@@ -84,11 +83,8 @@ type SignupFormState = {
   referral_code: string;
   area_id: string;
   account_type: AccountType;
-  company_name: string;
-  commercial_registry: string;
   address: string;
   password: string;
-  password_confirmation: string;
 };
 
 type ApiErrorBody = {
@@ -153,11 +149,8 @@ const initialForm: SignupFormState = {
   referral_code: "",
   area_id: "",
   account_type: "venue_owner",
-  company_name: "",
-  commercial_registry: "",
   address: "",
   password: "",
-  password_confirmation: "",
 };
 
 const errorPriority = [
@@ -167,8 +160,6 @@ const errorPriority = [
   "middle_name",
   "last_name",
   "password",
-  "company_name",
-  "commercial_registry",
   "address",
   "area_id",
   "referral_code",
@@ -184,7 +175,6 @@ export default function SignupPage() {
   const [gpsError, setGpsError] = useState("");
   const [gpsLocation, setGpsLocation] = useState<SignupLocation | null>(null);
   const [showPassword, setShowPassword] = useState(false);
-  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -383,15 +373,6 @@ export default function SignupPage() {
     if (form.password.length < 8) {
       return "كلمة المرور يجب أن تكون 8 أحرف على الأقل.";
     }
-    if (form.password !== form.password_confirmation) {
-      return "كلمتا المرور غير متطابقتين.";
-    }
-    if (form.company_name.trim().length < 3) {
-      return "اسم المتجر مطلوب ويجب أن يكون 3 أحرف على الأقل.";
-    }
-    if (form.commercial_registry.trim().length < 5) {
-      return "رقم السجل التجاري مطلوب ويجب أن يكون 5 أحرف على الأقل.";
-    }
     if (form.address.trim().length < 5) {
       return "عنوان المتجر مطلوب ويجب أن يكون 5 أحرف على الأقل.";
     }
@@ -421,15 +402,12 @@ export default function SignupPage() {
       email_confirmation: normalizeEmail(form.email),
       phone: `+${PHONE_PREFIX}${form.phone}`,
       password: form.password,
-      password_confirmation: form.password_confirmation,
       account_type: form.account_type,
       product_context: "stores",
       return_url: returnUrl,
       area_id: form.area_id || undefined,
       area_label: selectedAreaLabel,
       referral_code: form.referral_code.trim().toUpperCase() || undefined,
-      company_name: form.company_name.trim(),
-      commercial_registry: form.commercial_registry.trim(),
       address: form.address.trim(),
     };
 
@@ -705,33 +683,6 @@ export default function SignupPage() {
                   </Field>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field
-                    id="company_name"
-                    label="اسم المتجر"
-                    icon={<Building2 className="h-4 w-4" />}
-                  >
-                    <input
-                      id="company_name"
-                      value={form.company_name}
-                      onChange={(event) => updateField("company_name", event.target.value)}
-                      required
-                      className={inputClassName}
-                    />
-                  </Field>
-
-                  <Field id="commercial_registry" label="السجل التجاري" icon={<ClipboardList className="h-4 w-4" />}>
-                    <input
-                      id="commercial_registry"
-                      dir="ltr"
-                      value={form.commercial_registry}
-                      onChange={(event) => updateField("commercial_registry", event.target.value.replace(/\s+/g, ""))}
-                      required
-                      className={inputClassName}
-                    />
-                  </Field>
-                </div>
-
                 <Field id="address" label="عنوان المتجر" icon={<MapPin className="h-4 w-4" />}>
                   <input
                     id="address"
@@ -743,29 +694,16 @@ export default function SignupPage() {
                   />
                 </Field>
 
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Field id="password" label="كلمة المرور" icon={<LockKeyhole className="h-4 w-4" />}>
-                    <PasswordInput
-                      id="password"
-                      value={form.password}
-                      autoComplete="new-password"
-                      show={showPassword}
-                      onChange={(value) => updateField("password", value)}
-                      onToggle={() => setShowPassword((current) => !current)}
-                    />
-                  </Field>
-
-                  <Field id="password_confirmation" label="تأكيد كلمة المرور" icon={<LockKeyhole className="h-4 w-4" />}>
-                    <PasswordInput
-                      id="password_confirmation"
-                      value={form.password_confirmation}
-                      autoComplete="new-password"
-                      show={showPasswordConfirm}
-                      onChange={(value) => updateField("password_confirmation", value)}
-                      onToggle={() => setShowPasswordConfirm((current) => !current)}
-                    />
-                  </Field>
-                </div>
+                <Field id="password" label="كلمة المرور" icon={<LockKeyhole className="h-4 w-4" />}>
+                  <PasswordInput
+                    id="password"
+                    value={form.password}
+                    autoComplete="new-password"
+                    show={showPassword}
+                    onChange={(value) => updateField("password", value)}
+                    onToggle={() => setShowPassword((current) => !current)}
+                  />
+                </Field>
 
                 {error && (
                   <StatusMessage tone="error" icon={<AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />}>
