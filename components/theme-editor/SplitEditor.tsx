@@ -14,6 +14,7 @@ import {
   Code2,
   ExternalLink,
   LayoutList,
+  Loader2,
   Plus,
   RotateCcw,
   Smartphone,
@@ -67,6 +68,7 @@ export function SplitEditor({
   activeSurface,
   onSurfaceChange,
   previewUrl,
+  onGenerate,
 }: {
   source: string;
   onSourceChange: (next: string) => void;
@@ -75,12 +77,32 @@ export function SplitEditor({
   activeSurface: ThemeSurface;
   onSurfaceChange: (surface: ThemeSurface) => void;
   previewUrl?: string;
+  /** Phase 3: description -> blocks. Throws an Error (message shown) on failure. */
+  onGenerate: (prompt: string) => Promise<void>;
 }) {
   const { blocks, errors } = useMemo(() => parseBlocks(source), [source]);
   const [editMode, setEditMode] = useState<EditMode>("code");
   const [previewMode, setPreviewMode] = useState<PreviewMode>("blocks");
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const insert = (snippet: string) => onSourceChange(`${source.trimEnd()}\n${snippet}\n`);
+
+  const runGenerate = async () => {
+    const prompt = aiPrompt.trim();
+    if (!prompt || aiLoading) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      await onGenerate(prompt);
+      setAiPrompt("");
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "تعذّر التوليد.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -155,14 +177,31 @@ export function SplitEditor({
             </div>
           ) : null}
 
-          {/* Phase 3 AI seam */}
-          <div className="flex items-center gap-2 border-t border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950">
-            <Sparkles className="h-4 w-4 text-emerald-500" />
-            <input
-              disabled
-              placeholder="صف ما تريد بالعربية والذكاء يولّد البلوكات… (قريباً)"
-              className="flex-1 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-[11px] text-zinc-400 dark:border-zinc-700 dark:bg-zinc-900"
-            />
+          {/* AI assist — description -> blocks (validated through the same pipeline) */}
+          <div className="border-t border-zinc-200 bg-zinc-50 px-3 py-2 dark:border-zinc-800 dark:bg-zinc-950">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4 shrink-0 text-emerald-500" />
+              <input
+                value={aiPrompt}
+                onChange={(e) => setAiPrompt(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") runGenerate();
+                }}
+                disabled={aiLoading}
+                placeholder="صف ما تريد بالعربية والذكاء يولّد البلوكات…"
+                className="flex-1 rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-[11px] text-zinc-700 outline-none focus:border-emerald-400 disabled:opacity-60 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200"
+              />
+              <button
+                type="button"
+                onClick={runGenerate}
+                disabled={aiLoading || !aiPrompt.trim()}
+                className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-[11px] font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {aiLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Sparkles className="h-3 w-3" />}
+                توليد
+              </button>
+            </div>
+            {aiError ? <p className="mt-1 text-[11px] text-red-600 dark:text-red-400">{aiError}</p> : null}
           </div>
         </section>
 

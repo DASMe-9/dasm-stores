@@ -94,7 +94,10 @@
 
 - **م١ (منفّذة):** محرّك البلوكات + الشاشتان + الرسم الفوري + لوحة الإدراج + استعادة الافتراضي + الحفظ.
 - **م٢ (منفّذة):** سطحان مستقلان (الواجهة + صفحة المنتجات) مع migration من شكل م١؛ تبويب بصري للسحب/الحذف/الترتيب (`BlockList`) متزامن مع الكود عبر دورة parse→serialize؛ منتجات المتجر الحقيقية في المعاينة (`sellerApi.getProducts`)؛ تبويب «المتجر الفعلي» = iframe على `storefrontUrl(preview)`.
-- **م٣:** مساعد Haiku مدمج: وصف عربي ← بلوكات صالحة فقط (مقيّد بالـ schema، لا HTML خام). رُفض اللصق الخارجي لأنه يعيد فتح XSS.
+- **م٣ (منفّذة):** مساعد Haiku مدمج — `pages/api/theme/generate.ts` يستدعي `claude-haiku-4-5` بـsystem prompt مُولّد من `describeBlocksForPrompt()` (يبقى متزامناً مع allowlist). **مخرجات النموذج تمرّ بنفس `parseBlocks → serializeBlocks`** فتُنقّى كأي كود مستخدم — لا سطح ثقة جديد. الواجهة: خانة وصف في `SplitEditor` ← `handleGenerate` يستدعي الـroute ويُلحق البلوكات بالسطح النشط. يتطلّب `ANTHROPIC_API_KEY` على Vercel (إن غاب: 503 ورسالة لطيفة). رُفض اللصق الخارجي لأنه يعيد فتح XSS.
+
+### مفتاح البيئة (م٣)
+`ANTHROPIC_API_KEY` على مشروع Vercel لـ`dasm-stores`. بدونه يعمل المحرّر كاملاً عدا زر التوليد (يرجع 503).
 
 ### تحديث التخزين (م٢)
 الوثيقة صارت سطحين: `theme_config.editor = { version: 2, surfaces: { landing, products } }`. `readBlockDocument` يُرحّل شكل م١ (`{version,source}`) إلى `surfaces.landing` تلقائياً.
