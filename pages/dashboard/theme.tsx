@@ -148,6 +148,12 @@ export default function StoreThemePage() {
                 32 قالباً مجانياً جاهزاً لقطاعات السيارات والتجزئة. التغييرات تُحفظ عبر API المنصة وتنعكس على واجهة
                 المتجر العامة فوراً بعد الحفظ.
               </p>
+              <Link
+                href="/dashboard/theme-editor"
+                className="mt-3 inline-flex items-center gap-1 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-bold text-white shadow hover:bg-emerald-700"
+              >
+                المحرّر المتقدّم — صمّم ببلوكات وكود
+              </Link>
             </div>
 
             {error ? (

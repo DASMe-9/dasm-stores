@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>محرّر ثيمات المتاجر — DASM</title>
+<style>
+  :root{--bg:#0b0f14;--card:#121821;--line:#1f2a37;--ink:#e6edf3;--muted:#9fb0c0;--brand:#10b981;--brand2:#34d399;--code:#0d1117;--warn:#f59e0b;--info:#60a5fa}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,"Segoe UI",Tahoma,sans-serif;line-height:1.7}
+  .wrap{max-width:1080px;margin:0 auto;padding:32px 20px 80px}
+  h1{font-size:30px;margin:0 0 6px}
+  .sub{color:var(--muted);margin:0 0 28px}
+  h2{font-size:20px;margin:40px 0 14px;border-right:3px solid var(--brand);padding-right:10px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:12px 0}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .pane{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-height:340px;display:flex;flex-direction:column}
+  .pane h3{margin:0;padding:10px 14px;font-size:13px;color:var(--muted);background:#0e141c;border-bottom:1px solid var(--line)}
+  pre{margin:0;padding:14px;direction:ltr;text-align:left;background:var(--code);color:#c9d1d9;font:12.5px/1.7 ui-monospace,Menlo,Consolas,monospace;overflow:auto;flex:1}
+  .tag{color:#7c83ff}.attr{color:#d2a8ff}.str{color:#7ee787}.cmt{color:#6e7681}.num{color:#f0883e}
+  .prev{flex:1;background:#fff;color:#18181b;font-size:12px}
+  .pv-nav{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:1px solid #e5e7eb}
+  .pv-ban{background:#111;color:#fff;text-align:center;font-size:10px;padding:5px}
+  .pv-hero{padding:26px 12px;text-align:center;color:#fff;background:linear-gradient(135deg,#10b981,#10b98122)}
+  .pv-hero b{font-size:16px}.pv-cta{display:inline-block;margin-top:8px;background:#fff;color:#111;font-size:10px;padding:4px 14px;border-radius:8px;font-weight:700}
+  .pv-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;padding:10px}
+  .pv-c{border:1px solid #e5e7eb;border-radius:8px;overflow:hidden}.pv-c .img{height:38px;background:#f1f5f9}.pv-c .t{padding:4px}.pv-c .p{color:#10b981;font-weight:700;font-size:9px}
+  .pv-ft{border-top:1px solid #e5e7eb;text-align:center;font-size:9px;color:#64748b;padding:8px}
+  .pill{display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);margin:2px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:right}th{background:#0e141c;color:var(--muted)}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .step{background:#0e141c;border:1px solid var(--line);border-radius:10px;padding:8px 12px;font-size:12px}
+  .step.bad{border-color:#7f1d1d;color:#fca5a5}.step.ok{border-color:#14532d;color:#86efac}.arrow{color:var(--muted)}
+  .phase{border-right:3px solid var(--info);padding:6px 12px;margin:8px 0;background:#0e141c;border-radius:0 10px 10px 0}
+  .done{border-color:var(--brand);color:var(--brand2)}
+  code{background:#0e141c;border:1px solid var(--line);border-radius:6px;padding:1px 6px;font-size:12px;color:#c9d1d9}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>محرّر ثيمات المتاجر</h1>
+  <p class="sub">Store Theme Block Editor — نمط Shopify · شاشتان · بلوكات آمنة · ذكاء مدمج · المرحلة ١ منفّذة</p>
+
+  <h2>الشاشتان</h2>
+  <div class="grid2">
+    <div class="pane">
+      <h3>◍ الكود — بلوكات جاهزة</h3>
+<pre><span class="cmt">{# عدّل أو احذف أي بلوك #}</span>
+<span class="tag">&lt;navbar</span> <span class="attr">logo links=</span><span class="str">"الرئيسية, المنتجات"</span> <span class="attr">sticky</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;banner</span> <span class="attr">text=</span><span class="str">"شحن مجاني فوق ٢٠٠ ر.س"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;hero</span> <span class="attr">title=</span><span class="str">"{{ store.name }}"</span>
+  <span class="attr">cta=</span><span class="str">"تسوّق الآن"</span> <span class="attr">style=</span><span class="str">"aurora"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;featured</span> <span class="attr">title=</span><span class="str">"الأكثر مبيعاً"</span> <span class="attr">limit=</span><span class="num">"4"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;product-grid</span> <span class="attr">cols=</span><span class="num">"3"</span> <span class="attr">sort=</span><span class="str">"newest"</span> <span class="tag">/&gt;</span>
+<span class="tag">&lt;footer</span> <span class="attr">terms=</span><span class="str">"الشروط والأحكام"</span> <span class="tag">/&gt;</span></pre>
+    </div>
+    <div class="pane">
+      <h3>◉ المعاينة المباشرة</h3>
+      <div class="prev">
+        <div class="pv-nav"><b>متجر داسم</b><span style="color:#94a3b8">الرئيسية · المنتجات · تواصل</span></div>
+        <div class="pv-ban">شحن مجاني فوق ٢٠٠ ر.س</div>
+        <div class="pv-hero"><b>شيرلي لايف</b><br /><span class="pv-cta">تسوّق الآن</span></div>
+        <div class="pv-grid">
+          <div class="pv-c"><div class="img"></div><div class="t"><div class="p">١٩٩ ر.س</div></div></div>
+          <div class="pv-c"><div class="img"></div><div class="t"><div class="p">٢٤٩ ر.س</div></div></div>
+          <div class="pv-c"><div class="img"></div><div class="t"><div class="p">٣٢٠ ر.س</div></div></div>
+        </div>
+        <div class="pv-ft">الشروط والأحكام · واتساب · إنستغرام</div>
+      </div>
+    </div>
+  </div>
+
+  <h2>أنواع البلوكات (allowlist)</h2>
+  <div class="card">
+    <span class="pill">navbar</span><span class="pill">banner</span><span class="pill">hero</span>
+    <span class="pill">richtext</span><span class="pill">featured</span><span class="pill">product-grid</span><span class="pill">footer</span>
+    <p style="color:var(--muted);margin:10px 0 0">البلوكات <b>بيانات لا كود</b>. لا تقييم JS/HTML/Liquid — الرسم جدول ثابت <code>BlockType → مكوّن React</code>.</p>
+  </div>
+
+  <h2>طبقات الأمان</h2>
+  <div class="card">
+    <div class="flow">
+      <span class="step bad">&lt;script&gt; · on*= · {% system %}</span>
+      <span class="arrow">←</span>
+      <span class="step">قائمة بيضاء</span>
+      <span class="arrow">←</span>
+      <span class="step">تنقية النص</span>
+      <span class="arrow">←</span>
+      <span class="step">تحقّق خادمي</span>
+      <span class="arrow">←</span>
+      <span class="step ok">JSON نظيف</span>
+    </div>
+    <table style="margin-top:14px">
+      <tr><th>الطبقة</th><th>الملف</th></tr>
+      <tr><td>لا مسار تنفيذ (وصف لا كود)</td><td><code>BlockRenderer.tsx</code></td></tr>
+      <tr><td>Allowlist للأنواع/الخصائص</td><td><code>schema.ts</code></td></tr>
+      <tr><td>تنقية script/on*/javascript:</td><td><code>sanitize.ts</code></td></tr>
+      <tr><td>تحقّق قبل الحفظ</td><td><code>parse.ts</code></td></tr>
+      <tr><td>عزل نطاق stores.dasm.com.sa + CSP</td><td>بنية النطاقات</td></tr>
+    </table>
+    <p style="color:var(--muted);margin:10px 0 0">أسوأ احتمال: ثيم قبيح في متجر صاحبه فقط — لا وصول للمنصة ولا الخادم.</p>
+  </div>
+
+  <h2>التخزين (إضافي)</h2>
+<pre style="border-radius:14px">{ <span class="attr">"preset_id"</span>: <span class="str">"..."</span>,
+  <span class="attr">"editor"</span>: { <span class="attr">"version"</span>: <span class="num">1</span>, <span class="attr">"source"</span>: <span class="str">"&lt;navbar/&gt;\n&lt;hero/&gt;"</span> } }</pre>
+  <p style="color:var(--muted)">داخل <code>store.theme_config.editor</code> — لا يكسر اكتشاف القوالب القديم. مسار الحفظ نفسه <code>PUT /my-store</code>.</p>
+
+  <h2>خطة المراحل</h2>
+  <div class="phase done"><b>م١ — منفّذة ✓</b> محرّك البلوكات + الشاشتان + الرسم الفوري + لوحة الإدراج + استعادة الافتراضي + الحفظ.</div>
+  <div class="phase"><b>م٢</b> زر iframe معاينة فعلية · سحب/حذف بصري · منتجات حقيقية في المعاينة · سطح ثانٍ لصفحة المنتجات.</div>
+  <div class="phase"><b>م٣</b> مساعد Haiku مدمج: وصف عربي ← بلوكات صالحة فقط (لا HTML خام).</div>
+</div>
+</body>
+</html>
