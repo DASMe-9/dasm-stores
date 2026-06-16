@@ -47,9 +47,13 @@ function clearStoresSession() {
   clearSellerSessionCache();
 }
 
+function hasNestedUser(value: { user?: AuthUser } | AuthUser): value is { user?: AuthUser } {
+  return typeof value === "object" && value !== null && "user" in value;
+}
+
 function extractUser(body: AuthMeResponse & AuthUser): AuthUser {
   if (body.data) {
-    if ("user" in body.data && body.data.user) return body.data.user;
+    if (hasNestedUser(body.data)) return body.data.user ?? {};
     return body.data;
   }
 
