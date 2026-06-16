@@ -3,7 +3,8 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import axios from "axios";
 import { platformApiOrigin } from "@/lib/platform-api-url";
-import { persistStoresToken } from "@/lib/auth-token";
+import { clearStoresToken, persistStoresToken } from "@/lib/auth-token";
+import { storeSelection } from "@/lib/api";
 
 const API_URL = platformApiOrigin();
 
@@ -17,7 +18,7 @@ type AuthUser = {
 };
 
 type AuthMeResponse = {
-  data?: { user?: AuthUser };
+  data?: { user?: AuthUser } | AuthUser;
   user?: AuthUser;
 };
 
@@ -39,8 +40,38 @@ function clearSellerSessionCache() {
     .forEach((key) => sessionStorage.removeItem(key));
 }
 
+function clearStoresSession() {
+  clearStoresToken();
+  localStorage.removeItem("stores_user");
+  storeSelection.clear();
+  clearSellerSessionCache();
+}
+
+function hasNestedUser(value: { user?: AuthUser } | AuthUser): value is { user?: AuthUser } {
+  return typeof value === "object" && value !== null && "user" in value;
+}
+
+function extractUser(body: AuthMeResponse & AuthUser): AuthUser {
+  if (body.data) {
+    if (hasNestedUser(body.data)) return body.data.user ?? {};
+    return body.data;
+  }
+
+  return body.user ?? body;
+}
+
 function normalizeReturnUrl(value: string) {
   return value.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
+}
+
+function selectedStoreIdFromReturnUrl(value: string) {
+  try {
+    const parsed = new URL(value, "https://stores.dasm.com.sa");
+    const storeId = parsed.searchParams.get("store_id");
+    return storeId && storeId.trim() ? storeId.trim() : null;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -48,8 +79,8 @@ function normalizeReturnUrl(value: string) {
  *
  * Flow: user on www.dasm.com.sa clicks "ادخل متاجر داسم" → redirected here with
  * ?token=<access_token>&return_url=/dashboard. We verify the token via
- * /api/auth/me, store it locally, then redirect. Only venue_owner / dealer /
- * admin roles are allowed to continue into the stores dashboard.
+ * /api/user, store it locally, then redirect. Store ownership is enforced by
+ * store APIs, so any authenticated Core user can enter the Stores surface.
  */
 export default function SsoHandoff() {
   const router = useRouter();
@@ -71,8 +102,7 @@ export default function SsoHandoff() {
 
     if (!token) {
       queueMicrotask(() => {
-        localStorage.removeItem("stores_token");
-        clearSellerSessionCache();
+        clearStoresSession();
         setError("لم يصل توكن صالح من المنصة.");
         redirectTimer = setTimeout(() => router.replace("/auth/login"), 2000);
       });
@@ -82,26 +112,19 @@ export default function SsoHandoff() {
     }
 
     window.history.replaceState({}, "", "/auth/sso");
-    clearSellerSessionCache();
+    clearStoresSession();
 
     (async () => {
       try {
-        const res = await axios.get<AuthMeResponse | AuthUser>(`${API_URL}/api/auth/me`, {
+        const res = await axios.get<AuthMeResponse | AuthUser>(`${API_URL}/api/user`, {
           headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
         });
         const body = res.data as AuthMeResponse & AuthUser;
-        const user = body.data?.user ?? body.user ?? body;
-        const role = (user?.type ?? user?.role ?? "").toString().toLowerCase();
-        const allowed = ["venue_owner", "dealer", "admin", "super_admin"];
-
-        if (!allowed.includes(role)) {
-          localStorage.removeItem("stores_token");
-          clearSellerSessionCache();
-          setError("حسابك ليس مخوّلاً لفتح متجر. يجب أن تكون صاحب معرض أو تاجر.");
-          return;
-        }
-
+        const user = extractUser(body);
+        const role = (user?.type ?? user?.role ?? "user").toString().toLowerCase();
+        const selectedStoreId = selectedStoreIdFromReturnUrl(returnUrl);
         persistStoresToken(token);
+        if (selectedStoreId) storeSelection.set(selectedStoreId);
         localStorage.setItem("stores_user", JSON.stringify({
           id: user?.id,
           name: user?.display_name ?? user?.name,
@@ -115,8 +138,7 @@ export default function SsoHandoff() {
         setStatus("تم التحقق، جاري التحويل...");
         router.replace(returnUrl);
       } catch (e: unknown) {
-        localStorage.removeItem("stores_token");
-        clearSellerSessionCache();
+        clearStoresSession();
         setError(getErrorMessage(e, "فشل التحقق من الجلسة."));
         redirectTimer = setTimeout(() => router.replace("/auth/login"), 2500);
       }
