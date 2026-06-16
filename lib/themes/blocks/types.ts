@@ -36,14 +36,26 @@ export type ParseResult = {
   errors: ParseError[];
 };
 
-/** Persisted shape inside `store.theme_config.editor`. */
-export type BlockDocument = {
-  version: number;
-  /** Serialized DSL source — source of truth the user edits. */
-  source: string;
+/** The two themeable storefront surfaces (Shopify-style). */
+export type ThemeSurface = "landing" | "products";
+
+export const THEME_SURFACES: ThemeSurface[] = ["landing", "products"];
+
+export const SURFACE_LABEL_AR: Record<ThemeSurface, string> = {
+  landing: "الواجهة",
+  products: "صفحة المنتجات",
 };
 
-export const BLOCK_EDITOR_VERSION = 1;
+/**
+ * Persisted shape inside `store.theme_config.editor`.
+ * Each surface holds its own serialized DSL source (the user-edited source of truth).
+ */
+export type BlockDocument = {
+  version: number;
+  surfaces: Record<ThemeSurface, string>;
+};
+
+export const BLOCK_EDITOR_VERSION = 2;
 
 /** Key under `theme_config` where the block document lives (additive, non-breaking). */
 export const BLOCK_DOC_CONFIG_KEY = "editor";

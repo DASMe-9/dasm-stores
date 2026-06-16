@@ -11,12 +11,20 @@ import type { CSSProperties } from "react";
 import { Heart, Menu, Search, ShoppingBag, Star } from "lucide-react";
 import type { Block, BlockAttrValue } from "@/lib/themes/blocks";
 
+export type PreviewProduct = {
+  name: string;
+  price: number;
+  image?: string | null;
+};
+
 export type PreviewContext = {
   storeName: string;
   primaryColor: string;
+  /** Real store products; falls back to samples when empty. */
+  products?: PreviewProduct[];
 };
 
-const SAMPLE_PRODUCTS = [
+const SAMPLE_PRODUCTS: PreviewProduct[] = [
   { name: "سماعة لاسلكية", price: 199 },
   { name: "ساعة ذكية", price: 249 },
   { name: "شاحن سريع", price: 130 },
@@ -29,6 +37,12 @@ const SAMPLE_PRODUCTS = [
 
 function substitute(text: string, ctx: PreviewContext): string {
   return text.replace(/\{\{\s*store\.name\s*\}\}/g, ctx.storeName);
+}
+
+/** Real products when available, otherwise the placeholder samples. */
+function productItems(ctx: PreviewContext, count: number): PreviewProduct[] {
+  const source = ctx.products && ctx.products.length ? ctx.products : SAMPLE_PRODUCTS;
+  return Array.from({ length: count }, (_, i) => source[i % source.length]);
 }
 
 function str(v: BlockAttrValue | undefined, fallback = ""): string {
@@ -104,11 +118,16 @@ function RichText({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   );
 }
 
-function ProductCard({ name, price, color }: { name: string; price: number; color: string }) {
+function ProductCard({ name, price, image, color }: PreviewProduct & { color: string }) {
   return (
     <article className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="flex aspect-[4/5] items-center justify-center bg-zinc-100 dark:bg-zinc-800">
-        <ShoppingBag className="h-7 w-7 text-zinc-300" />
+      <div className="flex aspect-[4/5] items-center justify-center overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={image} alt={name} className="h-full w-full object-cover" />
+        ) : (
+          <ShoppingBag className="h-7 w-7 text-zinc-300" />
+        )}
       </div>
       <div className="space-y-1 p-2">
         <p className="truncate text-xs font-semibold text-zinc-800 dark:text-zinc-200">{name}</p>
@@ -122,7 +141,7 @@ function ProductCard({ name, price, color }: { name: string; price: number; colo
 
 function Featured({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const limit = num(block.attrs.limit, 4);
-  const items = SAMPLE_PRODUCTS.slice(0, limit);
+  const items = productItems(ctx, limit);
   return (
     <div className="px-4 py-6">
       <div className="mb-3 flex items-center gap-2">
@@ -143,7 +162,7 @@ function Featured({ block, ctx }: { block: Block; ctx: PreviewContext }) {
 function ProductGrid({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const cols = num(block.attrs.cols, 3);
   const limit = num(block.attrs.limit, 6);
-  const items = Array.from({ length: limit }, (_, i) => SAMPLE_PRODUCTS[i % SAMPLE_PRODUCTS.length]);
+  const items = productItems(ctx, limit);
   const colClass = cols === 2 ? "grid-cols-2" : cols === 4 ? "grid-cols-4" : "grid-cols-3";
   return (
     <div className="px-4 py-6">
