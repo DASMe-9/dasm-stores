@@ -1,23 +1,38 @@
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Code2, ExternalLink, Loader2, Save } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { SplitEditor } from "@/components/theme-editor/SplitEditor";
+import type { PreviewProduct } from "@/components/theme-editor/BlockRenderer";
 import { sellerApi } from "@/lib/api";
 import { getStoreDisplayName } from "@/lib/store-display";
 import { syncStoresTokenCookie } from "@/lib/auth-token";
-import { storePath } from "@/lib/storefront-url";
+import { storefrontUrl } from "@/lib/storefront-url";
 import { detectPresetFromThemeConfig } from "@/lib/themes";
 import {
   defaultBlockDocument,
+  defaultSurfaceSource,
   mergeBlockDocument,
   readBlockDocument,
   BLOCK_EDITOR_VERSION,
 } from "@/lib/themes/blocks";
+import type { ThemeSurface } from "@/lib/themes/blocks";
 
 const DEFAULT_PRIMARY = "#059669";
+
+type ProductLike = {
+  name?: string;
+  price?: string | number;
+  images?: { url?: string; is_primary?: boolean }[];
+};
+
+function toPreviewProduct(p: ProductLike): PreviewProduct {
+  const image = p.images?.find((i) => i.is_primary)?.url ?? p.images?.[0]?.url ?? null;
+  const price = typeof p.price === "number" ? p.price : Number.parseFloat(String(p.price ?? "0")) || 0;
+  return { name: p.name || "منتج", price, image };
+}
 
 export default function StoreThemeEditorPage() {
   const router = useRouter();
@@ -31,7 +46,9 @@ export default function StoreThemeEditorPage() {
   const [storeStatus, setStoreStatus] = useState("");
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY);
   const [themeConfig, setThemeConfig] = useState<Record<string, unknown>>({});
-  const [source, setSource] = useState(defaultBlockDocument().source);
+  const [surfaces, setSurfaces] = useState(defaultBlockDocument().surfaces);
+  const [activeSurface, setActiveSurface] = useState<ThemeSurface>("landing");
+  const [products, setProducts] = useState<PreviewProduct[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -48,9 +65,17 @@ export default function StoreThemeEditorPage() {
       setStoreStatus(store.status || "");
       const config = (store.theme_config || {}) as Record<string, unknown>;
       setThemeConfig(config);
-      setSource(readBlockDocument(config).source);
+      setSurfaces(readBlockDocument(config).surfaces);
       const preset = detectPresetFromThemeConfig(config);
       if (preset?.colors?.primary) setPrimaryColor(preset.colors.primary);
+      // Real products for the preview (best-effort).
+      try {
+        const res = await sellerApi.getProducts({ per_page: 12 });
+        const list = (res.data?.data ?? res.data?.products ?? res.data ?? []) as ProductLike[];
+        if (Array.isArray(list)) setProducts(list.map(toPreviewProduct));
+      } catch {
+        /* preview falls back to sample products */
+      }
     } catch {
       setError("تعذّر تحميل بيانات المتجر.");
     } finally {
@@ -68,14 +93,23 @@ export default function StoreThemeEditorPage() {
     load();
   }, [load, router]);
 
-  const handleRestoreDefault = () => setSource(defaultBlockDocument().source);
+  const activeSource = surfaces[activeSurface];
+  const setActiveSource = (next: string) => setSurfaces((prev) => ({ ...prev, [activeSurface]: next }));
+
+  const previewUrl = useMemo(
+    () => (storeSlug ? storefrontUrl(storeSlug, { preview: true }) : undefined),
+    [storeSlug],
+  );
+
+  const handleRestoreDefault = () =>
+    setSurfaces((prev) => ({ ...prev, [activeSurface]: defaultSurfaceSource(activeSurface) }));
 
   const handleSave = async () => {
     setSaving(true);
     setError(null);
     setSuccess(null);
     try {
-      const doc = { version: BLOCK_EDITOR_VERSION, source };
+      const doc = { version: BLOCK_EDITOR_VERSION, surfaces };
       await sellerApi.updateStore({ theme_config: mergeBlockDocument(themeConfig, doc) });
       setThemeConfig((prev) => mergeBlockDocument(prev, doc));
       setSuccess("تم حفظ التصميم. قد يستغرق ظهوره على الواجهة دقيقة واحدة.");
@@ -113,14 +147,14 @@ export default function StoreThemeEditorPage() {
             </Link>
             {storeSlug ? (
               <a
-                href={storePath(storeSlug, { preview: true })}
+                href={previewUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={() => syncStoresTokenCookie()}
                 className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                معاينة فعلية
+                فتح المتجر
               </a>
             ) : null}
             <button
@@ -154,10 +188,13 @@ export default function StoreThemeEditorPage() {
             ) : null}
 
             <SplitEditor
-              source={source}
-              onSourceChange={setSource}
+              source={activeSource}
+              onSourceChange={setActiveSource}
               onRestoreDefault={handleRestoreDefault}
-              ctx={{ storeName, primaryColor }}
+              ctx={{ storeName, primaryColor, products }}
+              activeSurface={activeSurface}
+              onSurfaceChange={setActiveSurface}
+              previewUrl={previewUrl}
             />
 
             <p className="text-center text-[11px] text-zinc-500">
