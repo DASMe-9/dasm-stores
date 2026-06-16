@@ -1,5 +1,13 @@
 export * from "./types";
-export { BLOCK_SCHEMA, ALLOWED_BLOCK_TYPES, HERO_STYLES, SORT_OPTIONS, isBlockType, validateBlock } from "./schema";
+export {
+  BLOCK_SCHEMA,
+  ALLOWED_BLOCK_TYPES,
+  HERO_STYLES,
+  SORT_OPTIONS,
+  isBlockType,
+  validateBlock,
+  describeBlocksForPrompt,
+} from "./schema";
 export { sanitizeText, sanitizeList } from "./sanitize";
 export { parseBlocks, serializeBlocks } from "./parse";
 export {

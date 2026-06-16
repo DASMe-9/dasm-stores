@@ -98,6 +98,27 @@ export const BLOCK_SCHEMA: Record<BlockType, BlockSpec> = {
 
 export const ALLOWED_BLOCK_TYPES = Object.keys(BLOCK_SCHEMA) as BlockType[];
 
+/**
+ * Human/LLM-readable description of the allowed blocks, generated from the
+ * schema so the AI prompt can never drift from the real allowlist.
+ */
+export function describeBlocksForPrompt(): string {
+  return (Object.entries(BLOCK_SCHEMA) as [BlockType, BlockSpec][])
+    .map(([type, spec]) => {
+      const attrs = Object.entries(spec.attrs)
+        .map(([name, a]) => {
+          if (a.kind === "number") return `${name}=number(${a.min}-${a.max})`;
+          if (a.kind === "boolean") return `${name}=bool`;
+          if (a.kind === "list") return `${name}="a, b, c"`;
+          if (a.oneOf) return `${name}=one_of(${a.oneOf.join("|")})`;
+          return `${name}="text"`;
+        })
+        .join(" ");
+      return `<${type} ${attrs} />`;
+    })
+    .join("\n");
+}
+
 export function isBlockType(value: string): value is BlockType {
   return Object.prototype.hasOwnProperty.call(BLOCK_SCHEMA, value);
 }

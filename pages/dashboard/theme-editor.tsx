@@ -104,6 +104,23 @@ export default function StoreThemeEditorPage() {
   const handleRestoreDefault = () =>
     setSurfaces((prev) => ({ ...prev, [activeSurface]: defaultSurfaceSource(activeSurface) }));
 
+  const handleGenerate = async (prompt: string) => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("stores_token") : null;
+    const res = await fetch("/api/theme/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token ?? ""}` },
+      body: JSON.stringify({ prompt, surface: activeSurface }),
+    });
+    const data = (await res.json().catch(() => ({}))) as { source?: string; message?: string };
+    if (!res.ok || !data.source) {
+      throw new Error(data.message || "تعذّر توليد التصميم.");
+    }
+    setSurfaces((prev) => ({
+      ...prev,
+      [activeSurface]: `${prev[activeSurface].trimEnd()}\n${data.source}\n`,
+    }));
+  };
+
   const handleSave = async () => {
     setSaving(true);
     setError(null);
@@ -195,6 +212,7 @@ export default function StoreThemeEditorPage() {
               activeSurface={activeSurface}
               onSurfaceChange={setActiveSurface}
               previewUrl={previewUrl}
+              onGenerate={handleGenerate}
             />
 
             <p className="text-center text-[11px] text-zinc-500">
