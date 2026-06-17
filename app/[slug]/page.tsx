@@ -3,9 +3,12 @@ import { PackageCheck, Search, ShoppingCart, Tags } from "lucide-react";
 import { StoreAdSlot } from "@/components/ads/StoreAdSlot";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductsPagination } from "@/components/product/ProductsPagination";
+import { StorefrontBlocks } from "@/components/storefront/StorefrontBlocks";
 import { getCategories, getProducts, getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import { ensurePublicStore } from "@/lib/storefront-guards";
+import { getStoreDisplayName } from "@/lib/store-display";
+import { hasBuilderLayout, readBuilderSurface } from "@/lib/storefront-builder";
 
 export const revalidate = 60;
 
@@ -30,6 +33,21 @@ export default async function StoreHomePage({
     getCategories(slug, requestContext),
   ]);
   const visibleCategories = categories.categories.slice(0, 6);
+
+  // Visual-builder stores render their saved block layout; product blocks use
+  // the real interactive grid. Stores without a builder doc keep the layout below.
+  if (hasBuilderLayout(data.store.theme_config)) {
+    const { blocks, design } = readBuilderSurface(data.store.theme_config, "landing");
+    return (
+      <StorefrontBlocks
+        blocks={blocks}
+        products={products.data}
+        slug={slug}
+        storeName={getStoreDisplayName(data.store)}
+        design={design}
+      />
+    );
+  }
 
   return (
     <div className="space-y-6">

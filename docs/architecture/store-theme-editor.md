@@ -99,6 +99,8 @@
 ### مفتاح البيئة (م٣)
 `ANTHROPIC_API_KEY` على مشروع Vercel لـ`dasm-stores`. بدونه يعمل المحرّر كاملاً عدا زر التوليد (يرجع 503).
 
+- **م٤ (منفّذة) — البنّاء البصري:** ١٠ بلوكات جديدة + نوع `url` آمن + ٦ قوالب جاهزة + مكتبة أقسام (`section-library.ts`) + ضوابط تصميم (`ThemeDesign` تحت `theme_config.editor.design`) + علم `hidden` + ٣ أوضاع (مبتدئ افتراضي/ذكاء/متقدّم). **الربط بالواجهة العامة (هجين):** `StorefrontBlocks` يرسم المحتوى عبر `BlockRenderer` والمنتجات عبر `ProductGrid` الحقيقي؛ مبوّب على المتاجر المخصّصة فقط (`lib/storefront-builder.ts`). إصدار الوثيقة ← 3.
+
 ### تحديث التخزين (م٢)
 الوثيقة صارت سطحين: `theme_config.editor = { version: 2, surfaces: { landing, products } }`. `readBlockDocument` يُرحّل شكل م١ (`{version,source}`) إلى `surfaces.landing` تلقائياً.
 
