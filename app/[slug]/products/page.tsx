@@ -4,9 +4,12 @@ import { ProductGrid } from "@/components/product/ProductGrid";
 import { ProductsPagination } from "@/components/product/ProductsPagination";
 import { ProductsToolbar } from "@/components/product/ProductsToolbar";
 import { StoreSidebar } from "@/components/store/StoreSidebar";
+import { StorefrontBlocks } from "@/components/storefront/StorefrontBlocks";
 import { getCategories, getProducts, getStore } from "@/lib/api-server";
 import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import { ensurePublicStore } from "@/lib/storefront-guards";
+import { getStoreDisplayName } from "@/lib/store-display";
+import { hasBuilderLayout, readBuilderSurface } from "@/lib/storefront-builder";
 
 export const revalidate = 60;
 
@@ -57,6 +60,18 @@ export default async function StoreProductsPage({
       </Suspense>
 
       <div className="min-w-0 flex-1">
+        {hasBuilderLayout(storeData.store.theme_config) ? (
+          <div className="mb-4">
+            <StorefrontBlocks
+              blocks={readBuilderSurface(storeData.store.theme_config, "products").blocks}
+              products={products.data}
+              slug={slug}
+              storeName={getStoreDisplayName(storeData.store)}
+              design={readBuilderSurface(storeData.store.theme_config, "products").design}
+              skipProductBlocks
+            />
+          </div>
+        ) : null}
         <Suspense
           fallback={<div className="mb-6 h-28 animate-pulse rounded-2xl bg-[var(--muted)]" />}
         >
