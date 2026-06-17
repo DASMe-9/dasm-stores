@@ -68,10 +68,12 @@ export function serializeBlocks(blocks: Block[]): string {
   return blocks
     .map((block) => {
       const spec = BLOCK_SCHEMA[block.type];
-      const attrs = Object.keys(spec.attrs)
+      const parts = Object.keys(spec.attrs)
         .map((name) => serializeAttr(name, block.attrs[name]))
-        .filter(Boolean)
-        .join(" ");
+        .filter(Boolean);
+      // preserve the universal hidden flag
+      if (block.attrs.hidden === true) parts.push("hidden");
+      const attrs = parts.join(" ");
       return attrs ? `<${block.type} ${attrs} />` : `<${block.type} />`;
     })
     .join("\n");
