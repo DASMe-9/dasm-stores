@@ -8,8 +8,19 @@
  */
 
 import type { CSSProperties } from "react";
-import { Heart, Menu, Search, ShoppingBag, Star } from "lucide-react";
-import type { Block, BlockAttrValue } from "@/lib/themes/blocks";
+import {
+  ChevronDown,
+  Heart,
+  Mail,
+  Menu,
+  Quote,
+  Search,
+  ShieldCheck,
+  ShoppingBag,
+  Star,
+  Tag,
+} from "lucide-react";
+import type { Block, BlockAttrValue, ThemeDesign } from "@/lib/themes/blocks";
 
 export type PreviewProduct = {
   name: string;
@@ -22,6 +33,8 @@ export type PreviewContext = {
   primaryColor: string;
   /** Real store products; falls back to samples when empty. */
   products?: PreviewProduct[];
+  /** Global design controls (optional; applied where relevant). */
+  design?: ThemeDesign;
 };
 
 const SAMPLE_PRODUCTS: PreviewProduct[] = [
@@ -193,20 +206,242 @@ function Footer({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   );
 }
 
+function Announcement({ block, ctx }: { block: Block; ctx: PreviewContext }) {
+  const text = substitute(str(block.attrs.text), ctx);
+  return (
+    <div className="px-4 py-1.5 text-center text-[11px] font-semibold text-white" style={{ background: ctx.primaryColor }}>
+      {text}
+    </div>
+  );
+}
+
+function Features({ block }: { block: Block }) {
+  const items = list(block.attrs.items);
+  return (
+    <div className="border-y border-zinc-100 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950">
+      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+        {items.map((it, i) => (
+          <div key={i} className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
+            <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+            {it}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Categories({ block, ctx }: { block: Block; ctx: PreviewContext }) {
+  const items = list(block.attrs.items);
+  return (
+    <div className="px-4 py-6">
+      {str(block.attrs.title) ? (
+        <div className="mb-3 flex items-center gap-2">
+          <Tag className="h-4 w-4" style={{ color: ctx.primaryColor }} />
+          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+        </div>
+      ) : null}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {items.map((it, i) => (
+          <div
+            key={i}
+            className="flex h-16 items-center justify-center rounded-xl text-center text-xs font-bold text-white"
+            style={{ background: `linear-gradient(135deg, ${ctx.primaryColor}, ${ctx.primaryColor}99)` }}
+          >
+            {it}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ImageBanner({ block, ctx }: { block: Block; ctx: PreviewContext }) {
+  const image = str(block.attrs.image);
+  const style: CSSProperties = image
+    ? { backgroundImage: `url(${image})`, backgroundSize: "cover", backgroundPosition: "center" }
+    : { background: `linear-gradient(135deg, ${ctx.primaryColor}, ${ctx.primaryColor}55)` };
+  return (
+    <div className="relative px-4 py-3">
+      <div className="relative flex min-h-[120px] flex-col items-center justify-center overflow-hidden rounded-2xl px-6 py-8 text-center" style={style}>
+        <div className="absolute inset-0 bg-black/30" />
+        <div className="relative z-10">
+          <h3 className="text-lg font-extrabold text-white drop-shadow">{str(block.attrs.title)}</h3>
+          <p className="mt-1 text-xs font-medium text-white/90">{str(block.attrs.subtitle)}</p>
+          {str(block.attrs.cta) ? (
+            <span className="mt-3 inline-block rounded-lg bg-white px-4 py-1.5 text-xs font-bold text-zinc-900">
+              {str(block.attrs.cta)}
+            </span>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ImageWithText({ block, ctx }: { block: Block; ctx: PreviewContext }) {
+  const image = str(block.attrs.image);
+  const imageLeft = str(block.attrs.layout) === "image-left";
+  const media = (
+    <div className="flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+      {image ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={image} alt={str(block.attrs.title)} className="h-full w-full object-cover" />
+      ) : (
+        <ShoppingBag className="h-8 w-8 text-zinc-300" />
+      )}
+    </div>
+  );
+  const text = (
+    <div className="flex flex-col justify-center">
+      <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{substitute(str(block.attrs.title), ctx)}</h3>
+      <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">{str(block.attrs.body)}</p>
+      {str(block.attrs.cta) ? (
+        <span className="mt-3 inline-block w-fit rounded-lg px-4 py-1.5 text-xs font-bold text-white" style={{ background: ctx.primaryColor }}>
+          {str(block.attrs.cta)}
+        </span>
+      ) : null}
+    </div>
+  );
+  return (
+    <div className="grid grid-cols-2 gap-4 px-4 py-6">
+      {imageLeft ? (
+        <>
+          {media}
+          {text}
+        </>
+      ) : (
+        <>
+          {text}
+          {media}
+        </>
+      )}
+    </div>
+  );
+}
+
+function Brands({ block }: { block: Block }) {
+  const logos = list(block.attrs.logos);
+  return (
+    <div className="px-4 py-5">
+      {str(block.attrs.title) ? (
+        <p className="mb-2 text-center text-[11px] font-semibold text-zinc-400">{str(block.attrs.title)}</p>
+      ) : null}
+      <div className="flex flex-wrap items-center justify-center gap-4">
+        {logos.map((b, i) => {
+          const isUrl = /^https?:\/\//i.test(b);
+          return isUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img key={i} src={b} alt="brand" className="h-6 w-auto object-contain opacity-70" />
+          ) : (
+            <span key={i} className="text-sm font-bold text-zinc-400">
+              {b}
+            </span>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function Testimonials({ block, ctx }: { block: Block; ctx: PreviewContext }) {
+  const quotes = list(block.attrs.quotes);
+  const authors = list(block.attrs.authors);
+  return (
+    <div className="px-4 py-6">
+      <h3 className="mb-3 text-center text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+      <div className="grid gap-3 sm:grid-cols-3">
+        {quotes.map((q, i) => (
+          <div key={i} className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+            <Quote className="h-4 w-4" style={{ color: ctx.primaryColor }} />
+            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{q}</p>
+            <p className="mt-2 text-[11px] font-bold text-zinc-500">— {authors[i] ?? "عميل"}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Faq({ block }: { block: Block }) {
+  const questions = list(block.attrs.questions);
+  const answers = list(block.attrs.answers);
+  return (
+    <div className="px-4 py-6">
+      <h3 className="mb-3 text-center text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+      <div className="mx-auto max-w-lg space-y-2">
+        {questions.map((q, i) => (
+          <div key={i} className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{q}</p>
+              <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
+            </div>
+            {answers[i] ? <p className="mt-1 text-[11px] text-zinc-500">{answers[i]}</p> : null}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Newsletter({ block, ctx }: { block: Block; ctx: PreviewContext }) {
+  return (
+    <div className="px-4 py-8 text-center">
+      <Mail className="mx-auto h-5 w-5" style={{ color: ctx.primaryColor }} />
+      <h3 className="mt-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+      <p className="mt-1 text-xs text-zinc-500">{str(block.attrs.subtitle)}</p>
+      <div className="mx-auto mt-3 flex max-w-xs items-center gap-2">
+        <span className="flex-1 rounded-lg border border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-400 dark:border-zinc-700">
+          بريدك الإلكتروني
+        </span>
+        <span className="rounded-lg px-3 py-1.5 text-[11px] font-bold text-white" style={{ background: ctx.primaryColor }}>
+          {str(block.attrs.cta)}
+        </span>
+      </div>
+    </div>
+  );
+}
+
+function Spacer({ block }: { block: Block }) {
+  const size = str(block.attrs.size, "medium");
+  const h = size === "small" ? "h-4" : size === "large" ? "h-16" : "h-8";
+  return <div className={h} aria-hidden />;
+}
+
 function renderBlock(block: Block, ctx: PreviewContext) {
   switch (block.type) {
     case "navbar":
       return <Navbar block={block} ctx={ctx} />;
+    case "announcement":
+      return <Announcement block={block} ctx={ctx} />;
     case "banner":
       return <Banner block={block} />;
     case "hero":
       return <Hero block={block} ctx={ctx} />;
+    case "features":
+      return <Features block={block} />;
+    case "categories":
+      return <Categories block={block} ctx={ctx} />;
+    case "image-banner":
+      return <ImageBanner block={block} ctx={ctx} />;
+    case "image-with-text":
+      return <ImageWithText block={block} ctx={ctx} />;
     case "richtext":
       return <RichText block={block} ctx={ctx} />;
     case "featured":
       return <Featured block={block} ctx={ctx} />;
     case "product-grid":
       return <ProductGrid block={block} ctx={ctx} />;
+    case "brands":
+      return <Brands block={block} />;
+    case "testimonials":
+      return <Testimonials block={block} ctx={ctx} />;
+    case "faq":
+      return <Faq block={block} />;
+    case "newsletter":
+      return <Newsletter block={block} ctx={ctx} />;
+    case "spacer":
+      return <Spacer block={block} />;
     case "footer":
       return <Footer block={block} ctx={ctx} />;
     default:

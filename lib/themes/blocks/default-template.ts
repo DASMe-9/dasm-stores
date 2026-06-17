@@ -8,7 +8,7 @@
  */
 
 import type { Block, BlockDocument, ThemeSurface } from "./types";
-import { BLOCK_EDITOR_VERSION } from "./types";
+import { BLOCK_EDITOR_VERSION, DEFAULT_DESIGN } from "./types";
 import { serializeBlocks } from "./parse";
 
 export const DEFAULT_BLOCKS: Block[] = [
@@ -50,5 +50,6 @@ export function defaultBlockDocument(): BlockDocument {
   return {
     version: BLOCK_EDITOR_VERSION,
     surfaces: { landing: DEFAULT_SOURCE, products: DEFAULT_PRODUCTS_SOURCE },
+    design: { ...DEFAULT_DESIGN },
   };
 }
