@@ -30,6 +30,19 @@ export function sanitizeText(input: unknown): string {
   return value;
 }
 
+/**
+ * Sanitize a URL for image/link fields. Only absolute http(s) URLs survive;
+ * everything else (javascript:, data:, relative junk) collapses to "" so it
+ * can never become an execution sink. Length-clamped.
+ */
+export function sanitizeUrl(input: unknown): string {
+  const raw = typeof input === "string" ? input.trim() : "";
+  if (!/^https?:\/\//i.test(raw)) return "";
+  // reject control chars / spaces / quotes that could break out of an attribute
+  if (/[\s"'<>\\]/.test(raw)) return "";
+  return raw.length > 500 ? "" : raw;
+}
+
 /** Sanitize a comma-separated list (e.g. navbar links). */
 export function sanitizeList(input: unknown, maxItems = 8): string[] {
   const raw = typeof input === "string" ? input : Array.isArray(input) ? input.join(",") : "";

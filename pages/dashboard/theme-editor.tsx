@@ -47,6 +47,7 @@ export default function StoreThemeEditorPage() {
   const [primaryColor, setPrimaryColor] = useState(DEFAULT_PRIMARY);
   const [themeConfig, setThemeConfig] = useState<Record<string, unknown>>({});
   const [surfaces, setSurfaces] = useState(defaultBlockDocument().surfaces);
+  const [design, setDesign] = useState(defaultBlockDocument().design);
   const [activeSurface, setActiveSurface] = useState<ThemeSurface>("landing");
   const [products, setProducts] = useState<PreviewProduct[]>([]);
 
@@ -65,7 +66,10 @@ export default function StoreThemeEditorPage() {
       setStoreStatus(store.status || "");
       const config = (store.theme_config || {}) as Record<string, unknown>;
       setThemeConfig(config);
-      setSurfaces(readBlockDocument(config).surfaces);
+      const doc = readBlockDocument(config);
+      setSurfaces(doc.surfaces);
+      setDesign(doc.design);
+      setPrimaryColor(doc.design.themeColor);
       const preset = detectPresetFromThemeConfig(config);
       if (preset?.colors?.primary) setPrimaryColor(preset.colors.primary);
       // Real products for the preview (best-effort).
@@ -126,7 +130,7 @@ export default function StoreThemeEditorPage() {
     setError(null);
     setSuccess(null);
     try {
-      const doc = { version: BLOCK_EDITOR_VERSION, surfaces };
+      const doc = { version: BLOCK_EDITOR_VERSION, surfaces, design };
       await sellerApi.updateStore({ theme_config: mergeBlockDocument(themeConfig, doc) });
       setThemeConfig((prev) => mergeBlockDocument(prev, doc));
       setSuccess("تم حفظ التصميم. قد يستغرق ظهوره على الواجهة دقيقة واحدة.");
@@ -208,7 +212,7 @@ export default function StoreThemeEditorPage() {
               source={activeSource}
               onSourceChange={setActiveSource}
               onRestoreDefault={handleRestoreDefault}
-              ctx={{ storeName, primaryColor, products }}
+              ctx={{ storeName, primaryColor, products, design }}
               activeSurface={activeSurface}
               onSurfaceChange={setActiveSurface}
               previewUrl={previewUrl}

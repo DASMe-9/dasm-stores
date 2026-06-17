@@ -7,10 +7,11 @@
  * empty/ugly block in the user's own store and nothing more.
  */
 
-import type { Block, BlockAttrValue, BlockType } from "./types";
-import { sanitizeText, sanitizeList } from "./sanitize";
+import type { Block, BlockAttrValue, BlockType, ThemeDesign } from "./types";
+import { DEFAULT_DESIGN } from "./types";
+import { sanitizeText, sanitizeList, sanitizeUrl } from "./sanitize";
 
-type AttrKind = "string" | "number" | "boolean" | "list";
+type AttrKind = "string" | "number" | "boolean" | "list" | "url";
 
 type AttrSpec = {
   kind: AttrKind;
@@ -31,6 +32,8 @@ type BlockSpec = {
 
 export const HERO_STYLES = ["aurora", "spotlight", "mesh", "silk", "neon", "showroom-banner"] as const;
 export const SORT_OPTIONS = ["newest", "price-asc", "price-desc", "featured"] as const;
+export const SPACER_SIZES = ["small", "medium", "large"] as const;
+export const IMAGE_TEXT_LAYOUTS = ["image-right", "image-left"] as const;
 
 export const BLOCK_SCHEMA: Record<BlockType, BlockSpec> = {
   navbar: {
@@ -85,6 +88,94 @@ export const BLOCK_SCHEMA: Record<BlockType, BlockSpec> = {
       limit: { kind: "number", default: 12, min: 4, max: 48 },
     },
   },
+  announcement: {
+    labelAr: "شريط الإعلان العلوي",
+    removable: true,
+    attrs: {
+      text: { kind: "string", default: "أهلاً بك في متجرنا — تسوّق الآن" },
+      link: { kind: "url", default: "" },
+    },
+  },
+  features: {
+    labelAr: "شريط المزايا",
+    removable: true,
+    attrs: {
+      title: { kind: "string", default: "" },
+      items: { kind: "list", default: ["شحن سريع", "دفع آمن", "إرجاع سهل", "دعم ٢٤/٧"] },
+    },
+  },
+  categories: {
+    labelAr: "بطاقات الأقسام",
+    removable: true,
+    attrs: {
+      title: { kind: "string", default: "تسوّق حسب القسم" },
+      items: { kind: "list", default: ["جديد", "العروض", "الأكثر مبيعاً", "إكسسوارات"] },
+    },
+  },
+  "image-banner": {
+    labelAr: "بانر صورة",
+    removable: true,
+    attrs: {
+      image: { kind: "url", default: "" },
+      title: { kind: "string", default: "عرض خاص" },
+      subtitle: { kind: "string", default: "خصومات تصل إلى ٥٠٪" },
+      cta: { kind: "string", default: "اكتشف العرض" },
+      link: { kind: "url", default: "" },
+    },
+  },
+  "image-with-text": {
+    labelAr: "صورة مع نص",
+    removable: true,
+    attrs: {
+      image: { kind: "url", default: "" },
+      title: { kind: "string", default: "قصّة متجرنا" },
+      body: { kind: "string", default: "نقدّم لك تشكيلة مختارة بعناية وجودة تستحقها." },
+      cta: { kind: "string", default: "اعرف المزيد" },
+      layout: { kind: "string", default: "image-right", oneOf: IMAGE_TEXT_LAYOUTS },
+    },
+  },
+  brands: {
+    labelAr: "شعارات الماركات",
+    removable: true,
+    attrs: {
+      title: { kind: "string", default: "علاماتنا" },
+      logos: { kind: "list", default: ["Apple", "Samsung", "Sony", "Anker"] },
+    },
+  },
+  testimonials: {
+    labelAr: "آراء العملاء",
+    removable: true,
+    attrs: {
+      title: { kind: "string", default: "ماذا قال عملاؤنا" },
+      quotes: { kind: "list", default: ["منتجات رائعة وتوصيل سريع", "خدمة ممتازة وأسعار مناسبة", "تجربة شراء سهلة"] },
+      authors: { kind: "list", default: ["أحمد", "سارة", "خالد"] },
+    },
+  },
+  faq: {
+    labelAr: "الأسئلة الشائعة",
+    removable: true,
+    attrs: {
+      title: { kind: "string", default: "الأسئلة الشائعة" },
+      questions: { kind: "list", default: ["كم مدة التوصيل؟", "هل الإرجاع متاح؟", "ما طرق الدفع؟"] },
+      answers: { kind: "list", default: ["من ٢ إلى ٥ أيام عمل", "نعم خلال ١٤ يوماً", "بطاقات ومحافظ إلكترونية"] },
+    },
+  },
+  newsletter: {
+    labelAr: "النشرة البريدية",
+    removable: true,
+    attrs: {
+      title: { kind: "string", default: "اشترك في نشرتنا" },
+      subtitle: { kind: "string", default: "أحدث العروض في بريدك" },
+      cta: { kind: "string", default: "اشتراك" },
+    },
+  },
+  spacer: {
+    labelAr: "مسافة فاصلة",
+    removable: true,
+    attrs: {
+      size: { kind: "string", default: "medium", oneOf: SPACER_SIZES },
+    },
+  },
   footer: {
     labelAr: "التذييل",
     removable: false,
@@ -110,6 +201,7 @@ export function describeBlocksForPrompt(): string {
           if (a.kind === "number") return `${name}=number(${a.min}-${a.max})`;
           if (a.kind === "boolean") return `${name}=bool`;
           if (a.kind === "list") return `${name}="a, b, c"`;
+          if (a.kind === "url") return `${name}="https://..."`;
           if (a.oneOf) return `${name}=one_of(${a.oneOf.join("|")})`;
           return `${name}="text"`;
         })
@@ -145,6 +237,11 @@ function coerceString(value: unknown, spec: AttrSpec): string {
   return text || (spec.default as string);
 }
 
+function coerceUrl(value: unknown, spec: AttrSpec): string {
+  // URLs may legitimately be empty (optional image/link) — fall back to default ("")
+  return value === undefined ? (spec.default as string) : sanitizeUrl(value);
+}
+
 /**
  * Validate a raw parsed block against the allowlist: unknown types/attrs are
  * dropped, values are coerced+sanitized, and missing attrs get safe defaults.
@@ -167,10 +264,44 @@ export function validateBlock(type: string, rawAttrs: Record<string, unknown>, i
       case "list":
         attrs[name] = raw === undefined ? (attrSpec.default as string[]) : sanitizeList(raw);
         break;
+      case "url":
+        attrs[name] = coerceUrl(raw, attrSpec);
+        break;
       default:
         attrs[name] = coerceString(raw, attrSpec);
     }
   }
 
   return { id, type, attrs };
+}
+
+/** Allowed values for the design controls (used by the UI + validation). */
+export const DESIGN_OPTIONS = {
+  background: ["light", "soft", "dark"],
+  buttonStyle: ["solid", "outline", "pill"],
+  cornerRadius: ["sharp", "rounded", "round"],
+  layoutWidth: ["boxed", "full"],
+  productCardStyle: ["simple", "modern", "premium"],
+  font: ["tajawal", "cairo", "system"],
+} as const;
+
+function pickOption<T extends string>(value: unknown, options: readonly T[], fallback: T): T {
+  return typeof value === "string" && (options as readonly string[]).includes(value) ? (value as T) : fallback;
+}
+
+/** Coerce arbitrary input into a valid ThemeDesign (every field constrained). */
+export function validateDesign(raw: unknown): ThemeDesign {
+  const d = (raw && typeof raw === "object" ? raw : {}) as Partial<ThemeDesign>;
+  const color = typeof d.themeColor === "string" && /^#[0-9a-fA-F]{6}$/.test(d.themeColor)
+    ? d.themeColor
+    : DEFAULT_DESIGN.themeColor;
+  return {
+    themeColor: color,
+    background: pickOption(d.background, DESIGN_OPTIONS.background, DEFAULT_DESIGN.background),
+    buttonStyle: pickOption(d.buttonStyle, DESIGN_OPTIONS.buttonStyle, DEFAULT_DESIGN.buttonStyle),
+    cornerRadius: pickOption(d.cornerRadius, DESIGN_OPTIONS.cornerRadius, DEFAULT_DESIGN.cornerRadius),
+    layoutWidth: pickOption(d.layoutWidth, DESIGN_OPTIONS.layoutWidth, DEFAULT_DESIGN.layoutWidth),
+    productCardStyle: pickOption(d.productCardStyle, DESIGN_OPTIONS.productCardStyle, DEFAULT_DESIGN.productCardStyle),
+    font: pickOption(d.font, DESIGN_OPTIONS.font, DEFAULT_DESIGN.font),
+  };
 }
