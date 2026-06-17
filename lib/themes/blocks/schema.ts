@@ -272,6 +272,11 @@ export function validateBlock(type: string, rawAttrs: Record<string, unknown>, i
     }
   }
 
+  // Universal "hidden" flag (visual show/hide) — allowed on any block.
+  if (rawAttrs.hidden === true || rawAttrs.hidden === "" || rawAttrs.hidden === "true") {
+    attrs.hidden = true;
+  }
+
   return { id, type, attrs };
 }
 

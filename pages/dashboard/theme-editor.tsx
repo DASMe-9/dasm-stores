@@ -2,9 +2,12 @@ import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Code2, ExternalLink, Loader2, Save } from "lucide-react";
+import { Code2, ExternalLink, LayoutGrid, Loader2, Save, Sparkles, Wand2 } from "lucide-react";
 import { SellerShell } from "@/components/seller/SellerShell";
 import { SplitEditor } from "@/components/theme-editor/SplitEditor";
+import { VisualBuilder } from "@/components/theme-editor/VisualBuilder";
+import { TemplateGallery } from "@/components/theme-editor/TemplateGallery";
+import { BlockRenderer } from "@/components/theme-editor/BlockRenderer";
 import type { PreviewProduct } from "@/components/theme-editor/BlockRenderer";
 import { sellerApi } from "@/lib/api";
 import { getStoreDisplayName } from "@/lib/store-display";
@@ -16,9 +19,42 @@ import {
   defaultSurfaceSource,
   mergeBlockDocument,
   readBlockDocument,
+  parseBlocks,
+  templateToBlockDocument,
+  SURFACE_LABEL_AR,
+  THEME_SURFACES,
   BLOCK_EDITOR_VERSION,
 } from "@/lib/themes/blocks";
-import type { ThemeSurface } from "@/lib/themes/blocks";
+import type { ThemeSurface, StoreTemplate } from "@/lib/themes/blocks";
+
+type BuilderMode = "beginner" | "ai" | "advanced";
+
+function ModeTab({
+  active,
+  onClick,
+  icon,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-bold transition ${
+        active
+          ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+          : "border border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300"
+      }`}
+    >
+      {icon}
+      {children}
+    </button>
+  );
+}
 
 const DEFAULT_PRIMARY = "#059669";
 
@@ -50,6 +86,12 @@ export default function StoreThemeEditorPage() {
   const [design, setDesign] = useState(defaultBlockDocument().design);
   const [activeSurface, setActiveSurface] = useState<ThemeSurface>("landing");
   const [products, setProducts] = useState<PreviewProduct[]>([]);
+  const [mode, setMode] = useState<BuilderMode>("beginner");
+  const [showGallery, setShowGallery] = useState(false);
+  const [activeTemplateId, setActiveTemplateId] = useState<string | null>(null);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -99,6 +141,7 @@ export default function StoreThemeEditorPage() {
 
   const activeSource = surfaces[activeSurface];
   const setActiveSource = (next: string) => setSurfaces((prev) => ({ ...prev, [activeSurface]: next }));
+  const ctx = { storeName, primaryColor: design.themeColor, products, design };
 
   const previewUrl = useMemo(
     () => (storeSlug ? storefrontUrl(storeSlug, { preview: true }) : undefined),
@@ -107,6 +150,30 @@ export default function StoreThemeEditorPage() {
 
   const handleRestoreDefault = () =>
     setSurfaces((prev) => ({ ...prev, [activeSurface]: defaultSurfaceSource(activeSurface) }));
+
+  const handleApplyTemplate = (template: StoreTemplate) => {
+    const doc = templateToBlockDocument(template);
+    setSurfaces(doc.surfaces);
+    setDesign(doc.design);
+    setPrimaryColor(doc.design.themeColor);
+    setActiveTemplateId(template.id);
+    setShowGallery(false);
+  };
+
+  const runAi = async () => {
+    const prompt = aiPrompt.trim();
+    if (!prompt || aiLoading) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      await handleGenerate(prompt);
+      setAiPrompt("");
+    } catch (e) {
+      setAiError(e instanceof Error ? e.message : "تعذّر التوليد.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const handleGenerate = async (prompt: string) => {
     const token = typeof window !== "undefined" ? localStorage.getItem("stores_token") : null;
@@ -208,16 +275,119 @@ export default function StoreThemeEditorPage() {
               </div>
             ) : null}
 
-            <SplitEditor
-              source={activeSource}
-              onSourceChange={setActiveSource}
-              onRestoreDefault={handleRestoreDefault}
-              ctx={{ storeName, primaryColor, products, design }}
-              activeSurface={activeSurface}
-              onSurfaceChange={setActiveSurface}
-              previewUrl={previewUrl}
-              onGenerate={handleGenerate}
-            />
+            {/* Mode tabs — beginner-first; code is secondary */}
+            <div className="flex flex-wrap items-center gap-2">
+              <ModeTab active={mode === "beginner"} onClick={() => setMode("beginner")} icon={<LayoutGrid className="h-3.5 w-3.5" />}>
+                البنّاء البصري
+              </ModeTab>
+              <ModeTab active={mode === "ai"} onClick={() => setMode("ai")} icon={<Sparkles className="h-3.5 w-3.5" />}>
+                مساعد الذكاء
+              </ModeTab>
+              <ModeTab active={mode === "advanced"} onClick={() => setMode("advanced")} icon={<Code2 className="h-3.5 w-3.5" />}>
+                الوضع المتقدّم
+              </ModeTab>
+            </div>
+
+            {/* Surface tabs (beginner + ai) */}
+            {mode !== "advanced" ? (
+              <div className="flex flex-wrap items-center gap-2">
+                {THEME_SURFACES.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => setActiveSurface(s)}
+                    className={`rounded-lg px-3 py-1.5 text-[12px] font-semibold ${
+                      activeSurface === s
+                        ? "bg-emerald-600 text-white"
+                        : "border border-zinc-200 text-zinc-600 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-300"
+                    }`}
+                  >
+                    {SURFACE_LABEL_AR[s]}
+                  </button>
+                ))}
+                {mode === "beginner" ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowGallery((v) => !v)}
+                    className="ml-auto inline-flex items-center gap-1 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-[12px] font-bold text-emerald-700 hover:bg-emerald-100 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300"
+                  >
+                    <Wand2 className="h-3.5 w-3.5" />
+                    {showGallery ? "إخفاء القوالب" : "ابدأ بقالب جاهز"}
+                  </button>
+                ) : null}
+              </div>
+            ) : null}
+
+            {mode === "beginner" ? (
+              <>
+                {showGallery ? (
+                  <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                    <h2 className="mb-3 text-sm font-bold text-zinc-800 dark:text-zinc-100">قوالب جاهزة مجانية</h2>
+                    <TemplateGallery onApply={handleApplyTemplate} activeId={activeTemplateId} />
+                  </div>
+                ) : null}
+                <VisualBuilder
+                  source={activeSource}
+                  onSourceChange={setActiveSource}
+                  design={design}
+                  onDesignChange={setDesign}
+                  ctx={ctx}
+                />
+              </>
+            ) : null}
+
+            {mode === "ai" ? (
+              <div className="grid gap-4 lg:grid-cols-2">
+                <div className="rounded-2xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
+                  <div className="flex items-center gap-2 text-sm font-bold text-zinc-800 dark:text-zinc-100">
+                    <Sparkles className="h-4 w-4 text-emerald-500" /> صف متجرك بالعربية
+                  </div>
+                  <p className="mt-1 text-[11px] text-zinc-500">
+                    سيولّد الذكاء أقساماً ويضيفها إلى «{SURFACE_LABEL_AR[activeSurface]}». المخرجات تُنقّى تلقائياً.
+                  </p>
+                  <textarea
+                    rows={4}
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="مثال: متجر سماعات بواجهة داكنة، شريط مزايا، وقسم آراء عملاء"
+                    className="mt-3 w-full resize-none rounded-xl border border-zinc-200 p-3 text-xs outline-none focus:border-emerald-400 dark:border-zinc-700 dark:bg-zinc-900"
+                  />
+                  {aiError ? <p className="mt-1 text-[11px] text-red-600">{aiError}</p> : null}
+                  <button
+                    type="button"
+                    onClick={runAi}
+                    disabled={aiLoading || !aiPrompt.trim()}
+                    className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-700 disabled:opacity-50"
+                  >
+                    {aiLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Sparkles className="h-3.5 w-3.5" />}
+                    توليد الأقسام
+                  </button>
+                </div>
+                <div className="overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-100 dark:border-zinc-800 dark:bg-zinc-950">
+                  <div className="border-b border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
+                    معاينة فورية
+                  </div>
+                  <div className="max-h-[480px] overflow-y-auto p-4">
+                    <div className="mx-auto max-w-sm overflow-hidden rounded-2xl border border-zinc-300 shadow-sm dark:border-zinc-700">
+                      <BlockRenderer blocks={parseBlocks(activeSource).blocks} ctx={ctx} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {mode === "advanced" ? (
+              <SplitEditor
+                source={activeSource}
+                onSourceChange={setActiveSource}
+                onRestoreDefault={handleRestoreDefault}
+                ctx={ctx}
+                activeSurface={activeSurface}
+                onSurfaceChange={setActiveSurface}
+                previewUrl={previewUrl}
+                onGenerate={handleGenerate}
+              />
+            ) : null}
 
             <p className="text-center text-[11px] text-zinc-500">
               <Link href="/dashboard" className="underline hover:text-emerald-600">

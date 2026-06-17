@@ -459,9 +459,11 @@ export function BlockRenderer({ blocks, ctx }: { blocks: Block[]; ctx: PreviewCo
   }
   return (
     <div dir="rtl" className="bg-white dark:bg-zinc-900">
-      {blocks.map((block) => (
-        <div key={block.id}>{renderBlock(block, ctx)}</div>
-      ))}
+      {blocks
+        .filter((block) => block.attrs.hidden !== true)
+        .map((block) => (
+          <div key={block.id}>{renderBlock(block, ctx)}</div>
+        ))}
     </div>
   );
 }
