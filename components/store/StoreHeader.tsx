@@ -84,6 +84,9 @@ export function StoreHeader({
             <Link href={`/${slug}`} className="rounded-full px-3 py-2 font-semibold text-[var(--foreground)] transition hover:bg-[var(--muted)]">
               الرئيسية
             </Link>
+            <Link href={`/${slug}/products`} className="rounded-full px-3 py-2 font-semibold text-[var(--foreground)] transition hover:bg-[var(--muted)]">
+              المنتجات
+            </Link>
             <Link href="/" className="flex items-center gap-1 rounded-full px-3 py-2 text-xs font-semibold text-[var(--muted-foreground)] transition hover:bg-[var(--muted)] hover:text-[var(--foreground)]">
               <ArrowRight className="h-3.5 w-3.5" />
               متاجر داسم
