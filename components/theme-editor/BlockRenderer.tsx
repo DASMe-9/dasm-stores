@@ -282,6 +282,30 @@ function ImageBanner({ block, ctx }: { block: Block; ctx: PreviewContext }) {
 function ImageWithText({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const image = str(block.attrs.image);
   const imageLeft = str(block.attrs.layout) === "image-left";
+
+  // No image supplied → render a clean full-width text band instead of an empty
+  // placeholder box. Keeps merchants who never upload an image looking polished.
+  if (!image) {
+    return (
+      <div className="px-6 py-8 text-center">
+        <h3 className="mx-auto max-w-2xl text-lg font-bold text-zinc-900 dark:text-zinc-100">
+          {substitute(str(block.attrs.title), ctx)}
+        </h3>
+        <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+          {str(block.attrs.body)}
+        </p>
+        {str(block.attrs.cta) ? (
+          <span
+            className="mt-4 inline-block rounded-lg px-5 py-2 text-xs font-bold text-white"
+            style={{ background: ctx.primaryColor }}
+          >
+            {str(block.attrs.cta)}
+          </span>
+        ) : null}
+      </div>
+    );
+  }
+
   const media = (
     <div className="flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
       {image ? (
