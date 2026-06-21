@@ -18,7 +18,7 @@ export function StoreTabsNav({
           className="whitespace-nowrap rounded-full px-4 py-2 transition hover:bg-[var(--muted)]"
           style={{ border: "1px solid var(--border)" }}
         >
-          الكل
+          كل المنتجات
         </Link>
         {tabs.map((t) => (
           <Link
