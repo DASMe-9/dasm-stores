@@ -91,10 +91,10 @@ const MAIN_NAV: NavItem[] = [
     requiresStore: true,
   },
   {
-    href: "/dashboard/theme",
+    href: "/dashboard/theme-editor",
     label: "تصميم المتجر",
     icon: Palette,
-    match: (p) => p === "/dashboard/theme",
+    match: (p) => p === "/dashboard/theme-editor" || p === "/dashboard/theme",
     requiresStore: true,
   },
   {

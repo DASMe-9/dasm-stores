@@ -1,6 +1,6 @@
 export * from "./types";
 export { THEME_PRESETS } from "./presets";
-export { presetToStoreTheme, presetToThemeConfig } from "./to-store-theme";
+export { presetToStoreTheme, presetToThemeConfig, designToChromeThemeConfig } from "./to-store-theme";
 export {
   PRESET_TO_LEGACY_THEME_ID,
   resolveLegacyThemeId,
