@@ -107,15 +107,28 @@ function Banner({ block }: { block: Block }) {
 
 function Hero({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const style: CSSProperties = {
-    background: `linear-gradient(135deg, ${ctx.primaryColor}, ${ctx.primaryColor}22)`,
+    background: `linear-gradient(135deg, ${ctx.primaryColor}, ${ctx.primaryColor}cc)`,
   };
+  const cta = str(block.attrs.cta);
   return (
-    <div className="relative overflow-hidden px-6 py-12 text-center" style={style}>
-      <h2 className="text-2xl font-extrabold text-white drop-shadow">{substitute(str(block.attrs.title), ctx)}</h2>
-      <p className="mx-auto mt-2 max-w-md text-sm font-medium text-white/90">{str(block.attrs.subtitle)}</p>
-      <span className="mt-4 inline-block rounded-xl bg-white px-6 py-2 text-sm font-bold text-zinc-900 shadow">
-        {str(block.attrs.cta)}
-      </span>
+    <div className="relative overflow-hidden px-6 py-16 text-center sm:py-20" style={style}>
+      <div
+        className="pointer-events-none absolute inset-0 opacity-20"
+        style={{ backgroundImage: "radial-gradient(circle at 30% 25%, #fff, transparent 45%)" }}
+      />
+      <div className="relative">
+        <h2 className="text-3xl font-extrabold tracking-tight text-white drop-shadow sm:text-4xl">
+          {substitute(str(block.attrs.title), ctx)}
+        </h2>
+        <p className="mx-auto mt-3 max-w-lg text-sm font-medium text-white/90 sm:text-base">
+          {str(block.attrs.subtitle)}
+        </p>
+        {cta ? (
+          <span className="mt-6 inline-block rounded-xl bg-white px-7 py-2.5 text-sm font-bold text-zinc-900 shadow-lg">
+            {cta}
+          </span>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -234,21 +247,26 @@ function Features({ block }: { block: Block }) {
 function Categories({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const items = list(block.attrs.items);
   return (
-    <div className="px-4 py-6">
+    <div className="px-4 py-8">
       {str(block.attrs.title) ? (
-        <div className="mb-3 flex items-center gap-2">
+        <div className="mb-4 flex items-center gap-2">
           <Tag className="h-4 w-4" style={{ color: ctx.primaryColor }} />
-          <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
         </div>
       ) : null}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {items.map((it, i) => (
           <div
             key={i}
-            className="flex h-16 items-center justify-center rounded-xl text-center text-xs font-bold text-white"
-            style={{ background: `linear-gradient(135deg, ${ctx.primaryColor}, ${ctx.primaryColor}99)` }}
+            className="group flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
           >
-            {it}
+            <span
+              className="flex h-9 w-9 items-center justify-center rounded-full transition group-hover:scale-110"
+              style={{ background: `${ctx.primaryColor}1a`, color: ctx.primaryColor }}
+            >
+              <Tag className="h-4 w-4" />
+            </span>
+            <span className="px-2 text-xs font-bold text-zinc-800 dark:text-zinc-200">{it}</span>
           </div>
         ))}
       </div>
