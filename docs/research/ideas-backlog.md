@@ -10,6 +10,9 @@
 | 2026-06-15 | competitors/2026-28 | **Cart Confirmation Popup:** Salla يعرض popup خفيف بعد إضافة منتج للسلة بدلاً من فتح drawer كامل. الفكرة تحتاج مراجعة تدفق التسوق حتى لا تكرر `CartDrawer.tsx`. | `components/cart/CartToast.tsx` + `store/cartStore.ts` | 🟡 متوسطة | مؤجلة |
 | 2026-06-16 | competitors/2026-29 | **معلومات شحن/استلام على صفحة تفصيل المنتج:** Salla أضافت مكوّن `salla-fulfillment-methods` يعرض خيارات توصيل/استلام قبل زر "أضف للسلة". dasm-stores لا يعرض أي معلومة شحن على صفحة المنتج. يتوقف على حقول API: يحتاج تحقق من بيانات متاحة في `getProducts()` response. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق API مطلوب |
 
+| 2026-06-21 | competitors/2026-30 | **صفحة المفضلة المخصصة `/wishlist`:** specs القلب (W26-W27) تحفظ في localStorage لكن لا توجد صفحة تجمع المحفوظات. مطلوب `app/wishlist/page.tsx` بسيطة تقرأ `dasm_wishlist` وتعرض بطاقات المنتجات. تُنشأ مع spec `wishlist-header-badge-2026-06-21.md`. | `app/wishlist/page.tsx` (جديد) | 🟠 مرتفعة | مربوطة بـ spec W30 |
+| 2026-06-21 | competitors/2026-30 | **product disclosures section على صفحة تفصيل المنتج:** Shopify Dawn 15.4.1 أضافت قسم إفصاحات (مكوّنات، تحذيرات، بيانات تنظيمية) أسفل وصف المنتج. dasm-stores لا يعرض أي حقل مشابه. يتوقف على التحقق من حقول products API — هل `getProducts()` يُعيد `product.disclosure` أو ما يعادله. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق API مطلوب |
+
 ---
 
 > يضاف هنا أي تحسين يكتشفه Design Guardian دون تنفيذ مباشر أو تعديل على كود الإنتاج.
