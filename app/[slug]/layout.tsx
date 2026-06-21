@@ -12,6 +12,7 @@ import { getStorefrontRequestContext } from "@/lib/storefront-preview-server";
 import { clip } from "@/lib/seo";
 import { getStoreDisplayName } from "@/lib/store-display";
 import { resolveStoreCssVariables, resolveStoreTemplateConfig } from "@/lib/themes";
+import { hasBuilderLayout } from "@/lib/storefront-builder";
 
 type Props = {
   children: React.ReactNode;
@@ -78,6 +79,7 @@ export default async function StoreLayout({ children, params }: Props) {
           ownerPublicProfile={data.owner_public_profile ?? null}
           socialSummary={data.social_summary ?? null}
           viewerState={data.viewer_state ?? null}
+          compact={hasBuilderLayout(store.theme_config)}
         />
         <StoreTabsNav slug={slug} tabs={store.tabs ?? []} />
         <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">{children}</div>
