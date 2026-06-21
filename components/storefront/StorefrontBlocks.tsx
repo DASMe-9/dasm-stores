@@ -12,6 +12,7 @@
  * (StoreHeader/StoreTabsNav + layout footer) already provides them.
  */
 
+import Link from "next/link";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { BlockRenderer } from "@/components/theme-editor/BlockRenderer";
 import type { Block, ThemeDesign } from "@/lib/themes/blocks";
@@ -69,7 +70,19 @@ export function StorefrontBlocks({
       const title = str(block.attrs.title);
       out.push(
         <section key={`p-${i}`} className="py-2">
-          {title ? <h2 className="mb-4 text-base font-bold text-[var(--foreground)]">{title}</h2> : null}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            {title ? (
+              <h2 className="text-lg font-bold text-[var(--foreground)]">{title}</h2>
+            ) : (
+              <span />
+            )}
+            <Link
+              href={`/${slug}/products`}
+              className="whitespace-nowrap text-sm font-semibold text-[var(--primary)] hover:underline"
+            >
+              عرض الكل ←
+            </Link>
+          </div>
           <ProductGrid products={products.slice(0, limit)} slug={slug} />
         </section>,
       );
