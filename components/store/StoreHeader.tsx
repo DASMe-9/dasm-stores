@@ -42,12 +42,16 @@ export function StoreHeader({
   ownerPublicProfile,
   socialSummary,
   viewerState,
+  compact = false,
 }: {
   store: StorePublic;
   slug: string;
   ownerPublicProfile?: OwnerPublicProfile | null;
   socialSummary?: SocialSummary | null;
   viewerState?: ProfileViewerState | null;
+  /** Builder stores own the hero via their landing blocks — drop the chrome
+   * banner + overlapping profile card and show a slim identity strip instead. */
+  compact?: boolean;
 }) {
   const areaName = store.area?.name_ar;
   const storeName = getStoreDisplayName(store);
@@ -93,6 +97,42 @@ export function StoreHeader({
         </div>
       </div>
 
+      {compact ? (
+        <div className="mx-auto w-full max-w-[1280px] px-4 pt-3 sm:px-6 lg:px-8">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[var(--border)] bg-[var(--card)]/70 px-4 py-2.5 text-xs text-[var(--muted-foreground)]">
+            {store.description ? (
+              <span className="line-clamp-1 max-w-md">{store.description}</span>
+            ) : null}
+            {areaName ? (
+              <span className="flex items-center gap-1">
+                <MapPin className="h-3.5 w-3.5" />
+                {areaName}
+              </span>
+            ) : null}
+            {store.contact_phone ? (
+              <a
+                href={`tel:${store.contact_phone}`}
+                className="flex items-center gap-1 hover:underline"
+                style={{ color: "var(--primary-text,var(--primary))" }}
+              >
+                <Phone className="h-3.5 w-3.5" />
+                {store.contact_phone}
+              </a>
+            ) : null}
+            <div className="ms-auto flex items-center gap-2">
+              <ShareButton title={storeName} url={canonicalUrl(`/${slug}`)} />
+              <WhatsAppButton phone={store.contact_whatsapp} />
+              <ProfileFollowButton
+                owner={ownerPublicProfile ?? null}
+                socialSummary={socialSummary ?? null}
+                viewerState={viewerState ?? null}
+                layout="inline"
+              />
+            </div>
+          </div>
+        </div>
+      ) : (
+        <>
       <div className="bg-[var(--background)] px-4 pt-4 sm:px-6 lg:px-8">
         <div
           className={`store-hero-motion store-hero-${motion} relative mx-auto h-36 w-full max-w-[1600px] overflow-hidden rounded-3xl bg-[var(--muted)] md:h-52`}
@@ -192,6 +232,8 @@ export function StoreHeader({
           </div>
         </div>
       </div>
+        </>
+      )}
     </>
   );
 }
