@@ -440,7 +440,7 @@ function DashboardImportPage() {
                     عرض المنتجات
                   </Link>
                   <Link
-                    href="/dashboard/theme"
+                    href="/dashboard/theme-editor"
                     className="inline-flex items-center gap-2 rounded-xl border border-zinc-200 px-4 py-2.5 text-sm font-semibold text-zinc-800 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-800"
                   >
                     <Palette className="h-4 w-4" />

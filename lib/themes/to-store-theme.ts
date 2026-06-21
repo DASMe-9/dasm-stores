@@ -52,9 +52,19 @@ export function presetToStoreTheme(preset: ThemePreset): StoreThemePayload {
   };
 }
 
-export function presetToThemeConfig(preset: ThemePreset) {
+/**
+ * Maps a preset → theme_config. Non-destructive: any keys already on the
+ * store's theme_config (notably the visual builder's `editor` document) are
+ * preserved; only the preset/colour keys are overwritten. Without this guard,
+ * saving a preset wiped the merchant's saved homepage layout.
+ */
+export function presetToThemeConfig(
+  preset: ThemePreset,
+  base?: Record<string, unknown> | null,
+) {
   const payload = presetToStoreTheme(preset);
   return {
+    ...(base ?? {}),
     preset_id: preset.id,
     preset_version: 1,
     market: preset.market,
@@ -64,4 +74,23 @@ export function presetToThemeConfig(preset: ThemePreset) {
     accent: preset.colors.accent,
     ...payload.template_config,
   };
+}
+
+const HEX_COLOR = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+/**
+ * Bridges the visual builder's `design` to the legacy chrome theme vars.
+ * The public storefront chrome (header/footer/buttons) reads colours from
+ * top-level theme_config keys via `resolveStoreCssVariables`, which does NOT
+ * read `editor.design`. Writing `primary` here keeps the chrome colour in sync
+ * with the block theme colour for stores that use only the new editor.
+ */
+export function designToChromeThemeConfig(
+  design: { themeColor?: string | null } | null | undefined,
+): Record<string, string> {
+  const color = design?.themeColor;
+  if (typeof color === "string" && HEX_COLOR.test(color.trim())) {
+    return { primary: color.trim() };
+  }
+  return {};
 }

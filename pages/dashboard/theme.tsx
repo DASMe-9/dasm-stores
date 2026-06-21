@@ -31,6 +31,7 @@ export default function StoreThemePage() {
   const [storeStatus, setStoreStatus] = useState("");
   const [marketFilter, setMarketFilter] = useState<ThemeMarket | "all">("all");
   const [selected, setSelected] = useState<ThemePreset | null>(null);
+  const [existingThemeConfig, setExistingThemeConfig] = useState<Record<string, unknown>>({});
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -46,6 +47,7 @@ export default function StoreThemePage() {
       setStoreName(getStoreDisplayName(store));
       setStoreStatus(store.status || "");
       const themeConfig = (store.theme_config || {}) as Record<string, unknown>;
+      setExistingThemeConfig(themeConfig);
       const fromConfig = detectPresetFromThemeConfig(themeConfig);
       const fromThemeSlug = findPresetById(typeof store.theme?.slug === "string" ? store.theme.slug : null);
       const legacyNumericThemeId =
@@ -86,7 +88,7 @@ export default function StoreThemePage() {
     try {
       await sellerApi.updateStore({
         ...buildThemeStorePayload(selected),
-        theme_config: presetToThemeConfig(selected),
+        theme_config: presetToThemeConfig(selected, existingThemeConfig),
       });
       setSuccess("تم حفظ تصميم المتجر. قد يستغرق ظهوره على الواجهة دقيقة واحدة.");
     } catch (e: unknown) {

@@ -13,7 +13,7 @@ import { sellerApi } from "@/lib/api";
 import { getStoreDisplayName } from "@/lib/store-display";
 import { syncStoresTokenCookie } from "@/lib/auth-token";
 import { storefrontUrl } from "@/lib/storefront-url";
-import { detectPresetFromThemeConfig } from "@/lib/themes";
+import { detectPresetFromThemeConfig, designToChromeThemeConfig } from "@/lib/themes";
 import {
   defaultBlockDocument,
   defaultSurfaceSource,
@@ -198,8 +198,12 @@ export default function StoreThemeEditorPage() {
     setSuccess(null);
     try {
       const doc = { version: BLOCK_EDITOR_VERSION, surfaces, design };
-      await sellerApi.updateStore({ theme_config: mergeBlockDocument(themeConfig, doc) });
-      setThemeConfig((prev) => mergeBlockDocument(prev, doc));
+      // Save the block document AND mirror the design colour onto the legacy
+      // chrome vars so header/footer/buttons match the block theme even for
+      // stores that only ever use this editor.
+      const next = { ...mergeBlockDocument(themeConfig, doc), ...designToChromeThemeConfig(design) };
+      await sellerApi.updateStore({ theme_config: next });
+      setThemeConfig(next);
       setSuccess("تم حفظ التصميم. قد يستغرق ظهوره على الواجهة دقيقة واحدة.");
     } catch (e: unknown) {
       const err = e as { response?: { data?: { message?: string } }; message?: string };
@@ -231,7 +235,7 @@ export default function StoreThemeEditorPage() {
               href="/dashboard/theme"
               className="inline-flex items-center gap-1 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
             >
-              معرض القوالب
+              قوالب الألوان الجاهزة
             </Link>
             {storeSlug ? (
               <a
