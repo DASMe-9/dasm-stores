@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { StoreChrome } from "@/components/store/StoreChrome";
+import { StoreFooter } from "@/components/store/StoreFooter";
 import { StoreHeader } from "@/components/store/StoreHeader";
 import { StoreTabsNav } from "@/components/store/StoreTabsNav";
 import { StoreThemeApplier } from "@/components/store/StoreThemeApplier";
@@ -83,20 +84,7 @@ export default async function StoreLayout({ children, params }: Props) {
         />
         <StoreTabsNav slug={slug} tabs={store.tabs ?? []} />
         <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">{children}</div>
-        <footer className="border-t border-[var(--border)] bg-[var(--card)] py-8 text-center text-xs text-[var(--muted-foreground)]">
-          <span className="inline-flex flex-wrap items-center justify-center gap-1.5" dir="rtl">
-            <span>{storeName}</span>
-            <span aria-hidden="true">—</span>
-            <span>مدعوم بواسطة</span>
-            <a
-              href="https://dasm.com.sa"
-              className="font-semibold hover:underline"
-              style={{ color: "var(--primary-text,var(--primary))" }}
-            >
-              متاجر داسم
-            </a>
-          </span>
-        </footer>
+        <StoreFooter store={store} slug={slug} storeName={storeName} />
       </div>
     </>
   );
