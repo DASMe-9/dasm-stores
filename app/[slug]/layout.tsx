@@ -61,6 +61,7 @@ export default async function StoreLayout({ children, params }: Props) {
   const store = data.store;
   const storeName = getStoreDisplayName(store);
   const vars = resolveStoreCssVariables(store);
+  const themeId = vars?.["preset-id"] ?? vars?.["--preset-id"] ?? "quiet";
   const templateConfig = resolveStoreTemplateConfig(store);
   const productCardStyle =
     vars?.["product-card-style"] ??
@@ -72,7 +73,12 @@ export default async function StoreLayout({ children, params }: Props) {
     <>
       <StoreTrackingPixels config={data.marketing_tracking} />
       <StoreThemeApplier vars={vars} />
-      <div data-product-card-style={productCardStyle} data-store-slug={slug} className="store-front-root bg-background text-foreground min-h-screen">
+      <div
+        data-theme={themeId}
+        data-product-card-style={productCardStyle}
+        data-store-slug={slug}
+        className="store-front-root min-h-screen bg-background text-foreground"
+      >
         <StoreChrome slug={slug} whatsapp={store.contact_whatsapp} />
         <StoreHeader
           store={store}

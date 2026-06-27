@@ -3,6 +3,13 @@ import { THEME_PRESETS } from "./presets";
 import { presetToStoreTheme } from "./to-store-theme";
 import { resolvePresetIdFromLegacyThemeId } from "./resolve-theme-id";
 import { pickReadableForeground, pickReadableTextColor } from "./color-contrast";
+import {
+  STOREFRONT_THEME_PRESETS,
+  isStorefrontPresetId,
+  legacyVarsFromTokens,
+  storefrontPresetForCategory,
+  storefrontPresetToTokens,
+} from "./storefront-tokens";
 
 type JsonObject = Record<string, unknown>;
 
@@ -17,10 +24,12 @@ function hasEntries(value: Record<string, string> | null | undefined): value is 
 
 function findPresetById(id: string | null | undefined) {
   if (!id) return undefined;
-  return THEME_PRESETS.find((preset) => preset.id === id);
+  return STOREFRONT_THEME_PRESETS.find((preset) => preset.id === id) ?? THEME_PRESETS.find((preset) => preset.id === id);
 }
 
 function detectPresetFromThemeConfig(themeConfig: Record<string, unknown> | null | undefined) {
+  const themePreset = themeConfig?.theme_preset;
+  if (typeof themePreset === "string") return findPresetById(themePreset);
   const presetId = themeConfig?.preset_id;
   if (typeof presetId === "string") return findPresetById(presetId);
   const palette = themeConfig?.palette;
@@ -45,10 +54,12 @@ function varsFromThemeConfig(themeConfig: Record<string, unknown> | null | undef
   if (!themeConfig) return undefined;
 
   const nestedVars = asObject(themeConfig.css_variables);
+  const overrides = asObject(themeConfig.overrides);
   const vars: Record<string, string> = {};
 
-  if (nestedVars) {
-    for (const [key, value] of Object.entries(nestedVars)) {
+  for (const source of [nestedVars, overrides]) {
+    if (!source) continue;
+    for (const [key, value] of Object.entries(source)) {
       writeStringVar(vars, key.replace(/^--/, ""), value);
     }
   }
@@ -61,8 +72,19 @@ function varsFromThemeConfig(themeConfig: Record<string, unknown> | null | undef
   writeStringVar(vars, "border", themeConfig.border);
   writeStringVar(vars, "muted", themeConfig.muted);
   writeStringVar(vars, "muted-foreground", themeConfig["muted-foreground"] ?? themeConfig.muted_foreground);
+  writeStringVar(vars, "c-bg", themeConfig["--c-bg"] ?? themeConfig.c_bg);
+  writeStringVar(vars, "c-surface", themeConfig["--c-surface"] ?? themeConfig.c_surface);
+  writeStringVar(vars, "c-surface-2", themeConfig["--c-surface-2"] ?? themeConfig.c_surface_2);
+  writeStringVar(vars, "c-text", themeConfig["--c-text"] ?? themeConfig.c_text);
+  writeStringVar(vars, "c-muted", themeConfig["--c-muted"] ?? themeConfig.c_muted);
+  writeStringVar(vars, "c-line", themeConfig["--c-line"] ?? themeConfig.c_line);
+  writeStringVar(vars, "c-brand", themeConfig["--c-brand"] ?? themeConfig.c_brand);
+  writeStringVar(vars, "c-on-brand", themeConfig["--c-on-brand"] ?? themeConfig.c_on_brand);
+  writeStringVar(vars, "c-accent", themeConfig["--c-accent"] ?? themeConfig.c_accent);
+  writeStringVar(vars, "c-sale", themeConfig["--c-sale"] ?? themeConfig.c_sale);
   writeStringVar(vars, "product-card-style", themeConfig.product_card_style);
   writeStringVar(vars, "header-style", themeConfig.header_style);
+  writeStringVar(vars, "preset-id", themeConfig.theme_preset ?? themeConfig.preset_id ?? themeConfig.palette);
 
   return Object.keys(vars).length > 0 ? vars : undefined;
 }
@@ -76,11 +98,45 @@ function withDerivedVars(vars: Record<string, string> | undefined): Record<strin
   if (!vars) return undefined;
 
   const next = { ...vars };
+  const tokenPresetId = readVar(next, "preset-id");
+  const tokenSource = storefrontPresetToTokens(isStorefrontPresetId(tokenPresetId) ? tokenPresetId : "quiet");
+  const tokenLegacyVars = legacyVarsFromTokens(tokenSource);
+
+  for (const [token, value] of Object.entries(tokenSource)) {
+    writeVarIfMissing(next, token, value);
+  }
+
+  const bg = readVar(next, "c-bg");
+  const surface = readVar(next, "c-surface");
+  const surface2 = readVar(next, "c-surface-2");
+  const text = readVar(next, "c-text");
+  const muted = readVar(next, "c-muted");
+  const line = readVar(next, "c-line");
+  const brand = readVar(next, "c-brand");
+  const onBrand = readVar(next, "c-on-brand");
+  const accentToken = readVar(next, "c-accent");
+
+  if (bg) next.background = bg;
+  if (text) next.foreground = text;
+  if (brand) next.primary = brand;
+  if (onBrand) next["primary-foreground"] = onBrand;
+  if (brand) next["primary-text"] = brand;
+  if (accentToken) next.accent = accentToken;
+  if (onBrand) next["accent-foreground"] = onBrand;
+  if (surface) next.card = surface;
+  if (line) next.border = line;
+  if (surface2) next.muted = surface2;
+  if (muted) next["muted-foreground"] = muted;
+
+  for (const [key, value] of Object.entries(tokenLegacyVars)) {
+    writeVarIfMissing(next, key, value);
+  }
+
   const primary = readVar(next, "primary");
   const accent = readVar(next, "accent");
-  const foreground = readVar(next, "foreground") ?? "#18181b";
-  const card = readVar(next, "card") ?? "#ffffff";
-  const background = readVar(next, "background") ?? "#fafafa";
+  const foreground = readVar(next, "foreground") ?? tokenLegacyVars.foreground;
+  const card = readVar(next, "card") ?? tokenLegacyVars.card;
+  const background = readVar(next, "background") ?? tokenLegacyVars.background;
 
   if (primary) {
     writeVarIfMissing(
@@ -104,8 +160,22 @@ function withDerivedVars(vars: Record<string, string> | undefined): Record<strin
   return next;
 }
 
+function storeCategoryKey(store: StorePublic): string | null {
+  if (typeof store.category_slug === "string" && store.category_slug.trim()) {
+    return store.category_slug;
+  }
+  if (typeof store.category === "string" && store.category.trim()) {
+    return store.category;
+  }
+  const category = asObject(store.category);
+  return readString(category?.slug) ?? readString(category?.name) ?? readString(category?.name_ar);
+}
+
 function pickPreset(store: StorePublic) {
   const storeThemeConfig = asObject(store.theme_config);
+  const fromStorePreset = findPresetById(store.theme_preset);
+  if (fromStorePreset) return fromStorePreset;
+
   const fromStoreConfig = detectPresetFromThemeConfig(storeThemeConfig);
   if (fromStoreConfig) return fromStoreConfig;
 
@@ -121,7 +191,10 @@ function pickPreset(store: StorePublic) {
   const fromThemeId = findPresetById(resolvePresetIdFromLegacyThemeId(store.theme_id));
   if (fromThemeId) return fromThemeId;
 
-  return undefined;
+  const fromCategory = findPresetById(storefrontPresetForCategory(storeCategoryKey(store)));
+  if (fromCategory) return fromCategory;
+
+  return findPresetById("quiet");
 }
 
 export function resolveStoreCssVariables(store: StorePublic): Record<string, string> | undefined {
