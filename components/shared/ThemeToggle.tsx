@@ -51,7 +51,7 @@ export function ThemeToggle({ className = "" }: { className?: string }) {
       aria-label={label}
       aria-pressed={dark}
       title={label}
-      className={`inline-flex items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-700 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-200 dark:hover:border-emerald-700 dark:hover:text-emerald-300 ${className || "h-11 w-11"}`}
+      className={`inline-flex items-center justify-center rounded-[var(--r)] border border-[var(--c-line)] bg-[var(--c-surface)] text-[var(--c-muted)] shadow-[var(--shadow-sm)] transition hover:border-[var(--c-accent)] hover:text-[var(--c-brand)] ${className || "h-11 w-11"}`}
     >
       {dark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
     </button>

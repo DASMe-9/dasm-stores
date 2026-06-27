@@ -23,11 +23,7 @@ export function WhatsAppButton({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold shadow-sm transition hover:opacity-95 ${className}`}
-      style={{
-        backgroundColor: "var(--primary)",
-        color: "var(--primary-foreground)",
-      }}
+      className={`inline-flex items-center gap-[var(--space-2)] rounded-[var(--r)] bg-[var(--c-brand)] px-[var(--space-4)] py-[var(--space-3)] text-sm font-semibold text-[var(--c-on-brand)] shadow-[var(--shadow-sm)] transition hover:opacity-95 ${className}`}
     >
       <MessageCircle className="h-4 w-4 shrink-0" aria-hidden />
       {label}
@@ -46,8 +42,7 @@ export function WhatsAppFab({ phone }: { phone: string | null | undefined }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-5 left-5 z-40 flex h-14 w-14 items-center justify-center rounded-full shadow-lg md:bottom-8 md:left-8"
-      style={{ backgroundColor: "#25d366", color: "#fff" }}
+      className="fixed bottom-5 left-5 z-40 flex h-14 w-14 items-center justify-center rounded-[var(--r-pill)] bg-[var(--c-brand)] text-[var(--c-on-brand)] shadow-[var(--shadow-lg)] md:bottom-8 md:left-8"
       aria-label="تواصل عبر واتساب"
     >
       <MessageCircle className="h-7 w-7" />
