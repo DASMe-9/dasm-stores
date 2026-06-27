@@ -21,6 +21,7 @@ import {
   Tag,
 } from "lucide-react";
 import type { Block, BlockAttrValue, ThemeDesign } from "@/lib/themes/blocks";
+import type { StoreReview } from "@/lib/api-server";
 
 export type PreviewProduct = {
   name: string;
@@ -33,6 +34,8 @@ export type PreviewContext = {
   primaryColor: string;
   /** Real store products; falls back to samples when empty. */
   products?: PreviewProduct[];
+  /** Real storefront reviews; public rendering hides testimonials when empty. */
+  reviews?: StoreReview[];
   /** Global design controls (optional; applied where relevant). */
   design?: ThemeDesign;
 };
@@ -66,6 +69,12 @@ function num(v: BlockAttrValue | undefined, fallback: number): number {
 }
 function list(v: BlockAttrValue | undefined): string[] {
   return Array.isArray(v) ? v : [];
+}
+function reviewText(review: StoreReview): string {
+  return review.body || review.title || "";
+}
+function reviewItems(ctx: PreviewContext): StoreReview[] {
+  return (ctx.reviews ?? []).filter((review) => reviewText(review).trim()).slice(0, 3);
 }
 
 function Navbar({ block, ctx }: { block: Block; ctx: PreviewContext }) {
@@ -231,10 +240,10 @@ function Announcement({ block, ctx }: { block: Block; ctx: PreviewContext }) {
 function Features({ block }: { block: Block }) {
   const items = list(block.attrs.items);
   return (
-    <div className="border-y border-[var(--c-line)] bg-[var(--c-surface-2)] px-[var(--space-4)] py-[var(--space-3)]">
+    <div className="store-trust-strip border-y border-[var(--c-line)] bg-[var(--c-surface-2)] px-[var(--space-4)] py-[var(--space-3)]">
       <div className="flex flex-wrap items-center justify-center gap-x-[var(--space-5)] gap-y-[var(--space-2)]">
         {items.map((it, i) => (
-          <div key={i} className="flex items-center gap-[var(--space-2)] text-[11px] font-semibold text-[var(--c-text)]">
+          <div key={i} className="flex items-center gap-[var(--space-2)] font-semibold text-[var(--c-text)]">
             <ShieldCheck className="h-3.5 w-3.5 text-[var(--c-brand)]" />
             {it}
           </div>
@@ -386,17 +395,19 @@ function Brands({ block }: { block: Block }) {
 }
 
 function Testimonials({ block, ctx }: { block: Block; ctx: PreviewContext }) {
-  const quotes = list(block.attrs.quotes);
-  const authors = list(block.attrs.authors);
+  const reviews = reviewItems(ctx);
+  if (!reviews.length) return null;
   return (
     <div className="px-4 py-6">
       <h3 className="mb-[var(--space-3)] text-center text-sm font-bold text-[var(--c-text)]">{str(block.attrs.title)}</h3>
       <div className="grid gap-3 sm:grid-cols-3">
-        {quotes.map((q, i) => (
-          <div key={i} className="rounded-[var(--r)] border border-[var(--c-line)] bg-[var(--c-surface)] p-[var(--space-3)]">
+        {reviews.map((review) => (
+          <div key={review.id} className="rounded-[var(--r)] border border-[var(--c-line)] bg-[var(--c-surface)] p-[var(--space-3)]">
             <Quote className="h-4 w-4" style={{ color: ctx.primaryColor }} />
-            <p className="mt-[var(--space-1)] text-xs text-[var(--c-muted)]">{q}</p>
-            <p className="mt-[var(--space-2)] text-[11px] font-bold text-[var(--c-muted)]">— {authors[i] ?? "عميل"}</p>
+            <p className="mt-[var(--space-1)] text-xs text-[var(--c-muted)]">{reviewText(review)}</p>
+            <p className="mt-[var(--space-2)] text-[11px] font-bold text-[var(--c-muted)]">
+              {review.customer_name || "عميل"}
+            </p>
           </div>
         ))}
       </div>

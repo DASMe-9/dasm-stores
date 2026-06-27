@@ -43,12 +43,12 @@ export function ProductCard({
       </Link>
       <div className="store-product-card__body space-y-[var(--space-2)] p-[var(--space-3)]">
         <Link href={`/${slug}/products/${product.id}`}>
-          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-[var(--c-text)] hover:underline">
+          <h3 className="store-product-card__title line-clamp-2 font-semibold text-[var(--c-text)] hover:underline">
             {product.name}
           </h3>
         </Link>
         <div className="flex flex-wrap items-baseline gap-[var(--space-2)]">
-          <span className="text-base font-bold text-[var(--c-text)]">
+          <span className="store-product-card__price font-bold text-[var(--c-text)]">
             {price.toFixed(0)} ر.س
           </span>
           {compare && compare > price ? (

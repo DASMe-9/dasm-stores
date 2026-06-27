@@ -45,6 +45,7 @@ export default async function StoreProductsPage({
     getCategories(slug, requestContext),
     getProducts(slug, qs, requestContext),
   ]);
+  const storeReviews = storeData.reviews ?? storeData.store.reviews ?? [];
 
   return (
     <div className="flex flex-col gap-2 lg:flex-row lg:items-start lg:gap-6">
@@ -65,6 +66,7 @@ export default async function StoreProductsPage({
             <StorefrontBlocks
               blocks={readBuilderSurface(storeData.store.theme_config, "products").blocks}
               products={products.data}
+              reviews={storeReviews}
               slug={slug}
               storeName={getStoreDisplayName(storeData.store)}
               design={readBuilderSurface(storeData.store.theme_config, "products").design}
