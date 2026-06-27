@@ -3,18 +3,43 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #fafafa;
-  --foreground: #171717;
-  /* Merchant theme overrides via StoreThemeApplier */
-  --primary: #0f766e;
-  --primary-foreground: #ffffff;
-  --primary-text: #0f766e;
-  --accent: #0284c7;
-  --accent-foreground: #ffffff;
-  --muted: #f4f4f5;
-  --muted-foreground: #71717a;
-  --card: #ffffff;
-  --border: #e4e4e7;
+  --c-bg: #F3F0EA;
+  --c-surface: #FFFFFF;
+  --c-surface-2: #FAF8F4;
+  --c-text: #1C2B27;
+  --c-muted: #5F6A63;
+  --c-line: #E4DED4;
+  --c-brand: #1C3A33;
+  --c-on-brand: #F4F1EB;
+  --c-accent: #A8763E;
+  --c-sale: #9C5B3B;
+  --font-display: "Reem Kufi", var(--font-display-loaded), system-ui, sans-serif;
+  --font-body: "IBM Plex Sans Arabic", var(--font-body-loaded), system-ui, sans-serif;
+  --r-sm: 8px;
+  --r: 14px;
+  --r-lg: 24px;
+  --r-pill: 999px;
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --shadow-sm: 0 1px 2px color-mix(in srgb, var(--c-text) 7%, transparent);
+  --shadow: 0 12px 32px color-mix(in srgb, var(--c-text) 10%, transparent);
+  --shadow-lg: 0 24px 60px color-mix(in srgb, var(--c-text) 14%, transparent);
+  --background: var(--c-bg);
+  --foreground: var(--c-text);
+  --primary: var(--c-brand);
+  --primary-foreground: var(--c-on-brand);
+  --primary-text: var(--c-brand);
+  --accent: var(--c-accent);
+  --accent-foreground: var(--c-on-brand);
+  --muted: var(--c-surface-2);
+  --muted-foreground: var(--c-muted);
+  --card: var(--c-surface);
+  --border: var(--c-line);
 }
 
 .dark {
@@ -47,6 +72,41 @@
 body {
   background: var(--background);
   color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+.store-front-root {
+  --background: var(--c-bg);
+  --foreground: var(--c-text);
+  --primary: var(--c-brand);
+  --primary-foreground: var(--c-on-brand);
+  --primary-text: var(--c-brand);
+  --accent: var(--c-accent);
+  --accent-foreground: var(--c-on-brand);
+  --muted: var(--c-surface-2);
+  --muted-foreground: var(--c-muted);
+  --card: var(--c-surface);
+  --border: var(--c-line);
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-body);
+}
+
+.store-front-root h1,
+.store-front-root h2,
+.store-front-root h3,
+.store-front-root h4 {
+  font-family: var(--font-display);
+  letter-spacing: 0;
+}
+
+.store-front-root a:focus-visible,
+.store-front-root button:focus-visible,
+.store-front-root input:focus-visible,
+.store-front-root select:focus-visible,
+.store-front-root textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--c-accent) 72%, var(--c-surface));
+  outline-offset: 3px;
 }
 
 .home-hero-commerce-scene {
@@ -141,9 +201,9 @@ body {
   inset: -35%;
   z-index: 0;
   background:
-    radial-gradient(circle at 22% 35%, color-mix(in srgb, var(--primary) 70%, transparent) 0 12%, transparent 32%),
-    radial-gradient(circle at 78% 25%, color-mix(in srgb, var(--accent) 68%, transparent) 0 10%, transparent 30%),
-    linear-gradient(120deg, color-mix(in srgb, var(--primary) 40%, #111827), color-mix(in srgb, var(--accent) 38%, #030712));
+    radial-gradient(circle at 22% 35%, color-mix(in srgb, var(--c-brand) 70%, transparent) 0 12%, transparent 32%),
+    radial-gradient(circle at 78% 25%, color-mix(in srgb, var(--c-accent) 68%, transparent) 0 10%, transparent 30%),
+    linear-gradient(120deg, color-mix(in srgb, var(--c-brand) 50%, var(--c-text)), color-mix(in srgb, var(--c-accent) 38%, var(--c-text)));
   filter: saturate(1.15);
   opacity: 0.88;
   animation: store-hero-drift 18s ease-in-out infinite alternate;
@@ -183,8 +243,8 @@ body {
   inset: 0;
   z-index: 3;
   background:
-    linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.2) 42%, transparent 56%),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.04) 0 1px, transparent 1px 8px);
+    linear-gradient(100deg, transparent 0%, color-mix(in srgb, var(--c-surface) 20%, transparent) 42%, transparent 56%),
+    repeating-linear-gradient(0deg, color-mix(in srgb, var(--c-surface) 4%, transparent) 0 1px, transparent 1px 8px);
   opacity: 0.34;
   transform: translateX(-60%);
   animation: store-hero-sweep 8s ease-in-out infinite;
@@ -197,10 +257,10 @@ body {
   z-index: 1;
   overflow: hidden;
   background:
-    radial-gradient(circle at 50% 54%, rgba(45, 212, 191, 0.32) 0 7%, transparent 22%),
-    radial-gradient(circle at 18% 70%, rgba(255, 255, 255, 0.14) 0 9%, transparent 26%),
-    radial-gradient(circle at 82% 66%, rgba(255, 255, 255, 0.12) 0 10%, transparent 28%),
-    linear-gradient(180deg, rgba(2, 6, 23, 0.18), rgba(2, 6, 23, 0.46));
+    radial-gradient(circle at 50% 54%, color-mix(in srgb, var(--c-accent) 32%, transparent) 0 7%, transparent 22%),
+    radial-gradient(circle at 18% 70%, color-mix(in srgb, var(--c-surface) 14%, transparent) 0 9%, transparent 26%),
+    radial-gradient(circle at 82% 66%, color-mix(in srgb, var(--c-surface) 12%, transparent) 0 10%, transparent 28%),
+    linear-gradient(180deg, color-mix(in srgb, var(--c-text) 18%, transparent), color-mix(in srgb, var(--c-text) 46%, transparent));
 }
 
 .store-hero-commerce-scene::before {
@@ -212,8 +272,8 @@ body {
   height: 9rem;
   border-radius: 50%;
   background:
-    radial-gradient(ellipse at center, rgba(20, 184, 166, 0.24), transparent 64%),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.08) 0 1px, transparent 1px 5rem);
+    radial-gradient(ellipse at center, color-mix(in srgb, var(--c-brand) 24%, transparent), transparent 64%),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--c-surface) 8%, transparent) 0 1px, transparent 1px 5rem);
   opacity: 0.8;
   transform: perspective(28rem) rotateX(58deg);
 }
@@ -223,9 +283,9 @@ body {
   left: -18%;
   width: 136%;
   height: 0.18rem;
-  border-radius: 9999px;
-  background: linear-gradient(90deg, transparent, rgba(153, 246, 228, 0.28), rgba(255, 255, 255, 0.92), rgba(45, 212, 191, 0.34), transparent);
-  box-shadow: 0 0 26px rgba(94, 234, 212, 0.55);
+  border-radius: var(--r-pill);
+  background: linear-gradient(90deg, transparent, color-mix(in srgb, var(--c-accent) 28%, transparent), color-mix(in srgb, var(--c-surface) 92%, transparent), color-mix(in srgb, var(--c-brand) 34%, transparent), transparent);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--c-accent) 55%, transparent);
   transform-origin: center;
 }
 
@@ -240,8 +300,8 @@ body {
   width: 8rem;
   height: 8rem;
   place-items: center;
-  color: rgba(204, 251, 241, 0.95);
-  filter: drop-shadow(0 0 18px rgba(45, 212, 191, 0.78));
+  color: color-mix(in srgb, var(--c-surface) 95%, transparent);
+  filter: drop-shadow(0 0 18px color-mix(in srgb, var(--c-accent) 78%, transparent));
   transform: translateX(-50%);
   animation: store-hero-cart 4.8s ease-in-out infinite;
 }
@@ -252,13 +312,13 @@ body {
   width: 8rem;
   height: 8rem;
   place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 1.25rem;
+  border: 1px solid color-mix(in srgb, var(--c-surface) 18%, transparent);
+  border-radius: var(--r);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.06)),
-    color-mix(in srgb, var(--primary) 32%, transparent);
-  color: rgba(240, 253, 250, 0.9);
-  box-shadow: 0 22px 50px rgba(2, 6, 23, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+    linear-gradient(145deg, color-mix(in srgb, var(--c-surface) 24%, transparent), color-mix(in srgb, var(--c-surface) 6%, transparent)),
+    color-mix(in srgb, var(--c-brand) 32%, transparent);
+  color: color-mix(in srgb, var(--c-surface) 90%, transparent);
+  box-shadow: 0 22px 50px color-mix(in srgb, var(--c-text) 28%, transparent), inset 0 1px 0 color-mix(in srgb, var(--c-surface) 22%, transparent);
   backdrop-filter: blur(10px);
 }
 
@@ -270,9 +330,9 @@ body {
   position: absolute;
   width: 0.55rem;
   height: 0.55rem;
-  border-radius: 9999px;
-  background: rgba(94, 234, 212, 0.92);
-  box-shadow: 0 0 20px rgba(94, 234, 212, 0.85);
+  border-radius: var(--r-pill);
+  background: color-mix(in srgb, var(--c-accent) 92%, transparent);
+  box-shadow: 0 0 20px color-mix(in srgb, var(--c-accent) 85%, transparent);
   animation: store-hero-particle 5.8s ease-in-out infinite;
 }
 
@@ -282,60 +342,32 @@ body {
 
 .store-hero-spotlight::before {
   background:
-    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--accent) 74%, transparent) 0 10%, transparent 33%),
-    linear-gradient(135deg, #06132b, color-mix(in srgb, var(--primary) 48%, #07111f));
+    radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--c-accent) 74%, transparent) 0 10%, transparent 33%),
+    linear-gradient(135deg, color-mix(in srgb, var(--c-text) 86%, var(--c-bg)), color-mix(in srgb, var(--c-brand) 48%, var(--c-text)));
 }
 
 .store-hero-mesh::before {
-  background: conic-gradient(from 180deg at 50% 50%, var(--primary), var(--accent), #fef3c7, var(--primary));
+  background: conic-gradient(from 180deg at 50% 50%, var(--c-brand), var(--c-accent), var(--c-surface-2), var(--c-brand));
   filter: blur(12px) saturate(1.2);
 }
 
 .store-hero-silk::before {
   background:
-    linear-gradient(115deg, color-mix(in srgb, var(--primary) 45%, #fff1f2), #ffffff 38%, color-mix(in srgb, var(--accent) 48%, #ffe4e6));
+    linear-gradient(115deg, color-mix(in srgb, var(--c-brand) 45%, var(--c-surface-2)), var(--c-surface) 38%, color-mix(in srgb, var(--c-accent) 48%, var(--c-surface-2)));
 }
 
 .store-hero-neon::before {
   background:
-    radial-gradient(circle at 32% 35%, color-mix(in srgb, var(--primary) 72%, transparent) 0 10%, transparent 31%),
-    radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--accent) 72%, transparent) 0 12%, transparent 34%),
-    linear-gradient(120deg, #030712, #111827);
+    radial-gradient(circle at 32% 35%, color-mix(in srgb, var(--c-brand) 72%, transparent) 0 10%, transparent 31%),
+    radial-gradient(circle at 70% 30%, color-mix(in srgb, var(--c-accent) 72%, transparent) 0 12%, transparent 34%),
+    linear-gradient(120deg, color-mix(in srgb, var(--c-text) 92%, var(--c-bg)), color-mix(in srgb, var(--c-text) 72%, var(--c-brand)));
 }
 
 .store-hero-showroom-banner::before {
   background:
-    linear-gradient(110deg, color-mix(in srgb, var(--primary) 74%, #111827) 0 34%, transparent 34% 42%, color-mix(in srgb, var(--accent) 62%, #f8fafc) 42% 100%),
-    repeating-linear-gradient(90deg, rgba(255,255,255,0.1) 0 1px, transparent 1px 4.5rem);
+    linear-gradient(110deg, color-mix(in srgb, var(--c-brand) 74%, var(--c-text)) 0 34%, transparent 34% 42%, color-mix(in srgb, var(--c-accent) 62%, var(--c-bg)) 42% 100%),
+    repeating-linear-gradient(90deg, color-mix(in srgb, var(--c-surface) 10%, transparent) 0 1px, transparent 1px 4.5rem);
   filter: saturate(1.08);
-}
-
-.store-front-root[data-store-slug="ehelal"] {
-  background:
-    radial-gradient(circle at 15% 8%, rgba(255, 255, 255, 0.95), transparent 26rem),
-    linear-gradient(180deg, #f8fbff 0%, #edf5ff 44%, #ffffff 100%);
-}
-
-.dark .store-front-root[data-store-slug="ehelal"] {
-  background:
-    radial-gradient(circle at 16% 8%, rgba(96, 165, 250, 0.18), transparent 25rem),
-    linear-gradient(180deg, #071a3a 0%, #0a2b63 44%, #061427 100%);
-}
-
-.store-front-root[data-store-slug="ehelal"] .store-hero-motion::before {
-  background:
-    radial-gradient(circle at 22% 30%, rgba(255, 255, 255, 0.94) 0 8%, transparent 26%),
-    radial-gradient(circle at 74% 24%, rgba(147, 197, 253, 0.9) 0 12%, transparent 31%),
-    linear-gradient(120deg, #ffffff 0%, #dbeafe 34%, #2563eb 68%, #0a4abf 100%);
-  opacity: 0.98;
-}
-
-.dark .store-front-root[data-store-slug="ehelal"] .store-hero-motion::before {
-  background:
-    radial-gradient(circle at 22% 30%, rgba(255, 255, 255, 0.26) 0 8%, transparent 27%),
-    radial-gradient(circle at 74% 24%, rgba(96, 165, 250, 0.72) 0 12%, transparent 31%),
-    linear-gradient(120deg, #061427 0%, #0b2d6b 38%, #1d4ed8 72%, #f8fbff 100%);
-  opacity: 0.96;
 }
 
 /* Capacitor safe-area padding */
@@ -485,8 +517,8 @@ body {
 /* Store product cards — Salla/Zid-inspired variants */
 .store-product-card {
   overflow: hidden;
-  border: 1px solid var(--border);
-  background: var(--card);
+  border: 1px solid var(--c-line);
+  background: var(--c-surface);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -503,34 +535,34 @@ body {
 }
 
 .store-product-card--rounded-shadow {
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+  border-radius: var(--r);
+  box-shadow: var(--shadow-sm);
 }
 
 .store-product-card--rounded-shadow:hover {
-  box-shadow: 0 12px 28px rgb(0 0 0 / 0.1);
+  box-shadow: var(--shadow);
 }
 
 .store-product-card--flat-grid {
-  border-radius: 0.75rem;
+  border-radius: var(--r-sm);
   box-shadow: none;
 }
 
 .store-product-card--luxury-tall {
-  border-radius: 1.25rem;
-  box-shadow: 0 8px 30px rgb(0 0 0 / 0.08);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
 }
 
 .store-product-card--luxury-tall .store-product-card__media {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
 }
 
 .store-product-card--compact-dense {
-  border-radius: 0.5rem;
+  border-radius: var(--r-sm);
 }
 
 .store-product-card--compact-dense .store-product-card__body {
-  padding: 0.5rem;
+  padding: var(--space-2);
 }
 
 .store-product-card--highlight-price .store-product-card__body span:first-of-type {
@@ -539,35 +571,35 @@ body {
 }
 
 .store-product-grid {
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 @media (min-width: 768px) {
   .store-product-grid {
-    gap: 1rem;
+    gap: var(--space-4);
   }
 }
 
 .store-front-root[data-product-card-style="luxury-tall"] .store-product-card {
-  border-radius: 1.25rem;
-  box-shadow: 0 8px 30px rgb(0 0 0 / 0.08);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow);
 }
 
 .store-front-root[data-product-card-style="luxury-tall"] .store-product-card__media {
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 4 / 5;
 }
 
 .store-front-root[data-product-card-style="flat-grid"] .store-product-card {
-  border-radius: 0.75rem;
+  border-radius: var(--r-sm);
   box-shadow: none;
 }
 
 .store-front-root[data-product-card-style="compact-dense"] .store-product-card {
-  border-radius: 0.5rem;
+  border-radius: var(--r-sm);
 }
 
 .store-front-root[data-product-card-style="compact-dense"] .store-product-card__body {
-  padding: 0.5rem;
+  padding: var(--space-2);
 }
 
 .store-front-root[data-product-card-style="highlight-price"] .store-product-card__body span:first-of-type {

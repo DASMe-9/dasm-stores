@@ -40,17 +40,17 @@ export function ShareButton({
   }, [title, urlProp]);
 
   return (
-    <span className={`inline-flex flex-col items-start gap-1 ${className}`}>
+    <span className={`inline-flex flex-col items-start gap-[var(--space-1)] ${className}`}>
       <button
         type="button"
         onClick={share}
-        className="inline-flex items-center gap-2 rounded-xl border border-[var(--border)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)]"
+        className="inline-flex items-center gap-[var(--space-2)] rounded-[var(--r)] border border-[var(--c-line)] px-[var(--space-3)] py-[var(--space-2)] text-sm font-medium text-[var(--c-text)] hover:bg-[var(--c-surface-2)]"
       >
         <Share2 className="h-4 w-4 shrink-0" aria-hidden />
         مشاركة
       </button>
       {hint ? (
-        <span className="text-xs text-[var(--muted-foreground)]" role="status">
+        <span className="text-xs text-[var(--c-muted)]" role="status">
           {hint}
         </span>
       ) : null}

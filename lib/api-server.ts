@@ -102,7 +102,10 @@ export type StorePublic = {
   name_ar?: string | null;
   slug: string;
   theme_id?: number | null;
+  theme_preset?: string | null;
   theme_config?: Record<string, unknown> | null;
+  category?: string | { slug?: string | null; name?: string | null; name_ar?: string | null } | null;
+  category_slug?: string | null;
   description: string | null;
   logo_url: string | null;
   banner_url: string | null;

@@ -1,11 +1,37 @@
 import type { StoreThemePayload } from "./types";
 import type { ThemePreset } from "./types";
 import { pickReadableForeground, pickReadableTextColor } from "./color-contrast";
+import {
+  isStorefrontPresetId,
+  legacyVarsFromTokens,
+  storefrontPresetToTokens,
+  type StorefrontTokens,
+} from "./storefront-tokens";
+
+function tokensFromLegacyPreset(preset: ThemePreset): StorefrontTokens {
+  const base = storefrontPresetToTokens("quiet");
+  return {
+    ...base,
+    "--c-bg": preset.colors.background,
+    "--c-surface": preset.colors.card,
+    "--c-surface-2": preset.colors.muted,
+    "--c-text": preset.colors.foreground,
+    "--c-muted": preset.colors.mutedForeground,
+    "--c-line": preset.colors.border,
+    "--c-brand": preset.colors.primary,
+    "--c-on-brand": pickReadableForeground(preset.colors.primary, { dark: "#111827", light: "#ffffff" }),
+    "--c-accent": preset.colors.accent,
+    "--c-sale": preset.colors.accent,
+  };
+}
 
 /** Maps preset → API-compatible theme payload (Laravel store_themes shape). */
 export function presetToStoreTheme(preset: ThemePreset): StoreThemePayload {
   const { colors, typography, headerStyle, productCardStyle, heroStyle, enabledSections } =
     preset;
+  const tokenPresetId = isStorefrontPresetId(preset.id) ? preset.id : null;
+  const storefrontTokens = tokenPresetId ? storefrontPresetToTokens(tokenPresetId) : tokensFromLegacyPreset(preset);
+  const tokenLegacyVars = legacyVarsFromTokens(storefrontTokens);
   const primaryForeground = pickReadableForeground(colors.primary, {
     dark: "#111827",
     light: "#ffffff",
@@ -22,18 +48,20 @@ export function presetToStoreTheme(preset: ThemePreset): StoreThemePayload {
 
   return {
     css_variables: {
-      primary: colors.primary,
-      "primary-foreground": primaryForeground,
-      "primary-text": primaryText,
-      accent: colors.accent,
-      "accent-foreground": accentForeground,
-      background: colors.background,
-      foreground: colors.foreground,
-      card: colors.card,
-      border: colors.border,
-      muted: colors.muted,
-      "muted-foreground": colors.mutedForeground,
-      "font-family-ar": typography.fontFamilyAr,
+      ...storefrontTokens,
+      "preset-id": preset.id,
+      primary: tokenPresetId ? tokenLegacyVars.primary : colors.primary,
+      "primary-foreground": tokenPresetId ? tokenLegacyVars["primary-foreground"] : primaryForeground,
+      "primary-text": tokenPresetId ? tokenLegacyVars["primary-text"] : primaryText,
+      accent: tokenPresetId ? tokenLegacyVars.accent : colors.accent,
+      "accent-foreground": tokenPresetId ? tokenLegacyVars["accent-foreground"] : accentForeground,
+      background: tokenPresetId ? tokenLegacyVars.background : colors.background,
+      foreground: tokenPresetId ? tokenLegacyVars.foreground : colors.foreground,
+      card: tokenPresetId ? tokenLegacyVars.card : colors.card,
+      border: tokenPresetId ? tokenLegacyVars.border : colors.border,
+      muted: tokenPresetId ? tokenLegacyVars.muted : colors.muted,
+      "muted-foreground": tokenPresetId ? tokenLegacyVars["muted-foreground"] : colors.mutedForeground,
+      "font-family-ar": storefrontTokens["--font-body"],
       "font-family-en": typography.fontFamilyEn,
       "heading-weight": String(typography.headingWeight),
       "product-card-style": productCardStyle,
@@ -66,12 +94,18 @@ export function presetToThemeConfig(
   return {
     ...(base ?? {}),
     preset_id: preset.id,
-    preset_version: 1,
+    preset_version: 3,
     market: preset.market,
     category: preset.category,
     palette: preset.id,
-    primary: preset.colors.primary,
-    accent: preset.colors.accent,
+    primary: payload.css_variables.primary,
+    accent: payload.css_variables.accent,
+    css_variables: {
+      ...((base?.css_variables && typeof base.css_variables === "object" && !Array.isArray(base.css_variables)
+        ? base.css_variables
+        : {}) as Record<string, unknown>),
+      ...payload.css_variables,
+    },
     ...payload.template_config,
   };
 }

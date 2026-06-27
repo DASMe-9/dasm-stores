@@ -23,8 +23,8 @@ export function ProductImage({ src, alt }: { src?: string | null; alt: string })
 
   if (!activeSrc || failed) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,var(--muted),color-mix(in_srgb,var(--primary)_10%,var(--muted)))] text-xs text-[var(--muted-foreground)]">
-        <span className="rounded-full border border-[var(--border)] bg-[var(--card)]/80 px-3 py-1">
+      <div className="flex h-full w-full items-center justify-center bg-[linear-gradient(135deg,var(--c-surface-2),color-mix(in_srgb,var(--c-brand)_10%,var(--c-surface-2)))] text-xs text-[var(--c-muted)]">
+        <span className="rounded-[var(--r-pill)] border border-[var(--c-line)] bg-[color-mix(in_srgb,var(--c-surface)_80%,transparent)] px-[var(--space-3)] py-[var(--space-1)]">
           بدون صورة
         </span>
       </div>

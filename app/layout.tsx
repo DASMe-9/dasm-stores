@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Tajawal } from "next/font/google";
+import { IBM_Plex_Sans_Arabic, Reem_Kufi } from "next/font/google";
 import "@/styles/globals.css";
 import { SyncStoresAuthCookie } from "@/components/store/SyncStoresAuthCookie";
 import {
@@ -12,10 +12,18 @@ import {
   websiteSchema,
 } from "@/lib/seo";
 
-const tajawal = Tajawal({
+const reemKufi = Reem_Kufi({
   subsets: ["arabic"],
-  weight: ["400", "500", "700", "800"],
+  weight: ["400", "500", "600", "700"],
   display: "swap",
+  variable: "--font-display-loaded",
+});
+
+const ibmPlexSansArabic = IBM_Plex_Sans_Arabic({
+  subsets: ["arabic"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  variable: "--font-body-loaded",
 });
 
 export const metadata: Metadata = {
@@ -62,7 +70,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${tajawal.className} min-h-screen antialiased`}>
+      <body className={`${reemKufi.variable} ${ibmPlexSansArabic.variable} min-h-screen antialiased`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: jsonLdString(organizationSchema()) }}

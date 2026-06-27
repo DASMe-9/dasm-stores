@@ -11,12 +11,11 @@ export function StoreTabsNav({
   if (!tabs?.length) return null;
 
   return (
-    <nav className="border-b border-[var(--border)] bg-[var(--card)]/90 backdrop-blur-md">
-      <div className="mx-auto flex w-full max-w-[1600px] gap-2 overflow-x-auto px-4 py-3 text-sm font-medium scrollbar-hide sm:px-6 lg:px-8">
+    <nav className="border-b border-[var(--c-line)] bg-[color-mix(in_srgb,var(--c-surface)_90%,transparent)] backdrop-blur-md">
+      <div className="mx-auto flex w-full max-w-[1600px] gap-[var(--space-2)] overflow-x-auto px-[var(--space-4)] py-[var(--space-3)] text-sm font-medium scrollbar-hide sm:px-[var(--space-6)] lg:px-[var(--space-8)]">
         <Link
           href={`/${slug}/products`}
-          className="whitespace-nowrap rounded-full px-4 py-2 transition hover:bg-[var(--muted)]"
-          style={{ border: "1px solid var(--border)" }}
+          className="whitespace-nowrap rounded-[var(--r-pill)] border border-[var(--c-line)] px-[var(--space-4)] py-[var(--space-2)] text-[var(--c-text)] transition hover:bg-[var(--c-surface-2)]"
         >
           كل المنتجات
         </Link>
@@ -24,8 +23,7 @@ export function StoreTabsNav({
           <Link
             key={t.id}
             href={`/${slug}/products?tab=${encodeURIComponent(t.slug)}`}
-            className="whitespace-nowrap rounded-full px-4 py-2 transition hover:bg-[var(--muted)]"
-            style={{ border: "1px solid var(--border)" }}
+            className="whitespace-nowrap rounded-[var(--r-pill)] border border-[var(--c-line)] px-[var(--space-4)] py-[var(--space-2)] text-[var(--c-text)] transition hover:bg-[var(--c-surface-2)]"
           >
             {t.name}
           </Link>

@@ -2,6 +2,15 @@ export * from "./types";
 export { THEME_PRESETS } from "./presets";
 export { presetToStoreTheme, presetToThemeConfig, designToChromeThemeConfig } from "./to-store-theme";
 export {
+  STOREFRONT_PRESET_IDS,
+  STOREFRONT_THEME_PRESETS,
+  STOREFRONT_TOKEN_PRESETS,
+  isStorefrontPresetId,
+  legacyVarsFromTokens,
+  storefrontPresetForCategory,
+  storefrontPresetToTokens,
+} from "./storefront-tokens";
+export {
   PRESET_TO_LEGACY_THEME_ID,
   resolveLegacyThemeId,
   resolvePresetIdFromLegacyThemeId,
@@ -18,15 +27,16 @@ export { resolveStoreCssVariables, resolveStoreTemplateConfig } from "./resolve-
 
 import type { ThemeMarket, ThemePreset } from "./types";
 import { THEME_PRESETS } from "./presets";
+import { STOREFRONT_THEME_PRESETS } from "./storefront-tokens";
 
 export function findPresetById(id: string | null | undefined): ThemePreset | undefined {
   if (!id) return undefined;
-  return THEME_PRESETS.find((p) => p.id === id);
+  return STOREFRONT_THEME_PRESETS.find((p) => p.id === id) ?? THEME_PRESETS.find((p) => p.id === id);
 }
 
 export function presetsByMarket(market: ThemeMarket | "all"): ThemePreset[] {
-  if (market === "all") return THEME_PRESETS;
-  return THEME_PRESETS.filter((p) => p.market === market || p.market === "mixed");
+  if (market === "all") return STOREFRONT_THEME_PRESETS;
+  return STOREFRONT_THEME_PRESETS.filter((p) => p.market === market || p.market === "mixed");
 }
 
 export function detectPresetFromThemeConfig(

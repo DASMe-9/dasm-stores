@@ -25,16 +25,12 @@ export function CartBadge({ slug }: { slug: string }) {
       <button
         type="button"
         onClick={() => open()}
-        className="relative inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-95 md:hidden"
-        style={{
-          backgroundColor: "var(--primary)",
-          color: "var(--primary-foreground)",
-        }}
+        className="relative inline-flex items-center gap-[var(--space-2)] rounded-[var(--r)] bg-[var(--c-brand)] px-[var(--space-4)] py-[var(--space-3)] text-sm font-semibold text-[var(--c-on-brand)] transition hover:opacity-95 md:hidden"
       >
         <ShoppingCart className="h-4 w-4" />
         السلة
         {visibleCount > 0 ? (
-          <span className="absolute -top-2 -left-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+          <span className="absolute -left-[var(--space-2)] -top-[var(--space-2)] flex h-5 min-w-5 items-center justify-center rounded-[var(--r-pill)] bg-[var(--c-sale)] px-[var(--space-1)] text-[10px] font-bold text-[var(--c-on-brand)]">
             {visibleCount > 99 ? "99+" : visibleCount}
           </span>
         ) : null}
@@ -42,16 +38,12 @@ export function CartBadge({ slug }: { slug: string }) {
 
       <Link
         href={`/${slug}/cart`}
-        className="relative hidden items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition hover:opacity-95 md:inline-flex"
-        style={{
-          backgroundColor: "var(--primary)",
-          color: "var(--primary-foreground)",
-        }}
+        className="relative hidden items-center gap-[var(--space-2)] rounded-[var(--r)] bg-[var(--c-brand)] px-[var(--space-4)] py-[var(--space-3)] text-sm font-semibold text-[var(--c-on-brand)] transition hover:opacity-95 md:inline-flex"
       >
         <ShoppingCart className="h-4 w-4" />
         السلة
         {visibleCount > 0 ? (
-          <span className="absolute -top-2 -left-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+          <span className="absolute -left-[var(--space-2)] -top-[var(--space-2)] flex h-5 min-w-5 items-center justify-center rounded-[var(--r-pill)] bg-[var(--c-sale)] px-[var(--space-1)] text-[10px] font-bold text-[var(--c-on-brand)]">
             {visibleCount > 99 ? "99+" : visibleCount}
           </span>
         ) : null}

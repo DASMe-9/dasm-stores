@@ -71,24 +71,24 @@ function list(v: BlockAttrValue | undefined): string[] {
 function Navbar({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const links = list(block.attrs.links);
   return (
-    <div className="flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3 dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex items-center justify-between border-b border-[var(--c-line)] bg-[var(--c-surface)] px-[var(--space-4)] py-[var(--space-3)]">
       <div className="flex items-center gap-2">
         {block.attrs.logo ? (
           <div
-            className="flex h-7 w-7 items-center justify-center rounded-lg text-xs font-bold text-white"
+            className="flex h-7 w-7 items-center justify-center rounded-[var(--r-sm)] text-xs font-bold text-[var(--c-on-brand)]"
             style={{ background: ctx.primaryColor }}
           >
             {ctx.storeName.slice(0, 1)}
           </div>
         ) : null}
-        <span className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{ctx.storeName}</span>
+        <span className="text-sm font-bold text-[var(--c-text)]">{ctx.storeName}</span>
       </div>
-      <div className="hidden items-center gap-4 text-xs text-zinc-600 dark:text-zinc-400 sm:flex">
+      <div className="hidden items-center gap-[var(--space-4)] text-xs text-[var(--c-muted)] sm:flex">
         {links.map((l, i) => (
           <span key={i}>{l}</span>
         ))}
       </div>
-      <div className="flex items-center gap-3 text-zinc-500">
+      <div className="flex items-center gap-[var(--space-3)] text-[var(--c-muted)]">
         <Search className="h-4 w-4" />
         <ShoppingBag className="h-4 w-4" />
         <Menu className="h-4 w-4 sm:hidden" />
@@ -99,7 +99,7 @@ function Navbar({ block, ctx }: { block: Block; ctx: PreviewContext }) {
 
 function Banner({ block }: { block: Block }) {
   return (
-    <div className="bg-zinc-900 px-4 py-2 text-center text-xs font-semibold text-white dark:bg-zinc-100 dark:text-zinc-900">
+    <div className="bg-[var(--c-brand)] px-[var(--space-4)] py-[var(--space-2)] text-center text-xs font-semibold text-[var(--c-on-brand)]">
       {str(block.attrs.text)}
     </div>
   );
@@ -107,24 +107,24 @@ function Banner({ block }: { block: Block }) {
 
 function Hero({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const style: CSSProperties = {
-    background: `linear-gradient(135deg, ${ctx.primaryColor}, ${ctx.primaryColor}cc)`,
+    background: `linear-gradient(135deg, ${ctx.primaryColor}, color-mix(in srgb, ${ctx.primaryColor} 74%, var(--c-text)))`,
   };
   const cta = str(block.attrs.cta);
   return (
     <div className="relative overflow-hidden px-6 py-16 text-center sm:py-20" style={style}>
       <div
         className="pointer-events-none absolute inset-0 opacity-20"
-        style={{ backgroundImage: "radial-gradient(circle at 30% 25%, #fff, transparent 45%)" }}
+        style={{ backgroundImage: "radial-gradient(circle at 30% 25%, var(--c-surface), transparent 45%)" }}
       />
       <div className="relative">
-        <h2 className="text-3xl font-extrabold tracking-tight text-white drop-shadow sm:text-4xl">
+        <h2 className="text-3xl font-extrabold text-[var(--c-on-brand)] drop-shadow sm:text-4xl">
           {substitute(str(block.attrs.title), ctx)}
         </h2>
-        <p className="mx-auto mt-3 max-w-lg text-sm font-medium text-white/90 sm:text-base">
+        <p className="mx-auto mt-[var(--space-3)] max-w-lg text-sm font-medium text-[color-mix(in_srgb,var(--c-on-brand)_90%,transparent)] sm:text-base">
           {str(block.attrs.subtitle)}
         </p>
         {cta ? (
-          <span className="mt-6 inline-block rounded-xl bg-white px-7 py-2.5 text-sm font-bold text-zinc-900 shadow-lg">
+          <span className="mt-[var(--space-6)] inline-block rounded-[var(--r)] bg-[var(--c-surface)] px-7 py-[var(--space-3)] text-sm font-bold text-[var(--c-text)] shadow-[var(--shadow)]">
             {cta}
           </span>
         ) : null}
@@ -136,8 +136,8 @@ function Hero({ block, ctx }: { block: Block; ctx: PreviewContext }) {
 function RichText({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   return (
     <div className="px-6 py-8 text-center">
-      <h3 className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{substitute(str(block.attrs.title), ctx)}</h3>
-      <p className="mx-auto mt-2 max-w-lg text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+        <h3 className="text-lg font-bold text-[var(--c-text)]">{substitute(str(block.attrs.title), ctx)}</h3>
+      <p className="mx-auto mt-[var(--space-2)] max-w-lg text-sm leading-relaxed text-[var(--c-muted)]">
         {substitute(str(block.attrs.body), ctx)}
       </p>
     </div>
@@ -146,17 +146,17 @@ function RichText({ block, ctx }: { block: Block; ctx: PreviewContext }) {
 
 function ProductCard({ name, price, image, color }: PreviewProduct & { color: string }) {
   return (
-    <article className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="flex aspect-[4/5] items-center justify-center overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+    <article className="overflow-hidden rounded-[var(--r)] border border-[var(--c-line)] bg-[var(--c-surface)]">
+      <div className="flex aspect-[4/5] items-center justify-center overflow-hidden bg-[var(--c-surface-2)]">
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={image} alt={name} className="h-full w-full object-cover" />
         ) : (
-          <ShoppingBag className="h-7 w-7 text-zinc-300" />
+          <ShoppingBag className="h-7 w-7 text-[var(--c-muted)]" />
         )}
       </div>
-      <div className="space-y-1 p-2">
-        <p className="truncate text-xs font-semibold text-zinc-800 dark:text-zinc-200">{name}</p>
+      <div className="space-y-[var(--space-1)] p-[var(--space-2)]">
+        <p className="truncate text-xs font-semibold text-[var(--c-text)]">{name}</p>
         <p className="text-sm font-bold" style={{ color }}>
           {price} ر.س
         </p>
@@ -172,7 +172,7 @@ function Featured({ block, ctx }: { block: Block; ctx: PreviewContext }) {
     <div className="px-4 py-6">
       <div className="mb-3 flex items-center gap-2">
         <Star className="h-4 w-4" style={{ color: ctx.primaryColor }} />
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+        <h3 className="text-sm font-bold text-[var(--c-text)]">{str(block.attrs.title)}</h3>
       </div>
       <div className="flex gap-3 overflow-x-auto pb-1">
         {items.map((p, i) => (
@@ -194,7 +194,7 @@ function ProductGrid({ block, ctx }: { block: Block; ctx: PreviewContext }) {
     <div className="px-4 py-6">
       <div className="mb-3 flex items-center gap-2">
         <Heart className="h-4 w-4" style={{ color: ctx.primaryColor }} />
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+        <h3 className="text-sm font-bold text-[var(--c-text)]">{str(block.attrs.title)}</h3>
       </div>
       <div className={`grid gap-3 ${colClass}`}>
         {items.map((p, i) => (
@@ -207,10 +207,10 @@ function ProductGrid({ block, ctx }: { block: Block; ctx: PreviewContext }) {
 
 function Footer({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   return (
-    <div className="border-t border-zinc-200 bg-zinc-50 px-6 py-6 text-center dark:border-zinc-800 dark:bg-zinc-950">
-      <p className="text-sm font-bold text-zinc-800 dark:text-zinc-200">{substitute(str(block.attrs.about), ctx)}</p>
-      <p className="mt-1 text-xs text-zinc-500">{str(block.attrs.terms)}</p>
-      <div className="mt-2 flex justify-center gap-2 text-[11px] text-zinc-400">
+    <div className="border-t border-[var(--c-line)] bg-[var(--c-surface-2)] px-[var(--space-6)] py-[var(--space-6)] text-center">
+      <p className="text-sm font-bold text-[var(--c-text)]">{substitute(str(block.attrs.about), ctx)}</p>
+      <p className="mt-[var(--space-1)] text-xs text-[var(--c-muted)]">{str(block.attrs.terms)}</p>
+      <div className="mt-[var(--space-2)] flex justify-center gap-[var(--space-2)] text-[11px] text-[var(--c-muted)]">
         {list(block.attrs.social).map((s, i) => (
           <span key={i}>{s}</span>
         ))}
@@ -222,7 +222,7 @@ function Footer({ block, ctx }: { block: Block; ctx: PreviewContext }) {
 function Announcement({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const text = substitute(str(block.attrs.text), ctx);
   return (
-    <div className="px-4 py-1.5 text-center text-[11px] font-semibold text-white" style={{ background: ctx.primaryColor }}>
+    <div className="px-[var(--space-4)] py-[var(--space-2)] text-center text-[11px] font-semibold text-[var(--c-on-brand)]" style={{ background: ctx.primaryColor }}>
       {text}
     </div>
   );
@@ -231,11 +231,11 @@ function Announcement({ block, ctx }: { block: Block; ctx: PreviewContext }) {
 function Features({ block }: { block: Block }) {
   const items = list(block.attrs.items);
   return (
-    <div className="border-y border-zinc-100 bg-zinc-50 px-4 py-3 dark:border-zinc-800 dark:bg-zinc-950">
-      <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2">
+    <div className="border-y border-[var(--c-line)] bg-[var(--c-surface-2)] px-[var(--space-4)] py-[var(--space-3)]">
+      <div className="flex flex-wrap items-center justify-center gap-x-[var(--space-5)] gap-y-[var(--space-2)]">
         {items.map((it, i) => (
-          <div key={i} className="flex items-center gap-1.5 text-[11px] font-semibold text-zinc-700 dark:text-zinc-300">
-            <ShieldCheck className="h-3.5 w-3.5 text-emerald-500" />
+          <div key={i} className="flex items-center gap-[var(--space-2)] text-[11px] font-semibold text-[var(--c-text)]">
+            <ShieldCheck className="h-3.5 w-3.5 text-[var(--c-brand)]" />
             {it}
           </div>
         ))}
@@ -251,22 +251,21 @@ function Categories({ block, ctx }: { block: Block; ctx: PreviewContext }) {
       {str(block.attrs.title) ? (
         <div className="mb-4 flex items-center gap-2">
           <Tag className="h-4 w-4" style={{ color: ctx.primaryColor }} />
-          <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+          <h3 className="text-base font-bold text-[var(--c-text)]">{str(block.attrs.title)}</h3>
         </div>
       ) : null}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {items.map((it, i) => (
           <div
             key={i}
-            className="group flex h-24 flex-col items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white text-center shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
+            className="group flex h-24 flex-col items-center justify-center gap-[var(--space-2)] rounded-[var(--r)] border border-[var(--c-line)] bg-[var(--c-surface)] text-center shadow-[var(--shadow-sm)] transition hover:-translate-y-0.5 hover:shadow-[var(--shadow)]"
           >
             <span
-              className="flex h-9 w-9 items-center justify-center rounded-full transition group-hover:scale-110"
-              style={{ background: `${ctx.primaryColor}1a`, color: ctx.primaryColor }}
+              className="flex h-9 w-9 items-center justify-center rounded-[var(--r-pill)] bg-[color-mix(in_srgb,var(--c-brand)_10%,var(--c-surface-2))] text-[var(--c-brand)] transition group-hover:scale-110"
             >
               <Tag className="h-4 w-4" />
             </span>
-            <span className="px-2 text-xs font-bold text-zinc-800 dark:text-zinc-200">{it}</span>
+            <span className="px-[var(--space-2)] text-xs font-bold text-[var(--c-text)]">{it}</span>
           </div>
         ))}
       </div>
@@ -278,16 +277,16 @@ function ImageBanner({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const image = str(block.attrs.image);
   const style: CSSProperties = image
     ? { backgroundImage: `url(${image})`, backgroundSize: "cover", backgroundPosition: "center" }
-    : { background: `linear-gradient(135deg, ${ctx.primaryColor}, ${ctx.primaryColor}55)` };
+    : { background: `linear-gradient(135deg, ${ctx.primaryColor}, color-mix(in srgb, ${ctx.primaryColor} 35%, var(--c-surface)))` };
   return (
     <div className="relative px-4 py-3">
       <div className="relative flex min-h-[120px] flex-col items-center justify-center overflow-hidden rounded-2xl px-6 py-8 text-center" style={style}>
-        <div className="absolute inset-0 bg-black/30" />
+        <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--c-text)_30%,transparent)]" />
         <div className="relative z-10">
-          <h3 className="text-lg font-extrabold text-white drop-shadow">{str(block.attrs.title)}</h3>
-          <p className="mt-1 text-xs font-medium text-white/90">{str(block.attrs.subtitle)}</p>
+          <h3 className="text-lg font-extrabold text-[var(--c-on-brand)] drop-shadow">{str(block.attrs.title)}</h3>
+          <p className="mt-[var(--space-1)] text-xs font-medium text-[color-mix(in_srgb,var(--c-on-brand)_90%,transparent)]">{str(block.attrs.subtitle)}</p>
           {str(block.attrs.cta) ? (
-            <span className="mt-3 inline-block rounded-lg bg-white px-4 py-1.5 text-xs font-bold text-zinc-900">
+            <span className="mt-[var(--space-3)] inline-block rounded-[var(--r-sm)] bg-[var(--c-surface)] px-[var(--space-4)] py-[var(--space-2)] text-xs font-bold text-[var(--c-text)]">
               {str(block.attrs.cta)}
             </span>
           ) : null}
@@ -306,15 +305,15 @@ function ImageWithText({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   if (!image) {
     return (
       <div className="px-6 py-8 text-center">
-        <h3 className="mx-auto max-w-2xl text-lg font-bold text-zinc-900 dark:text-zinc-100">
+        <h3 className="mx-auto max-w-2xl text-lg font-bold text-[var(--c-text)]">
           {substitute(str(block.attrs.title), ctx)}
         </h3>
-        <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-zinc-600 dark:text-zinc-400">
+        <p className="mx-auto mt-[var(--space-2)] max-w-xl text-sm leading-relaxed text-[var(--c-muted)]">
           {str(block.attrs.body)}
         </p>
         {str(block.attrs.cta) ? (
           <span
-            className="mt-4 inline-block rounded-lg px-5 py-2 text-xs font-bold text-white"
+            className="mt-[var(--space-4)] inline-block rounded-[var(--r-sm)] px-[var(--space-5)] py-[var(--space-2)] text-xs font-bold text-[var(--c-on-brand)]"
             style={{ background: ctx.primaryColor }}
           >
             {str(block.attrs.cta)}
@@ -325,21 +324,21 @@ function ImageWithText({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   }
 
   const media = (
-    <div className="flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-zinc-100 dark:bg-zinc-800">
+    <div className="flex aspect-video items-center justify-center overflow-hidden rounded-[var(--r)] bg-[var(--c-surface-2)]">
       {image ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img src={image} alt={str(block.attrs.title)} className="h-full w-full object-cover" />
       ) : (
-        <ShoppingBag className="h-8 w-8 text-zinc-300" />
+        <ShoppingBag className="h-8 w-8 text-[var(--c-muted)]" />
       )}
     </div>
   );
   const text = (
     <div className="flex flex-col justify-center">
-      <h3 className="text-base font-bold text-zinc-900 dark:text-zinc-100">{substitute(str(block.attrs.title), ctx)}</h3>
-      <p className="mt-1 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">{str(block.attrs.body)}</p>
+      <h3 className="text-base font-bold text-[var(--c-text)]">{substitute(str(block.attrs.title), ctx)}</h3>
+      <p className="mt-[var(--space-1)] text-xs leading-relaxed text-[var(--c-muted)]">{str(block.attrs.body)}</p>
       {str(block.attrs.cta) ? (
-        <span className="mt-3 inline-block w-fit rounded-lg px-4 py-1.5 text-xs font-bold text-white" style={{ background: ctx.primaryColor }}>
+        <span className="mt-[var(--space-3)] inline-block w-fit rounded-[var(--r-sm)] px-[var(--space-4)] py-[var(--space-2)] text-xs font-bold text-[var(--c-on-brand)]" style={{ background: ctx.primaryColor }}>
           {str(block.attrs.cta)}
         </span>
       ) : null}
@@ -367,7 +366,7 @@ function Brands({ block }: { block: Block }) {
   return (
     <div className="px-4 py-5">
       {str(block.attrs.title) ? (
-        <p className="mb-2 text-center text-[11px] font-semibold text-zinc-400">{str(block.attrs.title)}</p>
+        <p className="mb-[var(--space-2)] text-center text-[11px] font-semibold text-[var(--c-muted)]">{str(block.attrs.title)}</p>
       ) : null}
       <div className="flex flex-wrap items-center justify-center gap-4">
         {logos.map((b, i) => {
@@ -376,7 +375,7 @@ function Brands({ block }: { block: Block }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img key={i} src={b} alt="brand" className="h-6 w-auto object-contain opacity-70" />
           ) : (
-            <span key={i} className="text-sm font-bold text-zinc-400">
+            <span key={i} className="text-sm font-bold text-[var(--c-muted)]">
               {b}
             </span>
           );
@@ -391,13 +390,13 @@ function Testimonials({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   const authors = list(block.attrs.authors);
   return (
     <div className="px-4 py-6">
-      <h3 className="mb-3 text-center text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+      <h3 className="mb-[var(--space-3)] text-center text-sm font-bold text-[var(--c-text)]">{str(block.attrs.title)}</h3>
       <div className="grid gap-3 sm:grid-cols-3">
         {quotes.map((q, i) => (
-          <div key={i} className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+          <div key={i} className="rounded-[var(--r)] border border-[var(--c-line)] bg-[var(--c-surface)] p-[var(--space-3)]">
             <Quote className="h-4 w-4" style={{ color: ctx.primaryColor }} />
-            <p className="mt-1 text-xs text-zinc-600 dark:text-zinc-300">{q}</p>
-            <p className="mt-2 text-[11px] font-bold text-zinc-500">— {authors[i] ?? "عميل"}</p>
+            <p className="mt-[var(--space-1)] text-xs text-[var(--c-muted)]">{q}</p>
+            <p className="mt-[var(--space-2)] text-[11px] font-bold text-[var(--c-muted)]">— {authors[i] ?? "عميل"}</p>
           </div>
         ))}
       </div>
@@ -410,15 +409,15 @@ function Faq({ block }: { block: Block }) {
   const answers = list(block.attrs.answers);
   return (
     <div className="px-4 py-6">
-      <h3 className="mb-3 text-center text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
+      <h3 className="mb-[var(--space-3)] text-center text-sm font-bold text-[var(--c-text)]">{str(block.attrs.title)}</h3>
       <div className="mx-auto max-w-lg space-y-2">
         {questions.map((q, i) => (
-          <div key={i} className="rounded-xl border border-zinc-200 bg-white p-3 dark:border-zinc-800 dark:bg-zinc-900">
+          <div key={i} className="rounded-[var(--r)] border border-[var(--c-line)] bg-[var(--c-surface)] p-[var(--space-3)]">
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{q}</p>
-              <ChevronDown className="h-3.5 w-3.5 text-zinc-400" />
+              <p className="text-xs font-bold text-[var(--c-text)]">{q}</p>
+              <ChevronDown className="h-3.5 w-3.5 text-[var(--c-muted)]" />
             </div>
-            {answers[i] ? <p className="mt-1 text-[11px] text-zinc-500">{answers[i]}</p> : null}
+            {answers[i] ? <p className="mt-[var(--space-1)] text-[11px] text-[var(--c-muted)]">{answers[i]}</p> : null}
           </div>
         ))}
       </div>
@@ -430,13 +429,13 @@ function Newsletter({ block, ctx }: { block: Block; ctx: PreviewContext }) {
   return (
     <div className="px-4 py-8 text-center">
       <Mail className="mx-auto h-5 w-5" style={{ color: ctx.primaryColor }} />
-      <h3 className="mt-2 text-sm font-bold text-zinc-900 dark:text-zinc-100">{str(block.attrs.title)}</h3>
-      <p className="mt-1 text-xs text-zinc-500">{str(block.attrs.subtitle)}</p>
+      <h3 className="mt-[var(--space-2)] text-sm font-bold text-[var(--c-text)]">{str(block.attrs.title)}</h3>
+      <p className="mt-[var(--space-1)] text-xs text-[var(--c-muted)]">{str(block.attrs.subtitle)}</p>
       <div className="mx-auto mt-3 flex max-w-xs items-center gap-2">
-        <span className="flex-1 rounded-lg border border-zinc-200 px-3 py-1.5 text-[11px] text-zinc-400 dark:border-zinc-700">
+        <span className="flex-1 rounded-[var(--r-sm)] border border-[var(--c-line)] px-[var(--space-3)] py-[var(--space-2)] text-[11px] text-[var(--c-muted)]">
           بريدك الإلكتروني
         </span>
-        <span className="rounded-lg px-3 py-1.5 text-[11px] font-bold text-white" style={{ background: ctx.primaryColor }}>
+        <span className="rounded-[var(--r-sm)] px-[var(--space-3)] py-[var(--space-2)] text-[11px] font-bold text-[var(--c-on-brand)]" style={{ background: ctx.primaryColor }}>
           {str(block.attrs.cta)}
         </span>
       </div>
@@ -494,13 +493,13 @@ function renderBlock(block: Block, ctx: PreviewContext) {
 export function BlockRenderer({ blocks, ctx }: { blocks: Block[]; ctx: PreviewContext }) {
   if (!blocks.length) {
     return (
-      <div className="flex h-full items-center justify-center p-8 text-center text-sm text-zinc-400">
+      <div className="flex h-full items-center justify-center p-[var(--space-8)] text-center text-sm text-[var(--c-muted)]">
         لا توجد بلوكات بعد — اكتب وسماً مثل &lt;hero /&gt; في المحرّر.
       </div>
     );
   }
   return (
-    <div dir="rtl" className="bg-white dark:bg-zinc-900">
+    <div dir="rtl" className="bg-[var(--c-surface)]">
       {blocks
         .filter((block) => block.attrs.hidden !== true)
         .map((block) => (

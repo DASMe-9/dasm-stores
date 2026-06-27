@@ -44,7 +44,7 @@ export function StorefrontBlocks({
   /** On the products page the real grid+filters follow, so omit product blocks. */
   skipProductBlocks?: boolean;
 }) {
-  const ctx = { storeName, primaryColor: design.themeColor, products: [], design };
+  const ctx = { storeName, primaryColor: "var(--c-brand)", products: [], design };
   const visible = blocks.filter(
     (b) =>
       b.attrs.hidden !== true &&
@@ -72,13 +72,13 @@ export function StorefrontBlocks({
         <section key={`p-${i}`} className="py-2">
           <div className="mb-4 flex items-center justify-between gap-3">
             {title ? (
-              <h2 className="text-lg font-bold text-[var(--foreground)]">{title}</h2>
+              <h2 className="text-lg font-bold text-[var(--c-text)]">{title}</h2>
             ) : (
               <span />
             )}
             <Link
               href={`/${slug}/products`}
-              className="whitespace-nowrap text-sm font-semibold text-[var(--primary)] hover:underline"
+              className="whitespace-nowrap text-sm font-semibold text-[var(--c-brand)] hover:underline"
             >
               عرض الكل ←
             </Link>
@@ -92,5 +92,5 @@ export function StorefrontBlocks({
   });
   flush("end");
 
-  return <div className="space-y-4">{out}</div>;
+  return <div className="space-y-[var(--space-4)]">{out}</div>;
 }
