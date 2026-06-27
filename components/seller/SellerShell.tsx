@@ -195,6 +195,24 @@ export function SellerShell({
   const resolvedStatus = storeStatus || cachedStatus;
   const resolvedThemeColor = themeColor || cachedThemeColor;
 
+  // Social-first (Google/Apple) users land with profile_completed=false. Bounce
+  // them to the completion screen before any dashboard page, even on deep links.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (router.pathname.startsWith("/onboarding")) return;
+    try {
+      const raw = localStorage.getItem("stores_user");
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as { profile_completed?: boolean };
+      if (parsed.profile_completed === false) {
+        const back = encodeURIComponent(router.asPath || "/dashboard");
+        router.replace(`/onboarding/complete-profile?returnUrl=${back}`);
+      }
+    } catch {
+      /* malformed stores_user — ignore */
+    }
+  }, [router]);
+
   useEffect(() => {
     // Defer theme init to the next microtask so the first paint + hydration settle
     // before we sync React state and the document `dark` class (avoids brief mismatch flicker).

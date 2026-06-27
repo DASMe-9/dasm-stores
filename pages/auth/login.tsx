@@ -5,6 +5,8 @@ import Link from "next/link";
 import axios from "axios";
 import { platformApiOrigin } from "@/lib/platform-api-url";
 import { persistStoresToken } from "@/lib/auth-token";
+import SocialAuthButtons from "@/components/auth/SocialAuthButtons";
+import type { SocialAuthResult } from "@/lib/social-auth";
 
 const API_URL = platformApiOrigin();
 
@@ -59,6 +61,43 @@ export default function LoginPage() {
     } finally {
       setBusy(false);
     }
+  };
+
+  const handleSocialSuccess = (result: SocialAuthResult) => {
+    if (!result.token) {
+      setError("لم يُرجع الخادم توكن");
+      return;
+    }
+    persistStoresToken(result.token);
+    // Persist the Core user so SellerShell's deep-link guard can see whether
+    // the profile still needs completing.
+    if (result.user && typeof window !== "undefined") {
+      try {
+        const u = result.user as { id?: unknown; name?: unknown; email?: unknown; type?: unknown };
+        localStorage.setItem(
+          "stores_user",
+          JSON.stringify({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            type: u.type,
+            profile_completed: !result.needsProfileCompletion,
+          }),
+        );
+      } catch {
+        /* localStorage unavailable — the token is still enough to proceed */
+      }
+    }
+
+    // Social-first signups (no phone yet) must finish their profile first.
+    if (result.needsProfileCompletion) {
+      const back = returnUrl && returnUrl !== "/" ? returnUrl : "/dashboard";
+      router.replace(
+        `/onboarding/complete-profile?returnUrl=${encodeURIComponent(back)}`,
+      );
+      return;
+    }
+    router.replace(returnUrl);
   };
 
   return (
@@ -180,6 +219,12 @@ export default function LoginPage() {
                 سجّل دخولك لإدارة متجرك ومتابعة مبيعاتك.
               </p>
             </div>
+
+            <SocialAuthButtons
+              onSuccess={handleSocialSuccess}
+              onError={(msg) => setError(msg)}
+              disabled={busy}
+            />
 
             <form onSubmit={onSubmit} className="space-y-4">
               <div>
