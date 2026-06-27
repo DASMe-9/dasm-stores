@@ -12,6 +12,7 @@ import {
 } from "./storefront-tokens";
 
 type JsonObject = Record<string, unknown>;
+const warnedDefaultPresetStores = new Set<string>();
 
 function asObject(value: unknown): JsonObject | null {
   if (!value || typeof value !== "object" || Array.isArray(value)) return null;
@@ -27,13 +28,18 @@ function findPresetById(id: string | null | undefined) {
   return STOREFRONT_THEME_PRESETS.find((preset) => preset.id === id) ?? THEME_PRESETS.find((preset) => preset.id === id);
 }
 
+function findStorefrontPresetById(id: string | null | undefined) {
+  if (!isStorefrontPresetId(id)) return undefined;
+  return STOREFRONT_THEME_PRESETS.find((preset) => preset.id === id);
+}
+
 function detectPresetFromThemeConfig(themeConfig: Record<string, unknown> | null | undefined) {
   const themePreset = themeConfig?.theme_preset;
-  if (typeof themePreset === "string") return findPresetById(themePreset);
+  if (typeof themePreset === "string") return findStorefrontPresetById(themePreset);
   const presetId = themeConfig?.preset_id;
-  if (typeof presetId === "string") return findPresetById(presetId);
+  if (typeof presetId === "string") return findStorefrontPresetById(presetId);
   const palette = themeConfig?.palette;
-  if (typeof palette === "string") return findPresetById(palette);
+  if (typeof palette === "string") return findStorefrontPresetById(palette);
   return undefined;
 }
 
@@ -43,6 +49,15 @@ function readVar(vars: Record<string, string>, key: string): string | null {
 
 function readString(value: unknown): string | null {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function readKey(value: unknown): string | null {
+  if (typeof value === "number" && Number.isFinite(value)) return String(value);
+  return readString(value);
+}
+
+function readLegacyThemeId(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function writeStringVar(vars: Record<string, string>, key: string, value: unknown) {
@@ -55,6 +70,8 @@ function varsFromThemeConfig(themeConfig: Record<string, unknown> | null | undef
 
   const nestedVars = asObject(themeConfig.css_variables);
   const overrides = asObject(themeConfig.overrides);
+  const presetId = readString(themeConfig.theme_preset) ?? readString(themeConfig.preset_id) ?? readString(themeConfig.palette);
+  const hasLegacyPresetId = Boolean(presetId && !isStorefrontPresetId(presetId));
   const vars: Record<string, string> = {};
 
   for (const source of [nestedVars, overrides]) {
@@ -64,14 +81,17 @@ function varsFromThemeConfig(themeConfig: Record<string, unknown> | null | undef
     }
   }
 
-  writeStringVar(vars, "primary", themeConfig.primary);
-  writeStringVar(vars, "accent", themeConfig.accent);
-  writeStringVar(vars, "background", themeConfig.background);
-  writeStringVar(vars, "foreground", themeConfig.foreground);
-  writeStringVar(vars, "card", themeConfig.card);
-  writeStringVar(vars, "border", themeConfig.border);
-  writeStringVar(vars, "muted", themeConfig.muted);
-  writeStringVar(vars, "muted-foreground", themeConfig["muted-foreground"] ?? themeConfig.muted_foreground);
+  if (!hasLegacyPresetId) {
+    writeStringVar(vars, "primary", themeConfig.primary);
+    writeStringVar(vars, "accent", themeConfig.accent);
+    writeStringVar(vars, "background", themeConfig.background);
+    writeStringVar(vars, "foreground", themeConfig.foreground);
+    writeStringVar(vars, "card", themeConfig.card);
+    writeStringVar(vars, "border", themeConfig.border);
+    writeStringVar(vars, "muted", themeConfig.muted);
+    writeStringVar(vars, "muted-foreground", themeConfig["muted-foreground"] ?? themeConfig.muted_foreground);
+  }
+
   writeStringVar(vars, "c-bg", themeConfig["--c-bg"] ?? themeConfig.c_bg);
   writeStringVar(vars, "c-surface", themeConfig["--c-surface"] ?? themeConfig.c_surface);
   writeStringVar(vars, "c-surface-2", themeConfig["--c-surface-2"] ?? themeConfig.c_surface_2);
@@ -84,7 +104,7 @@ function varsFromThemeConfig(themeConfig: Record<string, unknown> | null | undef
   writeStringVar(vars, "c-sale", themeConfig["--c-sale"] ?? themeConfig.c_sale);
   writeStringVar(vars, "product-card-style", themeConfig.product_card_style);
   writeStringVar(vars, "header-style", themeConfig.header_style);
-  writeStringVar(vars, "preset-id", themeConfig.theme_preset ?? themeConfig.preset_id ?? themeConfig.palette);
+  if (isStorefrontPresetId(presetId)) writeStringVar(vars, "preset-id", presetId);
 
   return Object.keys(vars).length > 0 ? vars : undefined;
 }
@@ -160,24 +180,57 @@ function withDerivedVars(vars: Record<string, string> | undefined): Record<strin
   return next;
 }
 
-function storeCategoryKey(store: StorePublic): string | null {
-  if (typeof store.category_slug === "string" && store.category_slug.trim()) {
-    return store.category_slug;
-  }
-  if (typeof store.category === "string" && store.category.trim()) {
-    return store.category;
-  }
+function storeCategoryKeys(store: StorePublic): string[] {
+  const keys: string[] = [];
+  const add = (value: unknown) => {
+    const key = readKey(value);
+    if (key && !keys.includes(key)) keys.push(key);
+  };
+
+  add(store.category_id);
+  add(store.category_slug);
+
   const category = asObject(store.category);
-  return readString(category?.slug) ?? readString(category?.name) ?? readString(category?.name_ar);
+  if (category) {
+    add(category.id);
+    add(category.slug);
+    add(category.code);
+    add(category.name);
+    add(category.name_ar);
+  } else {
+    add(store.category);
+  }
+
+  return keys;
+}
+
+function warnDefaultPresetFallback(store: StorePublic, categoryKeys: string[]) {
+  const storeKey = store.slug || String(store.id);
+  if (warnedDefaultPresetStores.has(storeKey)) return;
+  warnedDefaultPresetStores.add(storeKey);
+  console.warn("[storefront-theme] Falling back to quiet preset", {
+    store_id: store.id,
+    store_slug: store.slug,
+    category_keys: categoryKeys,
+    theme_preset: store.theme_preset,
+    theme_id: store.theme_id,
+    theme_slug: store.theme?.slug,
+  });
 }
 
 function pickPreset(store: StorePublic) {
   const storeThemeConfig = asObject(store.theme_config);
-  const fromStorePreset = findPresetById(store.theme_preset);
+  const fromStorePreset = findStorefrontPresetById(store.theme_preset);
   if (fromStorePreset) return fromStorePreset;
 
   const fromStoreConfig = detectPresetFromThemeConfig(storeThemeConfig);
   if (fromStoreConfig) return fromStoreConfig;
+
+  const categoryKeys = storeCategoryKeys(store);
+  for (const key of categoryKeys) {
+    const fromCategory = findPresetById(storefrontPresetForCategory(key));
+    if (fromCategory) return fromCategory;
+  }
 
   const themeTemplateConfig = asObject(store.theme?.template_config);
   const fromThemeTemplate = detectPresetFromThemeConfig(themeTemplateConfig);
@@ -188,12 +241,10 @@ function pickPreset(store: StorePublic) {
     if (fromThemeSlug) return fromThemeSlug;
   }
 
-  const fromThemeId = findPresetById(resolvePresetIdFromLegacyThemeId(store.theme_id));
+  const fromThemeId = findPresetById(resolvePresetIdFromLegacyThemeId(readLegacyThemeId(store.theme_id)));
   if (fromThemeId) return fromThemeId;
 
-  const fromCategory = findPresetById(storefrontPresetForCategory(storeCategoryKey(store)));
-  if (fromCategory) return fromCategory;
-
+  warnDefaultPresetFallback(store, categoryKeys);
   return findPresetById("quiet");
 }
 
@@ -206,8 +257,8 @@ export function resolveStoreCssVariables(store: StorePublic): Record<string, str
 
   if (fromPreset || hasEntries(fromTheme) || fromStoreConfig) {
     return withDerivedVars({
-      ...(fromPreset ?? {}),
       ...(hasEntries(fromTheme) ? fromTheme : {}),
+      ...(fromPreset ?? {}),
       ...(fromStoreConfig ?? {}),
     });
   }

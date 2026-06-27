@@ -73,13 +73,13 @@ export function StoreHeader({
           </div>
 
           <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 md:flex" aria-label="تنقل المتجر">
-            <Link href={`/${slug}`} className="rounded-[var(--r-pill)] px-[var(--space-3)] py-[var(--space-2)] font-semibold text-[var(--c-text)] transition hover:bg-[var(--c-surface-2)]">
+            <Link href={`/${slug}`} className="store-header-nav-link rounded-[var(--r-pill)] px-[var(--space-3)] py-[var(--space-2)] font-semibold text-[var(--c-text)] transition hover:bg-[var(--c-surface-2)]">
               الرئيسية
             </Link>
-            <Link href={`/${slug}/products`} className="rounded-[var(--r-pill)] px-[var(--space-3)] py-[var(--space-2)] font-semibold text-[var(--c-text)] transition hover:bg-[var(--c-surface-2)]">
+            <Link href={`/${slug}/products`} className="store-header-nav-link rounded-[var(--r-pill)] px-[var(--space-3)] py-[var(--space-2)] font-semibold text-[var(--c-text)] transition hover:bg-[var(--c-surface-2)]">
               المنتجات
             </Link>
-            <Link href="/" className="flex items-center gap-1 rounded-[var(--r-pill)] px-[var(--space-3)] py-[var(--space-2)] text-xs font-semibold text-[var(--c-muted)] transition hover:bg-[var(--c-surface-2)] hover:text-[var(--c-text)]">
+            <Link href="/" className="store-header-nav-link flex items-center gap-1 rounded-[var(--r-pill)] px-[var(--space-3)] py-[var(--space-2)] font-semibold text-[var(--c-muted)] transition hover:bg-[var(--c-surface-2)] hover:text-[var(--c-text)]">
               <ArrowRight className="h-3.5 w-3.5" />
               متاجر داسم
             </Link>

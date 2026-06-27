@@ -16,7 +16,7 @@ import Link from "next/link";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { BlockRenderer } from "@/components/theme-editor/BlockRenderer";
 import type { Block, ThemeDesign } from "@/lib/themes/blocks";
-import type { StoreProductCard } from "@/lib/api-server";
+import type { StoreProductCard, StoreReview } from "@/lib/api-server";
 
 const PRODUCT_BLOCKS = new Set(["featured", "product-grid"]);
 const CHROME_BLOCKS = new Set(["navbar", "footer"]);
@@ -31,6 +31,7 @@ function str(v: unknown): string {
 export function StorefrontBlocks({
   blocks,
   products,
+  reviews = [],
   slug,
   storeName,
   design,
@@ -38,13 +39,14 @@ export function StorefrontBlocks({
 }: {
   blocks: Block[];
   products: StoreProductCard[];
+  reviews?: StoreReview[];
   slug: string;
   storeName: string;
   design: ThemeDesign;
   /** On the products page the real grid+filters follow, so omit product blocks. */
   skipProductBlocks?: boolean;
 }) {
-  const ctx = { storeName, primaryColor: "var(--c-brand)", products: [], design };
+  const ctx = { storeName, primaryColor: "var(--c-brand)", products: [], reviews, design };
   const visible = blocks.filter(
     (b) =>
       b.attrs.hidden !== true &&
@@ -72,7 +74,7 @@ export function StorefrontBlocks({
         <section key={`p-${i}`} className="py-2">
           <div className="mb-4 flex items-center justify-between gap-3">
             {title ? (
-              <h2 className="text-lg font-bold text-[var(--c-text)]">{title}</h2>
+              <h2 className="store-section-title font-bold text-[var(--c-text)]">{title}</h2>
             ) : (
               <span />
             )}

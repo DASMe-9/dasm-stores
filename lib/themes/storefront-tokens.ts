@@ -26,6 +26,12 @@ export type StorefrontTokens = {
   "--space-5": string;
   "--space-6": string;
   "--space-8": string;
+  "--type-body": string;
+  "--type-nav": string;
+  "--type-trust": string;
+  "--type-product-title": string;
+  "--type-price": string;
+  "--type-section-title": string;
   "--shadow-sm": string;
   "--shadow": string;
   "--shadow-lg": string;
@@ -57,6 +63,38 @@ export const STOREFRONT_CATEGORY_PRESET_MAP: Record<string, StorefrontPresetId> 
   camping: "warm",
 };
 
+export const STOREFRONT_CATEGORY_ID_PRESET_MAP: Record<string, StorefrontPresetId> = {
+  automotive: "auto",
+  auto: "auto",
+  cars: "auto",
+  "car-accessories": "auto",
+  "auto-accessories": "auto",
+  "automotive-accessories": "auto",
+  "auto-parts": "auto",
+  tires: "auto",
+  batteries: "auto",
+};
+
+const CATEGORY_ALIAS_PRESET_MAP: Record<string, StorefrontPresetId> = {
+  "car accessories": "auto",
+  "cars accessories": "auto",
+  "auto accessories": "auto",
+  "automotive accessories": "auto",
+  "accessories cars": "auto",
+  "accessories-cars": "auto",
+  "اكسسوارات سيارات": "auto",
+  "إكسسوارات سيارات": "auto",
+  "اكسسوارات السيارات": "auto",
+  "إكسسوارات السيارات": "auto",
+  "مستلزمات سيارات": "auto",
+  "مستلزمات السيارات": "auto",
+  "قطع غيار": "auto",
+  "قطع غيار سيارات": "auto",
+  "اطارات": "auto",
+  "إطارات": "auto",
+  "بطاريات": "auto",
+};
+
 const baseScale = {
   "--font-display": '"Reem Kufi", var(--font-display-loaded), system-ui, sans-serif',
   "--font-body": '"IBM Plex Sans Arabic", var(--font-body-loaded), system-ui, sans-serif',
@@ -71,6 +109,12 @@ const baseScale = {
   "--space-5": "1.25rem",
   "--space-6": "1.5rem",
   "--space-8": "2rem",
+  "--type-body": "clamp(1rem, 0.96rem + 0.18vw, 1.125rem)",
+  "--type-nav": "clamp(0.95rem, 0.9rem + 0.2vw, 1.0625rem)",
+  "--type-trust": "clamp(0.875rem, 0.82rem + 0.18vw, 1rem)",
+  "--type-product-title": "clamp(1rem, 0.94rem + 0.25vw, 1.125rem)",
+  "--type-price": "clamp(1.125rem, 1.04rem + 0.32vw, 1.375rem)",
+  "--type-section-title": "clamp(1.25rem, 1.08rem + 0.55vw, 1.75rem)",
   "--shadow-sm": "0 1px 2px color-mix(in srgb, var(--c-text) 7%, transparent)",
   "--shadow": "0 12px 32px color-mix(in srgb, var(--c-text) 10%, transparent)",
   "--shadow-lg": "0 24px 60px color-mix(in srgb, var(--c-text) 14%, transparent)",
@@ -307,13 +351,28 @@ export function isStorefrontPresetId(value: string | null | undefined): value is
 }
 
 function normalizeCategory(value: string): string {
-  return value.trim().toLowerCase().replace(/[_/]+/g, "-").replace(/\s+/g, " ");
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[أإآ]/g, "ا")
+    .replace(/ة/g, "ه")
+    .replace(/[_/]+/g, "-")
+    .replace(/\s+/g, " ");
 }
 
 export function storefrontPresetForCategory(category: string | null | undefined): StorefrontPresetId | null {
   if (!category) return null;
   const normalized = normalizeCategory(category);
-  return STOREFRONT_CATEGORY_PRESET_MAP[normalized] ?? STOREFRONT_CATEGORY_PRESET_MAP[normalized.replace(/\s+/g, "-")] ?? null;
+  const hyphenated = normalized.replace(/\s+/g, "-");
+  return (
+    STOREFRONT_CATEGORY_ID_PRESET_MAP[hyphenated] ??
+    STOREFRONT_CATEGORY_ID_PRESET_MAP[normalized] ??
+    STOREFRONT_CATEGORY_PRESET_MAP[normalized] ??
+    STOREFRONT_CATEGORY_PRESET_MAP[hyphenated] ??
+    CATEGORY_ALIAS_PRESET_MAP[normalized] ??
+    CATEGORY_ALIAS_PRESET_MAP[hyphenated] ??
+    null
+  );
 }
 
 export function storefrontPresetToTokens(id: string | null | undefined): StorefrontTokens {

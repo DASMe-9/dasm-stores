@@ -97,14 +97,15 @@ export type StoreShippingConfig = {
 };
 
 export type StorePublic = {
-  id: number;
+  id: number | string;
   name: string;
   name_ar?: string | null;
   slug: string;
-  theme_id?: number | null;
+  theme_id?: number | string | null;
   theme_preset?: string | null;
   theme_config?: Record<string, unknown> | null;
   category?: string | { slug?: string | null; name?: string | null; name_ar?: string | null } | null;
+  category_id?: number | string | null;
   category_slug?: string | null;
   description: string | null;
   logo_url: string | null;
@@ -126,6 +127,7 @@ export type StorePublic = {
   } | null;
   tabs: StoreTab[];
   shipping_configs?: StoreShippingConfig[];
+  reviews?: StoreReview[];
 };
 
 export type OwnerPublicProfile = {
@@ -164,6 +166,7 @@ export type StoreShippingSummary = {
 /** Laravel serializes camelCase relation keys when loaded as shippingConfigs */
 export type StoreShowResponse = {
   store: StorePublic & { shippingConfigs?: StoreShippingConfig[] };
+  reviews?: StoreReview[];
   owner_public_profile?: OwnerPublicProfile | null;
   social_summary?: SocialSummary | null;
   viewer_state?: ProfileViewerState | null;

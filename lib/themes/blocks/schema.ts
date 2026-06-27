@@ -147,8 +147,8 @@ export const BLOCK_SCHEMA: Record<BlockType, BlockSpec> = {
     removable: true,
     attrs: {
       title: { kind: "string", default: "ماذا قال عملاؤنا" },
-      quotes: { kind: "list", default: ["منتجات رائعة وتوصيل سريع", "خدمة ممتازة وأسعار مناسبة", "تجربة شراء سهلة"] },
-      authors: { kind: "list", default: ["أحمد", "سارة", "خالد"] },
+      quotes: { kind: "list", default: [] },
+      authors: { kind: "list", default: [] },
     },
   },
   faq: {

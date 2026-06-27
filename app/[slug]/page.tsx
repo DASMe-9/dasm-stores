@@ -33,6 +33,7 @@ export default async function StoreHomePage({
     getCategories(slug, requestContext),
   ]);
   const visibleCategories = categories.categories.slice(0, 6);
+  const storeReviews = data.reviews ?? data.store.reviews ?? [];
 
   // Visual-builder stores render their saved block layout; product blocks use
   // the real interactive grid. Stores without a builder doc keep the layout below.
@@ -42,6 +43,7 @@ export default async function StoreHomePage({
       <StorefrontBlocks
         blocks={blocks}
         products={products.data}
+        reviews={storeReviews}
         slug={slug}
         storeName={getStoreDisplayName(data.store)}
         design={design}
@@ -58,28 +60,28 @@ export default async function StoreHomePage({
         <div className="flex min-w-max items-center gap-2 sm:min-w-0 sm:grid sm:grid-cols-4">
         <Link
           href={`/${slug}/products`}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
+          className="store-home-nav-link inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
         >
           <Search className="h-4 w-4 shrink-0 text-[var(--foreground)]" />
           كل المنتجات
         </Link>
         <Link
           href={`/${slug}/products?sort=featured`}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
+          className="store-home-nav-link inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
         >
           <PackageCheck className="h-4 w-4 shrink-0 text-[var(--foreground)]" />
           المنتجات المميزة
         </Link>
         <Link
           href={`/${slug}/cart`}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
+          className="store-home-nav-link inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
         >
           <ShoppingCart className="h-4 w-4 shrink-0 text-[var(--foreground)]" />
           السلة
         </Link>
         <Link
           href={`/${slug}/products`}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 text-sm font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
+          className="store-home-nav-link inline-flex h-11 items-center justify-center gap-2 rounded-xl px-4 font-extrabold text-[var(--foreground)] transition hover:bg-[var(--muted)]"
         >
           <Tags className="h-4 w-4 shrink-0 text-[var(--foreground)]" />
           الأقسام
@@ -90,7 +92,7 @@ export default async function StoreHomePage({
       {visibleCategories.length ? (
         <section>
           <div className="mb-4 flex items-center justify-between gap-2">
-            <h2 className="text-base font-bold">أقسام المتجر</h2>
+            <h2 className="store-section-title font-bold">أقسام المتجر</h2>
             <Link href={`/${slug}/products`} className="text-sm hover:underline">
               تصفح الكتالوج
             </Link>
@@ -114,7 +116,7 @@ export default async function StoreHomePage({
       <section>
         <div className="mb-4 flex items-center justify-between gap-2">
           <div>
-            <h2 className="text-base font-bold">منتجات المتجر</h2>
+            <h2 className="store-section-title font-bold">منتجات المتجر</h2>
             <p className="mt-1 text-xs text-[var(--muted-foreground)]">
               يعرض {products.data.length} من {products.total} منتجًا
             </p>

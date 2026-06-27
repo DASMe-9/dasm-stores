@@ -41,7 +41,7 @@ export const SECTION_LIBRARY: SectionLibraryItem[] = [
   { type: "banner", group: "marketing", labelAr: "شريط ترويجي", snippet: `<banner text="شحن مجاني للطلبات فوق ٢٠٠ ر.س" />` },
 
   { type: "features", group: "trust", labelAr: "شريط المزايا", snippet: `<features items="شحن سريع, دفع آمن, إرجاع سهل, دعم ٢٤/٧" />` },
-  { type: "testimonials", group: "trust", labelAr: "آراء العملاء", snippet: `<testimonials title="ماذا قال عملاؤنا" quotes="منتجات رائعة, خدمة ممتازة, تجربة سهلة" authors="أحمد, سارة, خالد" />` },
+  { type: "testimonials", group: "trust", labelAr: "آراء العملاء", snippet: `<testimonials title="آراء العملاء" />` },
   { type: "brands", group: "trust", labelAr: "شعارات الماركات", snippet: `<brands title="علاماتنا" logos="Apple, Samsung, Sony, Anker" />` },
 
   { type: "richtext", group: "content", labelAr: "نص حر", snippet: `<richtext title="عن المتجر" body="اكتب نبذتك هنا." />` },
