@@ -224,6 +224,7 @@ export default function LoginPage() {
               onSuccess={handleSocialSuccess}
               onError={(msg) => setError(msg)}
               disabled={busy}
+              returnUrl={returnUrl}
             />
 
             <form onSubmit={onSubmit} className="space-y-4">

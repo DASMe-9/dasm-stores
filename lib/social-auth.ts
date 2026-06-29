@@ -82,6 +82,65 @@ export const loginWithGoogleIdToken = (idToken: string) =>
 export const loginWithAppleIdToken = (idToken: string) =>
   loginWithExternalIdToken("apple", idToken);
 
+/**
+ * Google login via the Core Socialite redirect flow. Top-level navigation to
+ * Core's /api/auth/google/redirect; Core bounces back to /auth/social/callback
+ * with a single-use ?code which exchangeSocialCode() trades for a session.
+ */
+export function startGoogleRedirectLogin(returnUrl?: string): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.sessionStorage.setItem("stores_post_social_return", returnUrl || "");
+  } catch {
+    /* sessionStorage may be unavailable */
+  }
+  const params = new URLSearchParams({ return: window.location.origin });
+  window.location.assign(`${API_BASE}/auth/google/redirect?${params.toString()}`);
+}
+
+/** Exchange the single-use code from the Socialite callback for a session. */
+export async function exchangeSocialCode(code: string): Promise<SocialAuthResult> {
+  try {
+    const res = await fetch(`${API_BASE}/auth/social/exchange`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify({ code }),
+    });
+    const data = await res.json().catch(() => ({}));
+
+    if (data?.status === "link_required") {
+      return {
+        success: false,
+        linkRequired: true,
+        error:
+          data.message ||
+          "يوجد حساب بهذا البريد. اربط الحساب من منصة داسم الرئيسية ثم عُد.",
+      };
+    }
+
+    if (!res.ok || data?.status === "error") {
+      if (data?.message === "Email not verified") {
+        return { success: false, error: "يلزمك توثيق بريدك الإلكتروني أولاً." };
+      }
+      return {
+        success: false,
+        error: data?.message || "تعذّر تسجيل الدخول عبر Google.",
+      };
+    }
+
+    const user = data?.user as { profile_completed?: boolean } | undefined;
+    return {
+      success: true,
+      token: data?.access_token,
+      user,
+      needsProfileCompletion:
+        data?.needs_profile_completion === true || user?.profile_completed === false,
+    };
+  } catch {
+    return { success: false, error: "تعذّر الاتصال بالخادم. حاول خلال لحظات." };
+  }
+}
+
 export interface CompleteProfileResult {
   success: boolean;
   error?: string;
