@@ -150,6 +150,12 @@ export interface CompleteProfileResult {
 export async function completeProfile(payload: {
   phone: string;
   area_id?: number;
+  first_name?: string;
+  middle_name?: string;
+  last_name?: string;
+  /** Optional: lets a social-first user also sign in with email + password. */
+  password?: string;
+  password_confirmation?: string;
 }): Promise<CompleteProfileResult> {
   try {
     const headers: Record<string, string> = {

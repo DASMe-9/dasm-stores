@@ -17,8 +17,13 @@ type Region = { id: number; name: string; code: string };
 export default function CompleteProfilePage() {
   const router = useRouter();
   const [regions, setRegions] = useState<Region[]>([]);
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [areaId, setAreaId] = useState("");
+  const [password, setPassword] = useState("");
+  const [passwordConfirm, setPasswordConfirm] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,8 +62,26 @@ export default function CompleteProfilePage() {
   const onSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const trimmed = phone.trim();
+    const first = firstName.trim();
+    const last = lastName.trim();
+    if (!first) {
+      setError("أدخل اسمك الأول");
+      return;
+    }
+    if (!last) {
+      setError("أدخل اسمك الأخير");
+      return;
+    }
     if (!trimmed) {
       setError("أدخل رقم هاتفك");
+      return;
+    }
+    if (password && password.length < 8) {
+      setError("كلمة المرور يجب أن تكون 8 أحرف على الأقل");
+      return;
+    }
+    if (password && password !== passwordConfirm) {
+      setError("تأكيد كلمة المرور غير مطابق");
       return;
     }
     setBusy(true);
@@ -67,6 +90,11 @@ export default function CompleteProfilePage() {
     const result = await completeProfile({
       phone: trimmed,
       area_id: areaId ? Number(areaId) : undefined,
+      first_name: first,
+      middle_name: middleName.trim() || undefined,
+      last_name: last,
+      password: password || undefined,
+      password_confirmation: password ? passwordConfirm : undefined,
     });
 
     if (result.success) {
@@ -119,6 +147,47 @@ export default function CompleteProfilePage() {
           )}
 
           <form onSubmit={onSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label htmlFor="cp-first" className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1.5">
+                  الاسم الأول
+                </label>
+                <input
+                  id="cp-first"
+                  type="text"
+                  required
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-3 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                />
+              </div>
+              <div>
+                <label htmlFor="cp-middle" className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1.5">
+                  الأوسط <span className="text-gray-400">(اختياري)</span>
+                </label>
+                <input
+                  id="cp-middle"
+                  type="text"
+                  value={middleName}
+                  onChange={(e) => setMiddleName(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-3 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                />
+              </div>
+              <div>
+                <label htmlFor="cp-last" className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1.5">
+                  الاسم الأخير
+                </label>
+                <input
+                  id="cp-last"
+                  type="text"
+                  required
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-3 py-3 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                />
+              </div>
+            </div>
+
             <div>
               <label htmlFor="cp-phone" className="text-xs font-medium text-gray-600 dark:text-gray-400 block mb-1.5">
                 رقم الهاتف
@@ -157,9 +226,38 @@ export default function CompleteProfilePage() {
               </select>
             </div>
 
+            <div className="rounded-xl border border-gray-200 dark:border-gray-700 p-3 space-y-2">
+              <label htmlFor="cp-password" className="text-xs font-medium text-gray-600 dark:text-gray-400 block">
+                كلمة المرور <span className="text-gray-400">(اختياري)</span>
+              </label>
+              <p className="text-xs text-gray-400">
+                عيّنها لتتمكّن لاحقاً من الدخول بالبريد وكلمة المرور إضافةً إلى Google/Apple.
+              </p>
+              <input
+                id="cp-password"
+                type="password"
+                dir="ltr"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="8 أحرف على الأقل"
+                className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3 text-center text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+              />
+              {password ? (
+                <input
+                  id="cp-password-confirm"
+                  type="password"
+                  dir="ltr"
+                  value={passwordConfirm}
+                  onChange={(e) => setPasswordConfirm(e.target.value)}
+                  placeholder="تأكيد كلمة المرور"
+                  className="w-full rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 px-4 py-3 text-center text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
+                />
+              ) : null}
+            </div>
+
             <button
               type="submit"
-              disabled={busy || !phone.trim()}
+              disabled={busy || !firstName.trim() || !lastName.trim() || !phone.trim()}
               className="w-full py-3 rounded-xl font-bold text-white text-sm transition disabled:opacity-60 flex items-center justify-center gap-2"
               style={{ background: busy ? "#047857" : "linear-gradient(135deg, #059669, #047857)" }}
             >
