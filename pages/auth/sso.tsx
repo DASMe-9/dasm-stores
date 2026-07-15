@@ -19,11 +19,6 @@ type AuthUser = {
   role?: string;
 };
 
-type AuthMeResponse = {
-  data?: { user?: AuthUser } | AuthUser;
-  user?: AuthUser;
-};
-
 type AxiosMessageError = {
   response?: { data?: { message?: string } };
 };
@@ -49,19 +44,6 @@ function clearStoresSession() {
   clearSellerSessionCache();
 }
 
-function hasNestedUser(value: { user?: AuthUser } | AuthUser): value is { user?: AuthUser } {
-  return typeof value === "object" && value !== null && "user" in value;
-}
-
-function extractUser(body: AuthMeResponse & AuthUser): AuthUser {
-  if (body.data) {
-    if (hasNestedUser(body.data)) return body.data.user ?? {};
-    return body.data;
-  }
-
-  return body.user ?? body;
-}
-
 function normalizeReturnUrl(value: string) {
   return value.startsWith("/") && !value.startsWith("//") ? value : "/dashboard";
 }
@@ -79,15 +61,15 @@ function selectedStoreIdFromReturnUrl(value: string) {
 /**
  * SSO handoff from the main DASM platform.
  *
- * Preferred flow (secure): the platform redirects here with
- * ?sso_token=<short-lived, single-use>&return_url=/dashboard. We exchange it via
- * POST /api/sso/verify, which deletes the SSO token and returns a scoped session
- * token; that session token is what we persist.
+ * The platform redirects here with ?sso_token=<short-lived, single-use>&
+ * return_url=/dashboard. We exchange it via POST /api/sso/verify, which deletes
+ * the SSO token and returns a scoped session token; that session token is what
+ * we persist.
  *
- * Legacy flow (being retired): ?token=<raw Sanctum token>. A full-access
- * credential in the URL leaks into history, server logs, and Referer headers.
- * Kept only so logins don't break during the two-repo rollout — remove once the
- * platform sender ships the sso_token path everywhere.
+ * The old ?token=<raw Sanctum> path was removed now that the platform sender
+ * ships sso_token everywhere (verified: no raw-token sender remains on
+ * DASM-Platform master). A full-access token in the URL leaked into history,
+ * server logs, and Referer headers.
  */
 const SSO_PLATFORM = "stores";
 
@@ -107,14 +89,13 @@ export default function SsoHandoff() {
         : "");
 
     const ssoToken = readParam("sso_token");
-    const legacyToken = readParam("token"); // مسار قديم — يُحذف بعد ترحيل المُرسِل
 
     const returnUrl =
       typeof router.query.return_url === "string"
         ? normalizeReturnUrl(router.query.return_url)
         : "/dashboard";
 
-    if (!ssoToken && !legacyToken) {
+    if (!ssoToken) {
       queueMicrotask(() => {
         clearStoresSession();
         setError("لم يصل توكن صالح من المنصة.");
@@ -154,32 +135,22 @@ export default function SsoHandoff() {
 
     (async () => {
       try {
-        if (ssoToken) {
-          // المسار الآمن: استبدل توكن SSO أحادي الاستعمال بتوكن جلسة مقيَّد.
-          // الخادم يعيد access_token (30 يوماً) + user — راجع SsoController@verify.
-          const verifyRes = await axios.post<{
-            success?: boolean;
-            data?: { access_token?: string; user?: AuthUser };
-          }>(`${API_URL}/api/sso/verify`, {
-            sso_token: ssoToken,
-            platform: SSO_PLATFORM,
-          }, { headers: { Accept: "application/json" } });
+        // استبدل توكن SSO أحادي الاستعمال بتوكن جلسة مقيَّد.
+        // الخادم يعيد access_token (30 يوماً) + user — راجع SsoController@verify.
+        const verifyRes = await axios.post<{
+          success?: boolean;
+          data?: { access_token?: string; user?: AuthUser };
+        }>(`${API_URL}/api/sso/verify`, {
+          sso_token: ssoToken,
+          platform: SSO_PLATFORM,
+        }, { headers: { Accept: "application/json" } });
 
-          const sessionToken = verifyRes.data?.data?.access_token;
-          const verifiedUser = verifyRes.data?.data?.user ?? {};
-          if (!sessionToken) {
-            throw new Error("لم يُعِد الخادم توكن جلسة صالحاً.");
-          }
-          finishSession(sessionToken, verifiedUser);
-          return;
+        const sessionToken = verifyRes.data?.data?.access_token;
+        const verifiedUser = verifyRes.data?.data?.user ?? {};
+        if (!sessionToken) {
+          throw new Error("لم يُعِد الخادم توكن جلسة صالحاً.");
         }
-
-        // المسار القديم: توكن Sanctum خام — يُتحقّق منه ثم يُخزَّن كما هو (مؤقّت).
-        const res = await axios.get<AuthMeResponse | AuthUser>(`${API_URL}/api/user`, {
-          headers: { Authorization: `Bearer ${legacyToken}`, Accept: "application/json" },
-        });
-        const body = res.data as AuthMeResponse & AuthUser;
-        finishSession(legacyToken, extractUser(body));
+        finishSession(sessionToken, verifiedUser);
       } catch (e: unknown) {
         clearStoresSession();
         setError(getErrorMessage(e, "فشل التحقق من الجلسة."));
