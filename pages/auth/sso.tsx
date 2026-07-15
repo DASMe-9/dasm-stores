@@ -131,11 +131,12 @@ export default function SsoHandoff() {
     const finishSession = (sessionToken: string, user: AuthUser) => {
       const role = (user?.type ?? user?.role ?? "user").toString().toLowerCase();
       const selectedStoreId = selectedStoreIdFromReturnUrl(returnUrl);
+      const composedName = [user?.first_name, user?.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
       const fullName =
-        user?.display_name ??
-        user?.name ??
-        [user?.first_name, user?.last_name].filter(Boolean).join(" ").trim() ||
-        undefined;
+        user?.display_name ?? user?.name ?? (composedName || undefined);
       persistStoresToken(sessionToken);
       if (selectedStoreId) storeSelection.set(selectedStoreId);
       localStorage.setItem("stores_user", JSON.stringify({
