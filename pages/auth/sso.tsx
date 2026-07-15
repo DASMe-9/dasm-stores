@@ -12,6 +12,8 @@ type AuthUser = {
   id?: number | string;
   display_name?: string;
   name?: string;
+  first_name?: string;
+  last_name?: string;
   email?: string;
   type?: string;
   role?: string;
@@ -77,11 +79,18 @@ function selectedStoreIdFromReturnUrl(value: string) {
 /**
  * SSO handoff from the main DASM platform.
  *
- * Flow: user on www.dasm.com.sa clicks "ادخل متاجر داسم" → redirected here with
- * ?token=<access_token>&return_url=/dashboard. We verify the token via
- * /api/user, store it locally, then redirect. Store ownership is enforced by
- * store APIs, so any authenticated Core user can enter the Stores surface.
+ * Preferred flow (secure): the platform redirects here with
+ * ?sso_token=<short-lived, single-use>&return_url=/dashboard. We exchange it via
+ * POST /api/sso/verify, which deletes the SSO token and returns a scoped session
+ * token; that session token is what we persist.
+ *
+ * Legacy flow (being retired): ?token=<raw Sanctum token>. A full-access
+ * credential in the URL leaks into history, server logs, and Referer headers.
+ * Kept only so logins don't break during the two-repo rollout — remove once the
+ * platform sender ships the sso_token path everywhere.
  */
+const SSO_PLATFORM = "stores";
+
 export default function SsoHandoff() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
@@ -91,16 +100,21 @@ export default function SsoHandoff() {
     if (!router.isReady) return;
     let redirectTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const token =
-      (typeof router.query.token === "string" ? router.query.token : "") ||
-      (typeof window !== "undefined" ? new URL(window.location.href).hash.match(/token=([^&]+)/)?.[1] ?? "" : "");
+    const readParam = (key: string) =>
+      (typeof router.query[key] === "string" ? (router.query[key] as string) : "") ||
+      (typeof window !== "undefined"
+        ? new URL(window.location.href).hash.match(new RegExp(`${key}=([^&]+)`))?.[1] ?? ""
+        : "");
+
+    const ssoToken = readParam("sso_token");
+    const legacyToken = readParam("token"); // مسار قديم — يُحذف بعد ترحيل المُرسِل
 
     const returnUrl =
       typeof router.query.return_url === "string"
         ? normalizeReturnUrl(router.query.return_url)
         : "/dashboard";
 
-    if (!token) {
+    if (!ssoToken && !legacyToken) {
       queueMicrotask(() => {
         clearStoresSession();
         setError("لم يصل توكن صالح من المنصة.");
@@ -114,29 +128,58 @@ export default function SsoHandoff() {
     window.history.replaceState({}, "", "/auth/sso");
     clearStoresSession();
 
+    const finishSession = (sessionToken: string, user: AuthUser) => {
+      const role = (user?.type ?? user?.role ?? "user").toString().toLowerCase();
+      const selectedStoreId = selectedStoreIdFromReturnUrl(returnUrl);
+      const composedName = [user?.first_name, user?.last_name]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+      const fullName =
+        user?.display_name ?? user?.name ?? (composedName || undefined);
+      persistStoresToken(sessionToken);
+      if (selectedStoreId) storeSelection.set(selectedStoreId);
+      localStorage.setItem("stores_user", JSON.stringify({
+        id: user?.id,
+        name: fullName,
+        email: user?.email,
+        role,
+      }));
+      if (user?.id != null) {
+        sessionStorage.setItem("store_user_id", String(user.id));
+      }
+      setStatus("تم التحقق، جاري التحويل...");
+      router.replace(returnUrl);
+    };
+
     (async () => {
       try {
-        const res = await axios.get<AuthMeResponse | AuthUser>(`${API_URL}/api/user`, {
-          headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
-        });
-        const body = res.data as AuthMeResponse & AuthUser;
-        const user = extractUser(body);
-        const role = (user?.type ?? user?.role ?? "user").toString().toLowerCase();
-        const selectedStoreId = selectedStoreIdFromReturnUrl(returnUrl);
-        persistStoresToken(token);
-        if (selectedStoreId) storeSelection.set(selectedStoreId);
-        localStorage.setItem("stores_user", JSON.stringify({
-          id: user?.id,
-          name: user?.display_name ?? user?.name,
-          email: user?.email,
-          role,
-        }));
-        if (user?.id != null) {
-          sessionStorage.setItem("store_user_id", String(user.id));
+        if (ssoToken) {
+          // المسار الآمن: استبدل توكن SSO أحادي الاستعمال بتوكن جلسة مقيَّد.
+          // الخادم يعيد access_token (30 يوماً) + user — راجع SsoController@verify.
+          const verifyRes = await axios.post<{
+            success?: boolean;
+            data?: { access_token?: string; user?: AuthUser };
+          }>(`${API_URL}/api/sso/verify`, {
+            sso_token: ssoToken,
+            platform: SSO_PLATFORM,
+          }, { headers: { Accept: "application/json" } });
+
+          const sessionToken = verifyRes.data?.data?.access_token;
+          const verifiedUser = verifyRes.data?.data?.user ?? {};
+          if (!sessionToken) {
+            throw new Error("لم يُعِد الخادم توكن جلسة صالحاً.");
+          }
+          finishSession(sessionToken, verifiedUser);
+          return;
         }
 
-        setStatus("تم التحقق، جاري التحويل...");
-        router.replace(returnUrl);
+        // المسار القديم: توكن Sanctum خام — يُتحقّق منه ثم يُخزَّن كما هو (مؤقّت).
+        const res = await axios.get<AuthMeResponse | AuthUser>(`${API_URL}/api/user`, {
+          headers: { Authorization: `Bearer ${legacyToken}`, Accept: "application/json" },
+        });
+        const body = res.data as AuthMeResponse & AuthUser;
+        finishSession(legacyToken, extractUser(body));
       } catch (e: unknown) {
         clearStoresSession();
         setError(getErrorMessage(e, "فشل التحقق من الجلسة."));
