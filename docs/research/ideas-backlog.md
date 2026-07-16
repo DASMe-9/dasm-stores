@@ -10,6 +10,9 @@
 | 2026-06-15 | competitors/2026-28 | **Cart Confirmation Popup:** Salla يعرض popup خفيف بعد إضافة منتج للسلة بدلاً من فتح drawer كامل. الفكرة تحتاج مراجعة تدفق التسوق حتى لا تكرر `CartDrawer.tsx`. | `components/cart/CartToast.tsx` + `store/cartStore.ts` | 🟡 متوسطة | مؤجلة |
 | 2026-06-16 | competitors/2026-29 | **معلومات شحن/استلام على صفحة تفصيل المنتج:** Salla أضافت مكوّن `salla-fulfillment-methods` يعرض خيارات توصيل/استلام قبل زر "أضف للسلة". dasm-stores لا يعرض أي معلومة شحن على صفحة المنتج. يتوقف على حقول API: يحتاج تحقق من بيانات متاحة في `getProducts()` response. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق API مطلوب |
 
+| 2026-07-16 | competitors/2026-30 | **Cart mini-preview on hover (Salla-inspired):** Salla أضافت `salla-cart-summary-card` (v2.14.482). لـ dasm-stores: popover خفيف عند hover/tap على `CartBadge` يعرض ملخص السلة (صور مصغرة + مجموع + زر checkout) دون فتح `CartDrawer` كاملاً. | `components/store/CartBadge.tsx` + مكوّن `CartMiniPreview` جديد | 🟡 متوسطة | مؤجلة |
+| 2026-07-16 | competitors/2026-30 | **Collection value-prop bar (Shopify DTC 2026):** شريط أفقي ثابت أسفل header صفحة كتالوج المتجر يعرض "شحن مجاني فوق X ر.س — إرجاع 30 يوماً — ضمان الأصالة". يُحفّز التسوق قبل تصفح المنتجات. | `app/[slug]/products/page.tsx` | 🟢 منخفضة | مؤجلة |
+
 ---
 
 > يضاف هنا أي تحسين يكتشفه Design Guardian دون تنفيذ مباشر أو تعديل على كود الإنتاج.
