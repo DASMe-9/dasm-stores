@@ -11,6 +11,7 @@ import {
   ExternalLink,
   Eye,
   LayoutDashboard,
+  Link2,
   Megaphone,
   Menu,
   Moon,
@@ -132,6 +133,13 @@ const MAIN_NAV: NavItem[] = [
     label: "كتالوج الموردين",
     icon: Boxes,
     match: (p) => p.startsWith("/dashboard/supplier-catalog"),
+    requiresStore: true,
+  },
+  {
+    href: "/dashboard/supplier-connections",
+    label: "ربط مورد خارجي",
+    icon: Link2,
+    match: (p) => p.startsWith("/dashboard/supplier-connections"),
     requiresStore: true,
   },
   {
