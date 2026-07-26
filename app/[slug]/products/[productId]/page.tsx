@@ -68,8 +68,9 @@ export default async function ProductDetailPage({
   return (
     <>
       <ProductViewTracker
+        storeSlug={slug}
         config={storeData.marketing_tracking}
-        productId={product.id}
+        productId={product.import_external_id ?? product.id}
         productName={product.name}
         price={Number(product.price)}
       />

@@ -115,8 +115,8 @@ export function ProductPurchaseSection({
       image: primaryImage,
     });
     
-    trackAddToCart(trackingConfig, {
-      content_id: String(product.id),
+    trackAddToCart(slug, trackingConfig, {
+      content_id: String(product.import_external_id ?? product.id),
       content_name: product.name,
       value: unitPrice,
       quantity: 1,
