@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import {
+  Boxes,
   CreditCard,
   Download,
   ExternalLink,
@@ -59,6 +60,7 @@ type SellerStoreOption = {
   name_ar?: string | null;
   slug?: string | null;
   status?: string | null;
+  theme_config?: { primary_color?: unknown } | null;
 };
 
 function getCurrentStoreUserId(): string | null {
@@ -123,6 +125,13 @@ const MAIN_NAV: NavItem[] = [
     label: "التتبع التسويقي",
     icon: Megaphone,
     match: (p) => p.startsWith("/dashboard/marketing"),
+    requiresStore: true,
+  },
+  {
+    href: "/dashboard/supplier-catalog",
+    label: "كتالوج الموردين",
+    icon: Boxes,
+    match: (p) => p.startsWith("/dashboard/supplier-catalog"),
     requiresStore: true,
   },
   {
@@ -296,7 +305,9 @@ export function SellerShell({
           if (selectedStore?.slug) {
             const name = getStoreDisplayName(selectedStore);
             const status = selectedStore.status || "";
-            const color = typeof (selectedStore as any).theme_config?.primary_color === 'string' ? (selectedStore as any).theme_config.primary_color : "";
+            const color = typeof selectedStore.theme_config?.primary_color === "string"
+              ? selectedStore.theme_config.primary_color
+              : "";
             setCachedSlug(selectedStore.slug);
             setCachedName(name);
             setCachedStatus(status);

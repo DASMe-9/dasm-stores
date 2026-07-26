@@ -252,6 +252,13 @@ export const sellerApi = {
   },
 
   // التتبع التسويقي (M4.1)
+  // كتالوج الموردين المركزي
+  getSupplierCatalog: (params?: QueryParams) => api.get("/my-store/supplier-catalog", { params }),
+  adoptSupplierProducts: (catalogProductIds: string[]) =>
+    api.post("/my-store/supplier-catalog/adopt", {
+      catalog_product_ids: catalogProductIds,
+    }),
+
   getMarketingConfig: () => api.get("/my-store/marketing"),
   updateMarketingConfig: (data: JsonRecord) => api.put("/my-store/marketing", data),
 
