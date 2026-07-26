@@ -6,6 +6,7 @@ import { StoreHeader } from "@/components/store/StoreHeader";
 import { StoreTabsNav } from "@/components/store/StoreTabsNav";
 import { StoreThemeApplier } from "@/components/store/StoreThemeApplier";
 import { StoreTrackingPixels } from "@/components/store/StoreTrackingPixels";
+import { MarketingConsentBanner } from "@/components/store/MarketingConsentBanner";
 import { OwnerPreviewRecovery } from "@/components/store/OwnerPreviewRecovery";
 import { SyncStoresAuthCookie } from "@/components/store/SyncStoresAuthCookie";
 import { getStore } from "@/lib/api-server";
@@ -71,7 +72,8 @@ export default async function StoreLayout({ children, params }: Props) {
 
   return (
     <>
-      <StoreTrackingPixels config={data.marketing_tracking} />
+      <StoreTrackingPixels storeSlug={slug} config={data.marketing_tracking} />
+      <MarketingConsentBanner storeSlug={slug} config={data.marketing_tracking} />
       <StoreThemeApplier vars={vars} />
       <div
         data-theme={themeId}

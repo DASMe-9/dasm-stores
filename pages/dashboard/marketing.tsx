@@ -12,6 +12,7 @@ const EMPTY: MarketingTrackingConfig = {
   snap_pixel_id: "",
   meta_pixel_id: "",
   google_ads_id: "",
+  google_conversion_label: "",
 };
 
 function DashboardMarketingPage() {
@@ -32,6 +33,7 @@ function DashboardMarketingPage() {
         snap_pixel_id: cfg.snap_pixel_id ?? "",
         meta_pixel_id: cfg.meta_pixel_id ?? "",
         google_ads_id: cfg.google_ads_id ?? "",
+        google_conversion_label: cfg.google_conversion_label ?? "",
       });
     } catch {
       setFlash("تعذّر تحميل إعدادات التتبع");
@@ -61,6 +63,7 @@ function DashboardMarketingPage() {
         snap_pixel_id: form.snap_pixel_id?.trim() || null,
         meta_pixel_id: form.meta_pixel_id?.trim() || null,
         google_ads_id: form.google_ads_id?.trim() || null,
+        google_conversion_label: form.google_conversion_label?.trim() || null,
       });
       setFlash("تم حفظ إعدادات البيكسلات");
       void load();
@@ -127,10 +130,16 @@ function DashboardMarketingPage() {
                   value={form.google_ads_id ?? ""}
                   onChange={(v) => setForm((f) => ({ ...f, google_ads_id: v }))}
                 />
+                <Field
+                  label="وسم تحويل Google Ads (اختياري)"
+                  hint="وسم التحويل المرتبط بإجراء الشراء داخل Google Ads"
+                  value={form.google_conversion_label ?? ""}
+                  onChange={(v) => setForm((f) => ({ ...f, google_conversion_label: v }))}
+                />
               </div>
 
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                بعد تفعيل المتجر على داسم، حدّث نطاق التتبع في TikTok/Snap ليشمل متجرك الجديد. الأحداث: ViewContent، AddToCart، Purchase.
+                بعد تفعيل المتجر على داسم، حدّث نطاق التتبع في TikTok وSnapchat ليشمل متجرك الجديد. ترسل TikTok وSnapchat وMeta أحداث ViewContent وAddToCart وPurchase، بينما يحتاج شراء Google Ads إلى المعرّف ووسم التحويل معًا.
               </p>
 
               <button

@@ -17,6 +17,7 @@ export default async function CheckoutSuccessPage({
     paymob_transaction?: string;
     id?: string;
     hmac?: string;
+    order_sig?: string;
     success?: string;
   }>;
 }) {
@@ -45,6 +46,7 @@ export default async function CheckoutSuccessPage({
       <CheckoutSuccessTracker
         slug={slug}
         orderNumber={order}
+        orderSignature={sp.order_sig}
         config={storeData?.marketing_tracking}
       />
       <h1 className="text-xl font-bold">تم استلام الطلب</h1>

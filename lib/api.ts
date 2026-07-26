@@ -160,8 +160,10 @@ export const publicApi = {
 /* ── Checkout ── */
 export const checkoutApi = {
   createOrder: (slug: string, data: CheckoutPayload) => api.post(`/checkout/${slug}`, data),
-  trackOrder: (slug: string, orderNumber: string) =>
-    api.get(`/track/${slug}/${orderNumber}`),
+  trackOrder: (slug: string, orderNumber: string, orderSignature?: string | null) =>
+    api.get(`/track/${slug}/${orderNumber}`, {
+      params: orderSignature ? { order_sig: orderSignature } : undefined,
+    }),
   retryPayment: (slug: string, orderNumber: string) =>
     api.post(`/retry-payment/${slug}/${orderNumber}`),
 };

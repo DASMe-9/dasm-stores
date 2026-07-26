@@ -238,6 +238,7 @@ export type StoreReview = {
 export type StoreProductDetail = StoreProductCard & {
   description?: string | null;
   sku?: string | null;
+  import_external_id?: string | null;
   images?: { url?: string | null; alt_text?: string | null; is_primary?: boolean; sort_order?: number }[];
   category?: { id: number; name: string; slug: string } | null;
   tab?: { id: number; name: string; slug: string } | null;
