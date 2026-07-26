@@ -258,6 +258,10 @@ export const sellerApi = {
     api.post("/my-store/supplier-catalog/adopt", {
       catalog_product_ids: catalogProductIds,
     }),
+  getSupplierConnections: () => api.get("/my-store/supplier-connections"),
+  createSupplierConnection: (data: JsonRecord) => api.post("/my-store/supplier-connections", data),
+  revokeSupplierConnection: (id: string | number) =>
+    api.post(`/my-store/supplier-connections/${id}/revoke`),
 
   getMarketingConfig: () => api.get("/my-store/marketing"),
   updateMarketingConfig: (data: JsonRecord) => api.put("/my-store/marketing", data),
