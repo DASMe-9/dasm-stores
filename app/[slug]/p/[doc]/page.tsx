@@ -17,7 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const storeData = await getStore(slug, requestContext);
   const store = storeData?.store;
   if (!store) return { title: "صفحة غير موجودة" };
-  const policy = getPolicyDoc(doc, store);
+  const policy = getPolicyDoc(doc, store, storeData?.fulfillment_policy);
   return { title: `${policy.title} — ${getStoreDisplayName(store)}` };
 }
 
@@ -30,7 +30,7 @@ export default async function StorePolicyPage({ params }: Props) {
   if (!ensurePublicStore(storeData, requestContext)) return null;
 
   const store = storeData!.store;
-  const policy = getPolicyDoc(doc, store);
+  const policy = getPolicyDoc(doc, store, storeData!.fulfillment_policy);
 
   return (
     <article dir="rtl" className="mx-auto w-full max-w-3xl py-2">

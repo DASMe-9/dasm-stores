@@ -101,7 +101,7 @@ export const BLOCK_SCHEMA: Record<BlockType, BlockSpec> = {
     removable: true,
     attrs: {
       title: { kind: "string", default: "" },
-      items: { kind: "list", default: ["شحن سريع", "دفع آمن", "إرجاع سهل", "دعم ٢٤/٧"] },
+      items: { kind: "list", default: ["خيارات شحن واضحة", "دفع آمن", "سياسة استرجاع معلنة", "دعم العملاء"] },
     },
   },
   categories: {
@@ -157,7 +157,7 @@ export const BLOCK_SCHEMA: Record<BlockType, BlockSpec> = {
     attrs: {
       title: { kind: "string", default: "الأسئلة الشائعة" },
       questions: { kind: "list", default: ["كم مدة التوصيل؟", "هل الإرجاع متاح؟", "ما طرق الدفع؟"] },
-      answers: { kind: "list", default: ["من ٢ إلى ٥ أيام عمل", "نعم خلال ١٤ يوماً", "بطاقات ومحافظ إلكترونية"] },
+      answers: { kind: "list", default: ["تظهر المدة حسب الوجهة والناقل", "نعم وفق سياسة المتجر المعلنة", "بطاقات ومحافظ إلكترونية"] },
     },
   },
   newsletter: {

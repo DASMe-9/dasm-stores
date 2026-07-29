@@ -224,6 +224,8 @@ export const sellerApi = {
   createShippingConfig: (data: JsonRecord) => api.post("/my-store/shipping-config", data),
   updateShippingConfig: (id: string | number, data: JsonRecord) => api.put(`/my-store/shipping-config/${id}`, data),
   deleteShippingConfig: (id: string | number) => api.delete(`/my-store/shipping-config/${id}`),
+  getFulfillmentPolicy: () => api.get("/my-store/fulfillment-policy"),
+  updateFulfillmentPolicy: (data: JsonRecord) => api.put("/my-store/fulfillment-policy", data),
 
   // استيراد Salla (M2) + Shopify (M4)
   getImportStatus: () => api.get("/my-store/import"),

@@ -161,6 +161,32 @@ export type StoreShippingSummary = {
   shipping_extra_per_kg_sar: number;
 };
 
+export type StoreFulfillmentPolicySection = {
+  key: string;
+  title: string;
+  paragraphs: string[];
+};
+
+export type StoreFulfillmentPolicy = {
+  version: number;
+  title: string;
+  store_name: string;
+  summary: string;
+  fulfillment_model: "merchant" | "supplier" | "mixed";
+  shipping_scope: "local" | "international" | "both";
+  return_window_days: number;
+  merchant_response_business_days: number;
+  inspection_business_days: number;
+  resolution_business_days: number;
+  failed_delivery_confirmation_days: number;
+  customer_return_shipping: "customer" | "merchant";
+  allow_exchange: boolean;
+  allow_store_credit: boolean;
+  additional_terms?: string | null;
+  responsibilities: Array<{ party: string; body: string }>;
+  sections: StoreFulfillmentPolicySection[];
+};
+
 /** Laravel serializes camelCase relation keys when loaded as shippingConfigs */
 export type StoreShowResponse = {
   store: StorePublic & { shippingConfigs?: StoreShippingConfig[] };
@@ -170,6 +196,7 @@ export type StoreShowResponse = {
   has_payment: boolean;
   shipping?: StoreShippingSummary;
   marketing_tracking?: import("@/lib/marketing-tracking").MarketingTrackingConfig | null;
+  fulfillment_policy?: StoreFulfillmentPolicy;
 };
 
 export type StoreTab = {
