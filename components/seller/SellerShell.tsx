@@ -19,6 +19,7 @@ import {
   Package,
   Plus,
   Settings,
+  ScrollText,
   ShoppingCart,
   Store,
   Sun,
@@ -168,6 +169,13 @@ const MAIN_NAV: NavItem[] = [
     label: "الشحن والتوصيل",
     icon: Truck,
     match: (p) => p.startsWith("/dashboard/shipping"),
+    requiresStore: true,
+  },
+  {
+    href: "/dashboard/policies",
+    label: "سياسة الاسترجاع والتسليم",
+    icon: ScrollText,
+    match: (p) => p.startsWith("/dashboard/policies"),
     requiresStore: true,
   },
 ];

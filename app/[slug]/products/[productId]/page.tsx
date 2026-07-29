@@ -101,6 +101,24 @@ export default async function ProductDetailPage({
             product={product}
             trackingConfig={storeData.marketing_tracking}
           />
+          {storeData.fulfillment_policy ? (
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] p-4 text-sm">
+              <p className="font-semibold text-[var(--foreground)]">
+                استرجاع المنتج غير المستخدم خلال {storeData.fulfillment_policy.return_window_days} أيام
+              </p>
+              <p className="mt-1 leading-6 text-[var(--muted-foreground)]">
+                العيب أو الخطأ أو التلف لا يحمّل العميل رسوم الإرجاع أو إعادة الشحن بعد التحقق.
+              </p>
+              <div className="mt-2 flex flex-wrap gap-3">
+                <Link className="font-semibold text-[var(--primary)] hover:underline" href={`/${slug}/p/returns`}>
+                  سياسة الاستبدال والاسترجاع
+                </Link>
+                <Link className="font-semibold text-[var(--primary)] hover:underline" href={`/${slug}/p/shipping`}>
+                  الشحن وإعادة الشحن
+                </Link>
+              </div>
+            </div>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <WhatsAppButton phone={storeData.store.contact_whatsapp} label="استفسر عبر واتساب" />
             <ShareButton

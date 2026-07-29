@@ -40,12 +40,12 @@ export const SECTION_LIBRARY: SectionLibraryItem[] = [
   { type: "newsletter", group: "marketing", labelAr: "النشرة البريدية", snippet: `<newsletter title="اشترك في نشرتنا" subtitle="أحدث العروض في بريدك" cta="اشتراك" />` },
   { type: "banner", group: "marketing", labelAr: "شريط ترويجي", snippet: `<banner text="شحن مجاني للطلبات فوق ٢٠٠ ر.س" />` },
 
-  { type: "features", group: "trust", labelAr: "شريط المزايا", snippet: `<features items="شحن سريع, دفع آمن, إرجاع سهل, دعم ٢٤/٧" />` },
+  { type: "features", group: "trust", labelAr: "شريط المزايا", snippet: `<features items="خيارات شحن واضحة, دفع آمن, سياسة استرجاع معلنة, دعم العملاء" />` },
   { type: "testimonials", group: "trust", labelAr: "آراء العملاء", snippet: `<testimonials title="ماذا قال عملاؤنا" quotes="منتجات رائعة, خدمة ممتازة, تجربة سهلة" authors="أحمد, سارة, خالد" />` },
   { type: "brands", group: "trust", labelAr: "شعارات الماركات", snippet: `<brands title="علاماتنا" logos="Apple, Samsung, Sony, Anker" />` },
 
   { type: "richtext", group: "content", labelAr: "نص حر", snippet: `<richtext title="عن المتجر" body="اكتب نبذتك هنا." />` },
-  { type: "faq", group: "content", labelAr: "الأسئلة الشائعة", snippet: `<faq title="الأسئلة الشائعة" questions="كم مدة التوصيل؟, هل الإرجاع متاح؟" answers="من ٢ إلى ٥ أيام, نعم خلال ١٤ يوماً" />` },
+  { type: "faq", group: "content", labelAr: "الأسئلة الشائعة", snippet: `<faq title="الأسئلة الشائعة" questions="كم مدة التوصيل؟, هل الإرجاع متاح؟" answers="تظهر المدة حسب الوجهة والناقل, نعم وفق سياسة المتجر المعلنة" />` },
   { type: "spacer", group: "content", labelAr: "مسافة فاصلة", snippet: `<spacer size="medium" />` },
 
   { type: "footer", group: "footer", labelAr: "التذييل", snippet: `<footer about="{{ store.name }}" terms="الشروط والأحكام" social="whatsapp, instagram" />` },

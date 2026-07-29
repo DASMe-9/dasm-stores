@@ -1,4 +1,4 @@
-import type { StorePublic } from "@/lib/api-server";
+import type { StoreFulfillmentPolicy, StorePublic } from "@/lib/api-server";
 import { getStoreDisplayName } from "@/lib/store-display";
 
 /**
@@ -48,8 +48,60 @@ function contactLines(store: StorePublic): string[] {
   return lines;
 }
 
-export function getPolicyDoc(key: PolicyKey, store: StorePublic): PolicyDoc {
+function fulfillmentDoc(
+  key: "returns" | "shipping",
+  policy: StoreFulfillmentPolicy,
+): PolicyDoc {
+  const sectionKeys =
+    key === "returns"
+      ? ["ordinary_return", "fault_damage", "timing", "mandatory_rights"]
+      : ["failed_delivery", "local_international", "timing", "mandatory_rights"];
+  const sections: PolicySection[] = [];
+
+  if (key === "shipping") {
+    sections.push({
+      heading: "مسؤوليات الأطراف",
+      body: policy.responsibilities.map(({ party, body }) => `${party}: ${body}`),
+    });
+  }
+
+  sections.push(
+    ...policy.sections
+      .filter((section) => sectionKeys.includes(section.key))
+      .map((section) => ({ heading: section.title, body: section.paragraphs })),
+  );
+
+  if (policy.additional_terms) {
+    sections.push({
+      heading: "شروط المتجر الإضافية",
+      body: [
+        policy.additional_terms,
+        "لا تسري الشروط الإضافية إذا تعارضت مع حق إلزامي للعميل.",
+      ],
+    });
+  }
+
+  return {
+    key,
+    title:
+      key === "returns"
+        ? "سياسة الاستبدال والاسترجاع"
+        : "سياسة الشحن والتوصيل وإعادة الشحن",
+    intro: policy.summary,
+    sections,
+  };
+}
+
+export function getPolicyDoc(
+  key: PolicyKey,
+  store: StorePublic,
+  fulfillmentPolicy?: StoreFulfillmentPolicy,
+): PolicyDoc {
   const name = getStoreDisplayName(store);
+
+  if ((key === "returns" || key === "shipping") && fulfillmentPolicy) {
+    return fulfillmentDoc(key, fulfillmentPolicy);
+  }
 
   switch (key) {
     case "about":
@@ -121,13 +173,13 @@ export function getPolicyDoc(key: PolicyKey, store: StorePublic): PolicyDoc {
         intro: `يسعدنا في ${name} ضمان رضاك عن مشترياتك.`,
         sections: [
           { heading: "حق الاسترجاع", body: [
-            "يمكنك طلب الاستبدال أو الاسترجاع خلال (٣) أيام من استلام المنتج، شريطة أن يكون بحالته الأصلية وبكامل تغليفه ودون استخدام.",
+            "يمكنك طلب الاسترجاع للمنتج غير المستخدم خلال (٧) أيام من استلامه، مع بقاء حقوقك النظامية في العيب أو الخطأ أو التلف محفوظة.",
           ]},
           { heading: "آلية الطلب", body: [
             "تواصل معنا عبر وسائل التواصل الموضّحة في صفحة «اتصل بنا» مع رقم الطلب وسبب الإرجاع، وسنوجّهك لخطوات الإرجاع.",
           ]},
           { heading: "استرداد المبلغ", body: [
-            "يُعاد المبلغ بنفس وسيلة الدفع خلال مدة معالجة مزوّد الدفع بعد استلام المنتج المُرجَع وفحصه.",
+            "يؤكد المتجر نتيجة الفحص والحل، ثم يُعاد المبلغ عبر المسار المعتمد خلال مدة معالجة مزوّد الدفع.",
           ]},
           { heading: "استثناءات", body: [
             "قد تُستثنى بعض المنتجات من الاسترجاع لطبيعتها (كالمنتجات المخصّصة أو القابلة للتلف)، ويُوضَّح ذلك عند الشراء.",
