@@ -206,6 +206,8 @@ export const sellerApi = {
   // بوابة الدفع (legacy)
   getPaymentConfig: () => api.get("/my-store/payment-config"),
   updatePaymentConfig: (data: JsonRecord) => api.put("/my-store/payment-config", data),
+  getFinancialProfile: () => api.get("/my-store/financial-profile"),
+  updateFinancialProfile: (data: JsonRecord) => api.put("/my-store/financial-profile", data),
 
   // العنوان الوطني (على مستوى المستخدم — ثابت في كل المنصات)
   getNationalAddress: () => platformApi.get("/user/national-address"),
