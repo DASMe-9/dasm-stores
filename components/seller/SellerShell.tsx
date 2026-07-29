@@ -158,10 +158,10 @@ const MAIN_NAV: NavItem[] = [
     requiresStore: true,
   },
   {
-    href: "/dashboard/payment",
-    label: "المالية والدفع",
+    href: "/dashboard/accounting",
+    label: "المحاسبة والدفع",
     icon: CreditCard,
-    match: (p) => p === "/dashboard/payment",
+    match: (p) => p === "/dashboard/accounting" || p === "/dashboard/payment",
     requiresStore: true,
   },
   {

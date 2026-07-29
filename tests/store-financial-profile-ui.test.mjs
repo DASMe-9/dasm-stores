@@ -4,6 +4,14 @@ import { test } from "node:test";
 
 test("seller financial page uses the governed profile endpoints and readiness stages", async () => {
   const api = await readFile(new URL("../lib/api.ts", import.meta.url), "utf8");
+  const shell = await readFile(
+    new URL("../components/seller/SellerShell.tsx", import.meta.url),
+    "utf8",
+  );
+  const accountingRoute = await readFile(
+    new URL("../pages/dashboard/accounting.tsx", import.meta.url),
+    "utf8",
+  );
   const page = await readFile(
     new URL("../pages/dashboard/payment.tsx", import.meta.url),
     "utf8",
@@ -14,7 +22,16 @@ test("seller financial page uses the governed profile endpoints and readiness st
     api,
     /updateFinancialProfile:\s*\(data:\s*JsonRecord\)\s*=>\s*api\.put\("\/my-store\/financial-profile",\s*data\)/,
   );
-  assert.match(page, /type ProfileStage = "missing" \| "draft" \| "review" \| "ready"/);
+  assert.match(
+    page,
+    /type ProfileStage = "missing" \| "draft" \| "correction" \| "review" \| "ready"/,
+  );
+  assert.match(page, /profile\.profile_status === "needs_correction"/);
+  assert.match(page, /profile\?\.review_reason/);
+  assert.match(page, /ملاحظة المراجعة/);
+  assert.match(shell, /href:\s*"\/dashboard\/accounting"/);
+  assert.match(shell, /label:\s*"المحاسبة والدفع"/);
+  assert.match(accountingRoute, /export \{ default \} from "\.\/payment"/);
   assert.match(page, /بيانات المنشأة/);
   assert.match(page, /مراجعة داسم/);
   assert.match(page, /جاهزية الدفع/);

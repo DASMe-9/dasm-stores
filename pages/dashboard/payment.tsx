@@ -79,6 +79,7 @@ type StoreFinancialProfile = {
   transaction_model?: string | null;
   tax_invoice_issuer?: string | null;
   profile_status: string;
+  review_reason?: string | null;
   verified_at?: string | null;
 };
 
@@ -91,7 +92,7 @@ type FinancialProfileForm = {
   vat_registration_number: string;
 };
 
-type ProfileStage = "missing" | "draft" | "review" | "ready";
+type ProfileStage = "missing" | "draft" | "correction" | "review" | "ready";
 
 const emptyFinance: StoreFinance = {
   subscription_status: "trial",
@@ -143,6 +144,7 @@ function financialProfileForm(profile: StoreFinancialProfile | null): FinancialP
 
 function profileStage(profile: StoreFinancialProfile | null): ProfileStage {
   if (!profile) return "missing";
+  if (profile.profile_status === "needs_correction") return "correction";
   if (profile.profile_status !== "complete") return "draft";
   if (!profile.accounting_entity_id || !profile.verified_at) return "review";
   return "ready";
@@ -150,6 +152,13 @@ function profileStage(profile: StoreFinancialProfile | null): ProfileStage {
 
 function formatSar(value: number) {
   return `${Number(value || 0).toLocaleString("ar-SA")} ر.س`;
+}
+
+function apiErrorMessage(error: unknown): string | null {
+  if (!error || typeof error !== "object" || !("response" in error)) return null;
+
+  const response = (error as { response?: { data?: { message?: unknown } } }).response;
+  return typeof response?.data?.message === "string" ? response.data.message : null;
 }
 
 function methodIcon(key: string): LucideIcon {
@@ -239,7 +248,7 @@ export default function PaymentSettingsPage() {
         setProfileError("تعذر تحميل الملف المالي. أعد المحاولة قبل حفظ بيانات جديدة.");
       }
     } catch {
-      setError("تعذر تحميل إعدادات المالية والدفع.");
+      setError("تعذر تحميل إعدادات المحاسبة والدفع.");
     } finally {
       setLoading(false);
     }
@@ -248,7 +257,7 @@ export default function PaymentSettingsPage() {
   useEffect(() => {
     const token = localStorage.getItem("stores_token");
     if (!token) {
-      router.replace("/auth/login?returnUrl=/dashboard/payment");
+      router.replace("/auth/login?returnUrl=/dashboard/accounting");
       return;
     }
     setReady(true);
@@ -330,9 +339,9 @@ export default function PaymentSettingsPage() {
           ? "حُفظ الملف وأُرسل للمراجعة الإدارية. يتوقف الدفع حتى اكتمال المراجعة."
           : "حُفظت المسودة. أكمل الحالة الضريبية لإرسال الملف للمراجعة.",
       );
-    } catch (saveError: any) {
+    } catch (saveError: unknown) {
       setProfileError(
-        saveError?.response?.data?.message ||
+        apiErrorMessage(saveError) ||
           "تعذر حفظ الملف المالي. راجع البيانات وحاول مرة أخرى.",
       );
     } finally {
@@ -371,6 +380,7 @@ export default function PaymentSettingsPage() {
   const accountingStageIndex = {
     missing: 0,
     draft: 0,
+    correction: 0,
     review: 1,
     ready: 3,
   }[accountingStage];
@@ -384,6 +394,11 @@ export default function PaymentSettingsPage() {
       title: "الملف محفوظ كمسودة",
       body: "حدد الحالة الضريبية وأكمل بيانات الوثيقة حتى ينتقل الملف للمراجعة.",
       cls: "border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100",
+    },
+    correction: {
+      title: "الملف يحتاج إلى تصحيح",
+      body: "راجع ملاحظة فريق داسم أدناه، صحح البيانات، ثم احفظ الملف لإعادته إلى المراجعة.",
+      cls: "border-orange-300 bg-orange-50 text-orange-950 dark:border-orange-900 dark:bg-orange-950/30 dark:text-orange-100",
     },
     review: {
       title: "بانتظار مراجعة داسم",
@@ -409,12 +424,12 @@ export default function PaymentSettingsPage() {
   return (
     <>
       <Head>
-        <title>المالية والدفع - متاجر داسم</title>
+        <title>المحاسبة والدفع - متاجر داسم</title>
         <meta name="robots" content="noindex, nofollow" />
       </Head>
 
       <SellerShell
-        title="المالية والدفع"
+        title="المحاسبة والدفع"
         subtitle="الهوية القانونية، جاهزية التحصيل، الحساب البنكي، وملخص الدفع"
         icon={CreditCard}
         hasStore
@@ -512,6 +527,12 @@ export default function PaymentSettingsPage() {
                   <div className={["rounded-xl border px-4 py-3", currentProfileStatus.cls].join(" ")}>
                     <p className="font-black">{currentProfileStatus.title}</p>
                     <p className="mt-1 text-sm leading-6 opacity-80">{currentProfileStatus.body}</p>
+                    {accountingStage === "correction" && profile?.review_reason ? (
+                      <div className="mt-3 rounded-lg border border-orange-300/70 bg-white/70 px-3 py-2.5 text-sm leading-6 text-orange-950 dark:border-orange-800 dark:bg-zinc-950/40 dark:text-orange-100">
+                        <span className="font-black">ملاحظة المراجعة: </span>
+                        {profile.review_reason}
+                      </div>
+                    ) : null}
                   </div>
 
                   {profileError ? (
