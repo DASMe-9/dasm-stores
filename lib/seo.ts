@@ -12,9 +12,9 @@ export const SITE = {
   url: STOREFRONT_ORIGIN,
   name: "متاجر داسم",
   nameEn: "DASM Stores",
-  defaultTitle: "متاجر داسم — منصة المتاجر من داسم",
+  defaultTitle: "متاجر داسم — منصة التجارة للمتاجر السعودية",
   defaultDescription:
-    "متاجر داسم: منصة متاجر مستقلة لكل معرض وتاجر في السعودية. سيارات، قطع غيار، إكسسوارات، والمزيد — مدعومة بمنظومة داسم.",
+    "متاجر داسم منصة عربية لاكتشاف المتاجر وتشغيل واجهاتها الرقمية والكتالوج والطلبات والشحن داخل منظومة داسم.",
   locale: "ar_SA",
   twitter: "@dasm_sa",
   defaultOgImage: "/og-default.png",
