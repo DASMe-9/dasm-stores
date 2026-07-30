@@ -52,4 +52,42 @@ test.describe("الصفحة الرئيسية لمتاجر داسم", () => {
       mobileNav.getByRole("link", { name: "أنشئ متجرك" }),
     ).toHaveAttribute("href", "/auth/signup");
   });
+
+  test("يطبّق الوضع النهاري والليلي على الصفحة كاملة", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem("stores_theme", "light");
+    });
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+
+    const html = page.locator("html");
+    const hero = page.getByTestId("platform-hero");
+    const passport = page.getByTestId("commerce-passport-card");
+    const footer = page.locator("footer");
+
+    await expect(html).not.toHaveClass(/dark/);
+    const lightColors = await Promise.all([
+      hero.evaluate((element) => getComputedStyle(element).backgroundColor),
+      passport.evaluate((element) => getComputedStyle(element).backgroundColor),
+      footer.evaluate((element) => getComputedStyle(element).backgroundColor),
+    ]);
+
+    await page
+      .getByRole("button", { name: "التبديل إلى الوضع الداكن" })
+      .click();
+    await expect(html).toHaveClass(/dark/);
+    await expect(
+      page.getByRole("button", { name: "التبديل إلى الوضع الفاتح" }),
+    ).toBeVisible();
+
+    const darkColors = await Promise.all([
+      hero.evaluate((element) => getComputedStyle(element).backgroundColor),
+      passport.evaluate((element) => getComputedStyle(element).backgroundColor),
+      footer.evaluate((element) => getComputedStyle(element).backgroundColor),
+    ]);
+
+    expect(darkColors).not.toEqual(lightColors);
+    expect(darkColors[0]).not.toBe(lightColors[0]);
+    expect(darkColors[1]).not.toBe(lightColors[1]);
+    expect(darkColors[2]).not.toBe(lightColors[2]);
+  });
 });

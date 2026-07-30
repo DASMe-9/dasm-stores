@@ -275,18 +275,21 @@ function EmptyProductsState({ q }: { q?: string }) {
 function CommercePassport({ storeCount }: { storeCount: number }) {
   return (
     <div className="relative mx-auto w-full max-w-xl" aria-label="جواز نمو المتجر">
-      <div className="absolute -inset-4 rounded-[2rem] bg-[radial-gradient(circle_at_85%_15%,rgba(14,124,102,.34),transparent_45%),radial-gradient(circle_at_15%_90%,rgba(199,134,56,.22),transparent_42%)] blur-2xl" />
-      <div className="relative overflow-hidden rounded-[1.75rem] border border-white/15 bg-[#0d2636]/95 p-5 shadow-2xl shadow-black/30 sm:p-7">
-        <div className="flex items-start justify-between gap-4 border-b border-white/10 pb-5">
+      <div className="absolute -inset-4 rounded-[2rem] bg-[radial-gradient(circle_at_85%_15%,rgba(14,124,102,.34),transparent_45%),radial-gradient(circle_at_15%_90%,rgba(199,134,56,.22),transparent_42%)] opacity-50 blur-2xl dark:opacity-100" />
+      <div
+        data-testid="commerce-passport-card"
+        className="relative overflow-hidden rounded-[1.75rem] border border-slate-200 bg-white p-5 text-[#081c2c] shadow-2xl shadow-slate-900/10 transition-colors duration-300 motion-reduce:transition-none sm:p-7 dark:border-white/15 dark:bg-[#0d2636]/95 dark:text-white dark:shadow-black/30"
+      >
+        <div className="flex items-start justify-between gap-4 border-b border-slate-200 pb-5 dark:border-white/10">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.24em] text-[#d4a45f]">
               DASM COMMERCE PASSPORT
             </p>
-            <h2 className="mt-2 text-xl font-extrabold text-white">
+            <h2 className="mt-2 text-xl font-extrabold text-[#081c2c] dark:text-white">
               مسار متجر قابل للنمو
             </h2>
           </div>
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-emerald-300/20 bg-emerald-300/10 text-emerald-200">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-emerald-200 bg-emerald-50 text-[#0e7c66] dark:border-emerald-300/20 dark:bg-emerald-300/10 dark:text-emerald-200">
             <Building2 className="h-6 w-6" />
           </span>
         </div>
@@ -298,19 +301,19 @@ function CommercePassport({ storeCount }: { storeCount: number }) {
             return (
               <li
                 key={step.label}
-                className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 py-3"
+                className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-[#f7f8f8] px-4 py-3 dark:border-white/10 dark:bg-white/[0.035]"
               >
                 <span className="font-mono text-xs text-[#d4a45f]">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <Icon className="h-4 w-4 text-emerald-300" />
-                <span className="text-sm font-bold text-slate-100">
+                <Icon className="h-4 w-4 text-[#0e7c66] dark:text-emerald-300" />
+                <span className="text-sm font-bold text-[#081c2c] dark:text-slate-100">
                   {step.label}
                 </span>
                 {index < passportSteps.length - 1 ? (
                   <span className="mr-auto h-px w-8 bg-gradient-to-l from-emerald-400/60 to-transparent" />
                 ) : (
-                  <CheckCircle2 className="mr-auto h-4 w-4 text-emerald-300" />
+                  <CheckCircle2 className="mr-auto h-4 w-4 text-[#0e7c66] dark:text-emerald-300" />
                 )}
               </li>
             );
@@ -447,12 +450,12 @@ export default async function ExplorePage({
         <main>
           <section
             data-testid="platform-hero"
-            className="relative overflow-hidden bg-[#081c2c] px-4 py-14 text-white sm:py-18 lg:py-22"
+            className="relative overflow-hidden bg-[#eaf2f1] px-4 py-14 text-[#081c2c] transition-colors duration-300 motion-reduce:transition-none sm:py-18 lg:py-22 dark:bg-[#081c2c] dark:text-white"
           >
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(60,130,246,.18),transparent_34%),radial-gradient(circle_at_80%_70%,rgba(14,124,102,.26),transparent_38%)]" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_12%_20%,rgba(199,134,56,.13),transparent_34%),radial-gradient(circle_at_80%_70%,rgba(14,124,102,.16),transparent_38%)] dark:bg-[radial-gradient(circle_at_12%_20%,rgba(60,130,246,.18),transparent_34%),radial-gradient(circle_at_80%_70%,rgba(14,124,102,.26),transparent_38%)]" />
             <div className="relative mx-auto grid max-w-7xl items-center gap-12 lg:grid-cols-[1.05fr_.95fr]">
               <div className="max-w-2xl">
-                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-200/20 bg-emerald-200/10 px-4 py-2 text-xs font-bold text-emerald-100">
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-700/15 bg-white/70 px-4 py-2 text-xs font-bold text-[#0e7c66] dark:border-emerald-200/20 dark:bg-emerald-200/10 dark:text-emerald-100">
                   <Compass className="h-4 w-4" />
                   منصة تجارة عربية من منظومة داسم
                 </div>
@@ -460,7 +463,7 @@ export default async function ExplorePage({
                   من متجر سعودي مستقل،
                   <span className="block text-[#d4a45f]">إلى سوق أكبر.</span>
                 </h1>
-                <p className="mt-6 max-w-xl text-base leading-8 text-slate-300 sm:text-lg">
+                <p className="mt-6 max-w-xl text-base leading-8 text-slate-600 sm:text-lg dark:text-slate-300">
                   تجمع متاجر داسم هوية المتجر والكتالوج وإعدادات الدفع
                   والشحن والتتبع في تجربة عربية واحدة، وتبني التوسع سوقًا
                   بعد سوق.
@@ -469,14 +472,14 @@ export default async function ExplorePage({
                 <div className="mt-8 flex flex-col gap-3 sm:flex-row">
                   <Link
                     href="/auth/signup"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0e7c66] px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-emerald-950/30 transition hover:bg-emerald-600"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl bg-[#0e7c66] px-6 py-3.5 text-sm font-extrabold text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-600 dark:shadow-emerald-950/30"
                   >
                     أنشئ متجرك
                     <ArrowLeft className="h-4 w-4" />
                   </Link>
                   <Link
                     href="#stores"
-                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-extrabold text-white transition hover:bg-white/10"
+                    className="inline-flex items-center justify-center gap-2 rounded-2xl border border-[#081c2c]/15 bg-white/70 px-6 py-3.5 text-sm font-extrabold text-[#081c2c] transition hover:bg-white dark:border-white/20 dark:bg-white/5 dark:text-white dark:hover:bg-white/10"
                   >
                     استكشف السوق
                   </Link>
@@ -484,7 +487,7 @@ export default async function ExplorePage({
 
                 <Link
                   href="https://www.dasm.com.sa/why-dasm"
-                  className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-slate-300 transition hover:text-white"
+                  className="mt-5 inline-flex items-center gap-2 text-sm font-bold text-slate-600 transition hover:text-[#0e7c66] dark:text-slate-300 dark:hover:text-white"
                 >
                   للشراكات والاستثمار: تعرّف على منظومة داسم
                   <ArrowLeft className="h-4 w-4" />
@@ -746,7 +749,7 @@ export default async function ExplorePage({
 
         <footer
           id="contact"
-          className="border-t border-slate-200 bg-[#081c2c] text-white dark:border-zinc-800"
+          className="border-t border-slate-200 bg-[#f4f0e8] text-[#081c2c] transition-colors duration-300 motion-reduce:transition-none dark:border-zinc-800 dark:bg-[#081c2c] dark:text-white"
         >
           <div className="mx-auto grid max-w-7xl gap-9 px-4 py-12 md:grid-cols-[1.25fr_.75fr_.75fr]">
             <div>
@@ -756,7 +759,7 @@ export default async function ExplorePage({
                 </span>
                 <span>متاجر داسم</span>
               </div>
-              <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300">
+              <p className="mt-4 max-w-xl text-sm leading-7 text-slate-600 dark:text-slate-300">
                 منصة عربية لاكتشاف المتاجر وتشغيل واجهاتها الرقمية داخل
                 منظومة داسم، تبدأ من السوق السعودي وتبني التوسع على قدرات
                 تشغيلية قابلة للتحقق.
@@ -767,14 +770,14 @@ export default async function ExplorePage({
               <h3 className="text-sm font-extrabold text-[#d4a45f]">
                 ابدأ من هنا
               </h3>
-              <div className="mt-4 grid gap-3 text-sm text-slate-300">
-                <Link href="#stores" className="hover:text-white">
+              <div className="mt-4 grid gap-3 text-sm text-slate-600 dark:text-slate-300">
+                <Link href="#stores" className="hover:text-[#0e7c66] dark:hover:text-white">
                   استكشف المتاجر
                 </Link>
-                <Link href="/auth/signup" className="hover:text-white">
+                <Link href="/auth/signup" className="hover:text-[#0e7c66] dark:hover:text-white">
                   أنشئ متجرك
                 </Link>
-                <Link href="/auth/login" className="hover:text-white">
+                <Link href="/auth/login" className="hover:text-[#0e7c66] dark:hover:text-white">
                   تسجيل الدخول
                 </Link>
               </div>
@@ -784,22 +787,22 @@ export default async function ExplorePage({
               <h3 className="text-sm font-extrabold text-[#d4a45f]">
                 منظومة داسم
               </h3>
-              <div className="mt-4 grid gap-3 text-sm text-slate-300">
+              <div className="mt-4 grid gap-3 text-sm text-slate-600 dark:text-slate-300">
                 <Link
                   href="https://www.dasm.com.sa/why-dasm"
-                  className="hover:text-white"
+                  className="hover:text-[#0e7c66] dark:hover:text-white"
                 >
                   للشراكات والاستثمار
                 </Link>
                 <Link
                   href="https://ads.dasm.com.sa/advertise"
-                  className="hover:text-white"
+                  className="hover:text-[#0e7c66] dark:hover:text-white"
                 >
                   طلب إعلان
                 </Link>
                 <Link
                   href="https://www.dasm.com.sa"
-                  className="hover:text-white"
+                  className="hover:text-[#0e7c66] dark:hover:text-white"
                 >
                   منصة داسم الرئيسية
                 </Link>
