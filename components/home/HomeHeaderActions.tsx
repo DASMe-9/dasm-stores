@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, LayoutDashboard, LogOut, ShoppingCart, User } from "lucide-react";
+import { ChevronDown, LayoutDashboard, LogOut, ShoppingCart, Store, User } from "lucide-react";
 import { clearStoresToken } from "@/lib/auth-token";
 import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
@@ -134,13 +134,22 @@ export function HomeHeaderActions({ shoppingHref }: { shoppingHref: string }) {
           ) : null}
         </div>
       ) : (
-        <Link
-          href="/auth/login?returnUrl=/dashboard"
-          className="hidden items-center gap-2 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-bold text-slate-900 dark:text-zinc-100 shadow-sm transition hover:border-emerald-200 dark:hover:border-emerald-800 hover:text-emerald-700 dark:hover:text-emerald-300 sm:inline-flex"
-        >
-          <User className="h-4 w-4" />
-          تسجيل الدخول
-        </Link>
+        <>
+          <Link
+            href="/auth/signup"
+            className="hidden items-center gap-2 rounded-2xl bg-[#0e7c66] px-4 py-3 text-sm font-bold text-white shadow-sm transition hover:bg-emerald-600 md:inline-flex"
+          >
+            <Store className="h-4 w-4" />
+            افتح متجرك
+          </Link>
+          <Link
+            href="/auth/login?returnUrl=/dashboard"
+            className="hidden items-center gap-2 rounded-2xl border border-slate-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-4 py-3 text-sm font-bold text-slate-900 dark:text-zinc-100 shadow-sm transition hover:border-emerald-200 dark:hover:border-emerald-800 hover:text-emerald-700 dark:hover:text-emerald-300 sm:inline-flex"
+          >
+            <User className="h-4 w-4" />
+            تسجيل الدخول
+          </Link>
+        </>
       )}
 
       <Link
