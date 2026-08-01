@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
 import {
+  BarChart3,
   Boxes,
   CreditCard,
   Download,
@@ -127,6 +128,13 @@ const MAIN_NAV: NavItem[] = [
     label: "التتبع التسويقي",
     icon: Megaphone,
     match: (p) => p.startsWith("/dashboard/marketing"),
+    requiresStore: true,
+  },
+  {
+    href: "/dashboard/ads",
+    label: "نتائج الإعلانات",
+    icon: BarChart3,
+    match: (p) => p.startsWith("/dashboard/ads"),
     requiresStore: true,
   },
   {

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { reportAdConversion } from "@/lib/ads-conversions";
 import { checkoutApi } from "@/lib/api";
 import { MARKETING_CONSENT_EVENT } from "@/lib/marketing-consent";
 import type {
@@ -74,6 +75,16 @@ export function CheckoutSuccessTracker({
         ) {
           return;
         }
+
+        // The ads engine hears about the sale here, on a verified paid order,
+        // and nowhere earlier — a conversion reported from an unconfirmed
+        // checkout would charge an advertiser for a sale that never happened.
+        // Silent when the shopper did not arrive from an ad.
+        void reportAdConversion("store.product.purchase", {
+          externalRef: `store.product.purchase:${orderNumber}`,
+          valueSar: total,
+          meta: { store_slug: slug },
+        });
 
         const items = Array.isArray(response.data?.items)
           ? response.data.items
