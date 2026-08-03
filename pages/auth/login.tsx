@@ -166,9 +166,13 @@ export default function LoginPage() {
             </div>
 
             <div className="space-y-4 text-center">
+              {/*
+                نَعِد بما نملك فقط. «سوق الملايين» رقم لا نستطيع إثباته اليوم،
+                ووعدٌ لا يتحقّق يكلّف ثقة التاجر أكثر ممّا يكسبه العنوان.
+              */}
               <h1 className="text-4xl font-extrabold text-white leading-tight">
                 متجرك الرقمي<br />
-                <span className="text-emerald-400">في سوق الملايين</span>
+                <span className="text-emerald-400">على منصّة داسم</span>
               </h1>
               <p className="text-emerald-200/70 text-base leading-relaxed max-w-xs mx-auto">
                 أدِر منتجاتك، تابع طلباتك، وابنِ علامتك التجارية — كل شيء من مكان واحد.
@@ -177,9 +181,10 @@ export default function LoginPage() {
 
             <div className="space-y-3">
               {[
-                { icon: "🛍️", text: "عرض منتجاتك أمام آلاف المشترين" },
-                { icon: "📊", text: "تحليلات مبيعات ومتابعة لحظية" },
-                { icon: "🔗", text: "تكامل مع سوق داسم والشحن الذكي" },
+                // كلّ سطر هنا قدرة قائمة في المنصّة، لا وعدًا بجمهور لا نضمنه.
+                { icon: "🛍️", text: "واجهة متجر مستقلّة باسمك وتصميمك" },
+                { icon: "📊", text: "تحليلات مبيعات ومتابعة طلبات لحظية" },
+                { icon: "🔗", text: "تكامل مع سوق داسم والشحن" },
               ].map((f) => (
                 <div key={f.text} className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3">
                   <span className="text-xl">{f.icon}</span>
