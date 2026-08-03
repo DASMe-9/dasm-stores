@@ -37,6 +37,35 @@ const emptyResponse: CatalogResponse = {
   filters: { categories: [] },
 };
 
+function catalogLoadErrorMessage(error: unknown) {
+  const typed = error as {
+    response?: {
+      status?: number;
+      data?: { message?: string; code?: string };
+    };
+  };
+  const status = typed.response?.status;
+  const response = typed.response?.data;
+
+  if (status === 403 && response?.code === "supplier_catalog_store_suspended") {
+    return response.message ?? "لا يمكن استخدام كتالوج الموردين لأن المتجر معلّق حاليًا.";
+  }
+  if (status === 403 && response?.code === "supplier_catalog_subscription_required") {
+    return response.message ?? "يتاح كتالوج الموردين بعد اعتماد المتجر أو خلال الفترة التجريبية السارية.";
+  }
+  if (status === 422) {
+    return "تعذر تطبيق عوامل البحث. حدّث الصفحة ثم حاول مرة أخرى.";
+  }
+  if (status !== undefined && status >= 500) {
+    return "خدمة كتالوج الموردين غير متاحة مؤقتًا. حاول مرة أخرى بعد قليل.";
+  }
+  if (status === undefined) {
+    return "تعذر الاتصال بخدمة كتالوج الموردين. تحقق من اتصالك ثم حاول مرة أخرى.";
+  }
+
+  return response?.message ?? "تعذر تحميل كتالوج الموردين حاليًا.";
+}
+
 function money(value: string | null | undefined, currency = "SAR") {
   const amount = Number(value ?? 0);
   return new Intl.NumberFormat("ar-SA", {
@@ -62,6 +91,7 @@ export default function SupplierCatalogPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setMessage((current) => (current?.error ? null : current));
     try {
       const storeResponse = await sellerApi.getMyStore();
       const store = storeResponse.data?.store;
@@ -76,14 +106,13 @@ export default function SupplierCatalogPage() {
         category: category || undefined,
         page,
         per_page: 24,
-        in_stock: true,
+        in_stock: 1,
       });
       setCatalog(response.data as CatalogResponse);
       setSelected(new Set());
     } catch (error: unknown) {
-      const typed = error as { response?: { data?: { message?: string } } };
       setMessage({
-        text: typed.response?.data?.message ?? "تعذر تحميل كتالوج الموردين حاليًا.",
+        text: catalogLoadErrorMessage(error),
         error: true,
       });
     } finally {
