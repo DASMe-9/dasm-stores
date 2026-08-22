@@ -126,17 +126,10 @@ export default function LoginPage() {
     // the profile still needs completing.
     if (result.user && typeof window !== "undefined") {
       try {
-        const u = result.user as { id?: unknown; name?: unknown; email?: unknown; type?: unknown };
-        localStorage.setItem(
-          "stores_user",
-          JSON.stringify({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            type: u.type,
-            profile_completed: !result.needsProfileCompletion,
-          }),
-        );
+        saveLoginAccount({
+          ...(result.user as LoginAccount),
+          profile_completed: !result.needsProfileCompletion,
+        });
       } catch {
         /* localStorage unavailable — the token is still enough to proceed */
       }
