@@ -10,6 +10,9 @@
 | 2026-06-15 | competitors/2026-28 | **Cart Confirmation Popup:** Salla يعرض popup خفيف بعد إضافة منتج للسلة بدلاً من فتح drawer كامل. الفكرة تحتاج مراجعة تدفق التسوق حتى لا تكرر `CartDrawer.tsx`. | `components/cart/CartToast.tsx` + `store/cartStore.ts` | 🟡 متوسطة | مؤجلة |
 | 2026-06-16 | competitors/2026-29 | **معلومات شحن/استلام على صفحة تفصيل المنتج:** Salla أضافت مكوّن `salla-fulfillment-methods` يعرض خيارات توصيل/استلام قبل زر "أضف للسلة". dasm-stores لا يعرض أي معلومة شحن على صفحة المنتج. يتوقف على حقول API: يحتاج تحقق من بيانات متاحة في `getProducts()` response. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق API مطلوب |
 
+| 2026-07-04 | competitors/2026-30 | **Apple Pay Quick Checkout popup:** Zid أضافت Apple Pay كـ popup modal مباشرة من صفحة المنتج بدلاً من التوجه لصفحة Checkout كاملة. يُقلل خطوات الشراء للمستخدم. يتوقف على دعم Apple Pay في payment provider المستخدم في dasm-stores. | `components/checkout/CheckoutClient.tsx` + `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق من payment provider مطلوب |
+| 2026-07-04 | competitors/2026-30 | **Agentic Commerce / AI Cart Interactions:** Shopify Dawn 15.5.0 أضافت دعم storefront events لتمكين AI agents وتطبيقات خارجية من تعديل السلة بدون reload. الاتجاه نحو headless + agentic cart سيكون معياراً. يستحق المتابعة في W31+ لمعرفة ما ستُصدره Salla في هذا الاتجاه. | `components/cart/CartDrawer.tsx` + API layer | 🔵 استراتيجية | مؤجلة — رصد مستمر |
+
 ---
 
 > يضاف هنا أي تحسين يكتشفه Design Guardian دون تنفيذ مباشر أو تعديل على كود الإنتاج.
