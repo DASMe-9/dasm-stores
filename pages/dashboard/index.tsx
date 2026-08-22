@@ -4,13 +4,13 @@ import { useRouter } from "next/router";
 import { useCallback, useEffect, useState } from "react";
 import {
   Clock,
+  CheckCircle2,
   DollarSign,
   Edit3,
-  Info,
   LayoutDashboard,
   Package,
   Plus,
-  Rocket,
+  RefreshCw,
   Settings,
   ShoppingCart,
   Store,
@@ -85,6 +85,7 @@ interface StoreData {
 }
 
 type TabKey = "overview" | "products" | "info";
+type StoreLoadState = "loading" | "ready" | "empty" | "error";
 
 const PRODUCTS_PER_PAGE = 50;
 
@@ -124,6 +125,7 @@ export default function SellerDashboardHome() {
   const router = useRouter();
   const [ready, setReady] = useState(false);
   const [store, setStore] = useState<StoreData | null>(null);
+  const [storeLoadState, setStoreLoadState] = useState<StoreLoadState>("loading");
   const [stats, setStats] = useState<StoreStats | null>(null);
   const [products, setProducts] = useState<StoreProduct[]>([]);
   const [loading, setLoading] = useState(true);
@@ -138,6 +140,7 @@ export default function SellerDashboardHome() {
       setProductsPaging(true);
     } else {
       setLoading(true);
+      setStoreLoadState("loading");
     }
     try {
       const [storeRes, statsRes, productsRes] = await Promise.allSettled([
@@ -149,8 +152,21 @@ export default function SellerDashboardHome() {
         }),
       ]);
 
-      if (storeRes.status === "fulfilled" && storeRes.value.data?.store) {
-        setStore(storeRes.value.data.store as StoreData);
+      if (storeRes.status === "fulfilled") {
+        const nextStore = storeRes.value.data?.store as StoreData | null | undefined;
+        if (nextStore) {
+          setStore(nextStore);
+          setStoreLoadState("ready");
+        } else if (nextStore === null) {
+          setStore(null);
+          setStoreLoadState("empty");
+        } else if (!options?.pageOnly) {
+          setStore(null);
+          setStoreLoadState("error");
+        }
+      } else if (!options?.pageOnly) {
+        setStore(null);
+        setStoreLoadState("error");
       }
       if (statsRes.status === "fulfilled" && statsRes.value.data) {
         setStats(statsRes.value.data as StoreStats);
@@ -162,7 +178,10 @@ export default function SellerDashboardHome() {
         setPagination(readPagination(d, nextProducts.length, requestedPage));
       }
     } catch {
-      /* skip */
+      if (!options?.pageOnly) {
+        setStore(null);
+        setStoreLoadState("error");
+      }
     } finally {
       if (options?.pageOnly) {
         setProductsPaging(false);
@@ -222,7 +241,13 @@ export default function SellerDashboardHome() {
         subtitle="إدارة متجرك ومنتجاتك وطلباتك"
         icon={LayoutDashboard}
         actions={headerActions}
-        hasStore={loading ? undefined : !!store}
+        hasStore={
+          storeLoadState === "ready"
+            ? true
+            : storeLoadState === "empty"
+              ? false
+              : undefined
+        }
         storeSlug={store?.slug}
         storeName={storeDisplayName}
         storeStatus={store?.status}
@@ -252,41 +277,79 @@ export default function SellerDashboardHome() {
             </div>
           )}
 
-          {/* ─── لا يوجد متجر ─── */}
-          {!loading && !store && (
-            <div className="space-y-6">
-              <div className="flex flex-col items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-700 p-8 text-center text-white">
-                <Store className="h-16 w-16 mb-4 text-emerald-300/60" />
-                <h2 className="text-xl font-bold mb-2">ليس لديك متجر بعد</h2>
-                <p className="text-emerald-100 text-sm mb-6 max-w-md">
-                  أنشئ متجرك الإلكتروني وأضف منتجاتك وابدأ البيع — الدفع مباشر لحسابك عبر بوابة الدفع
-                </p>
-                <Link
-                  href="/stores/new"
-                  className="inline-flex items-center gap-2 rounded-xl bg-white px-6 py-3 text-sm font-bold text-emerald-700 shadow-sm hover:bg-emerald-50 transition"
-                >
-                  <Plus className="h-5 w-5" />
-                  إنشاء متجر جديد
-                </Link>
-              </div>
+          {/* ─── تعذر تحميل المتجر ─── */}
+          {!loading && storeLoadState === "error" && (
+            <div className="rounded-[28px] border border-rose-200 bg-white p-8 text-center shadow-sm dark:border-rose-900/60 dark:bg-slate-900">
+              <span className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-300">
+                <AlertTriangle className="h-7 w-7" />
+              </span>
+              <h2 className="text-xl font-black text-slate-950 dark:text-white">تعذر تحميل متاجرك</h2>
+              <p className="mx-auto mt-2 max-w-lg text-sm leading-7 text-slate-600 dark:text-slate-300">
+                لم نستطع التأكد من بيانات المتاجر الآن. لم نعتبر حسابك فارغًا، ويمكنك إعادة المحاولة بأمان.
+              </p>
+              <button
+                type="button"
+                onClick={() => load(1)}
+                className="mt-5 inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white transition hover:bg-slate-800 dark:bg-cyan-500 dark:text-slate-950 dark:hover:bg-cyan-400"
+              >
+                <RefreshCw className="h-4 w-4" />
+                إعادة المحاولة
+              </button>
+            </div>
+          )}
 
-              <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/80 p-5 dark:border-emerald-800/30 dark:bg-emerald-950/20">
-                <div className="flex items-center gap-2 mb-3 text-emerald-800 dark:text-emerald-300">
-                  <Info className="h-5 w-5" />
-                  <strong className="text-sm font-bold">كيف يعمل؟</strong>
+          {/* ─── لا يوجد متجر فعلياً ─── */}
+          {!loading && storeLoadState === "empty" && (
+            <div className="space-y-6">
+              <section className="relative overflow-hidden rounded-[30px] border border-cyan-200/70 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.17),transparent_34%),linear-gradient(135deg,#ffffff_0%,#f0f9ff_52%,#ecfeff_100%)] p-6 shadow-[0_22px_70px_-40px_rgba(8,145,178,0.55)] dark:border-cyan-900/60 dark:bg-[radial-gradient(circle_at_top_right,rgba(6,182,212,0.18),transparent_38%),linear-gradient(135deg,#111c2f_0%,#0b1220_100%)] md:p-10">
+                <div className="grid items-center gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+                  <div>
+                    <span className="inline-flex items-center gap-2 rounded-full border border-cyan-200 bg-white/80 px-3 py-1.5 text-xs font-bold text-cyan-800 shadow-sm dark:border-cyan-800 dark:bg-slate-900/70 dark:text-cyan-200">
+                      <Store className="h-3.5 w-3.5" />
+                      مساحة عملك التجارية
+                    </span>
+                    <h2 className="mt-5 max-w-2xl text-3xl font-black leading-tight text-slate-950 dark:text-white md:text-4xl">
+                      ابدأ متجرك الأول بخطوات واضحة
+                    </h2>
+                    <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600 dark:text-slate-300 md:text-base">
+                      أنشئ هوية متجرك، أضف منتجاتك، ثم أرسل المتجر للمراجعة. ستبقى حالة كل خطوة واضحة أمامك من لوحة واحدة.
+                    </p>
+                    <Link
+                      href="/stores/new"
+                      className="mt-6 inline-flex items-center gap-2 rounded-xl bg-slate-950 px-6 py-3 text-sm font-extrabold text-white shadow-lg shadow-slate-950/15 transition hover:-translate-y-0.5 hover:bg-slate-800 dark:bg-cyan-400 dark:text-slate-950 dark:hover:bg-cyan-300"
+                    >
+                      <Plus className="h-5 w-5" />
+                      إنشاء متجر جديد
+                    </Link>
+                  </div>
+
+                  <div className="rounded-3xl border border-white/80 bg-white/75 p-4 shadow-xl shadow-cyan-950/5 backdrop-blur dark:border-slate-700 dark:bg-slate-900/70">
+                    {[
+                      ["01", "هوية المتجر", "الاسم والرابط وبيانات التواصل"],
+                      ["02", "المنتجات", "الصور والأسعار والمخزون"],
+                      ["03", "المراجعة والنشر", "متابعة الحالة قبل استقبال العملاء"],
+                    ].map(([number, title, description], index) => (
+                      <div key={number} className={`flex gap-3 py-3 ${index ? "border-t border-slate-200/70 dark:border-slate-700" : ""}`}>
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-cyan-50 font-black text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300">
+                          {number}
+                        </span>
+                        <span>
+                          <strong className="flex items-center gap-1.5 text-sm text-slate-900 dark:text-slate-100">
+                            {title}
+                            <CheckCircle2 className="h-3.5 w-3.5 text-teal-500" />
+                          </strong>
+                          <span className="mt-1 block text-xs leading-5 text-slate-500 dark:text-slate-400">{description}</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <ol className="list-decimal pr-5 space-y-2 text-sm leading-relaxed text-emerald-700/90 dark:text-emerald-300/80">
-                  <li>أنشئ متجرك واختر اسمه ورابطه وتصنيفه.</li>
-                  <li>سجّل عنوانك الوطني (الرقم المختصر من سبل).</li>
-                  <li>أضف منتجاتك مع الأسعار والصور والأوزان.</li>
-                  <li className="font-medium text-emerald-800 dark:text-emerald-200">فعّل المتجر — الدفع يعمل تلقائياً عبر بوابة داسم!</li>
-                </ol>
-              </div>
+              </section>
             </div>
           )}
 
           {/* ─── يوجد متجر ─── */}
-          {!loading && store && (
+          {!loading && storeLoadState === "ready" && store && (
             <>
               {/* الإحصائيات */}
               <div className="grid max-w-6xl grid-cols-2 gap-3 md:grid-cols-4">

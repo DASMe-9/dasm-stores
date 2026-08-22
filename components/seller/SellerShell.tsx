@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import {
   BarChart3,
   Boxes,
+  ChevronDown,
   CreditCard,
   Download,
   ExternalLink,
@@ -26,10 +27,9 @@ import {
   Sun,
   Truck,
   X,
-  User as UserIcon,
   LogOut,
 } from "lucide-react";
-import { syncStoresTokenCookie } from "@/lib/auth-token";
+import { clearStoresToken, syncStoresTokenCookie } from "@/lib/auth-token";
 import { sellerApi, storeSelection } from "@/lib/api";
 import { getStoreDisplayName } from "@/lib/store-display";
 import {
@@ -65,6 +65,40 @@ type SellerStoreOption = {
   status?: string | null;
   theme_config?: { primary_color?: unknown } | null;
 };
+
+type SellerAccount = {
+  name: string;
+  email: string;
+};
+
+function readSellerAccount(): SellerAccount {
+  const fallback = { name: "صاحب المتجر", email: "حساب متاجر داسم" };
+
+  try {
+    const raw = localStorage.getItem("stores_user");
+    if (!raw) return fallback;
+
+    const user = JSON.parse(raw) as {
+      name?: unknown;
+      display_name?: unknown;
+      first_name?: unknown;
+      last_name?: unknown;
+      email?: unknown;
+    };
+    const fullName = [user.first_name, user.last_name]
+      .filter((part): part is string => typeof part === "string" && part.trim().length > 0)
+      .join(" ");
+    const name = [user.display_name, user.name, fullName, user.email]
+      .find((value): value is string => typeof value === "string" && value.trim().length > 0);
+    const email = typeof user.email === "string" && user.email.trim()
+      ? user.email.trim()
+      : fallback.email;
+
+    return { name: name?.trim() ?? fallback.name, email };
+  } catch {
+    return fallback;
+  }
+}
 
 function getCurrentStoreUserId(): string | null {
   try {
@@ -516,7 +550,7 @@ export function SellerShell({
   );
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 rtl flex seller-dashboard-root">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b1220] rtl flex seller-dashboard-root">
       {resolvedThemeColor ? (
         <style dangerouslySetInnerHTML={{ __html: `
           .seller-dashboard-root {
@@ -547,7 +581,7 @@ export function SellerShell({
           }
         ` }} />
       ) : null}
-      <aside className="hidden w-[260px] shrink-0 border-l border-emerald-200/50 dark:border-zinc-800 bg-gradient-to-b from-emerald-50 via-teal-50 to-white dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 lg:block lg:sticky lg:top-0 lg:h-screen lg:shadow-[4px_0_32px_-8px_rgba(16,185,129,0.12)]">
+      <aside className="hidden w-[260px] shrink-0 border-l border-slate-200/80 bg-white dark:border-slate-800 dark:bg-[#101827] lg:block lg:sticky lg:top-0 lg:h-screen lg:shadow-[4px_0_32px_-8px_rgba(15,23,42,0.14)]">
         {sidebarInner}
       </aside>
 
@@ -561,7 +595,7 @@ export function SellerShell({
       ) : null}
 
       <div
-        className={`fixed inset-y-0 right-0 z-50 flex flex-col h-full w-[min(86vw,280px)] transform bg-gradient-to-b from-emerald-50 via-teal-50 to-white dark:from-zinc-900 dark:via-zinc-900 dark:to-zinc-900 shadow-2xl transition-transform duration-200 lg:hidden ${
+        className={`fixed inset-y-0 right-0 z-50 flex h-full w-[min(86vw,280px)] transform flex-col bg-white shadow-2xl transition-transform duration-200 dark:bg-[#101827] lg:hidden ${
           drawerOpen ? "translate-x-0" : "translate-x-full"
         }`}
       >
@@ -581,7 +615,7 @@ export function SellerShell({
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="sticky top-0 z-30 flex items-center justify-between bg-zinc-50/95 dark:bg-zinc-950/90 backdrop-blur-lg border-b border-zinc-200/60 dark:border-zinc-800 px-4 py-3 lg:hidden">
+        <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200/70 bg-slate-50/95 px-4 py-3 backdrop-blur-lg dark:border-slate-800 dark:bg-[#0b1220]/90 lg:hidden">
           <button
             type="button"
             className="rounded-xl p-2 text-zinc-600 hover:bg-zinc-100 dark:text-zinc-400 dark:hover:bg-zinc-800"
@@ -631,27 +665,57 @@ export function SellerShell({
 
 function UserDropdown() {
   const [open, setOpen] = useState(false);
+  const [account, setAccount] = useState<SellerAccount>({
+    name: "صاحب المتجر",
+    email: "حساب متاجر داسم",
+  });
+
+  useEffect(() => {
+    queueMicrotask(() => setAccount(readSellerAccount()));
+  }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("stores_token");
-    localStorage.removeItem("stores_user");
+    clearStoresToken();
     window.location.href = "/auth/login";
   };
+  const initial = account.name.trim().charAt(0) || "د";
 
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen(!open)}
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-950 dark:text-emerald-300 dark:hover:bg-emerald-900 transition shadow-sm"
+        onClick={() => setOpen((current) => !current)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+        className="group flex min-w-0 items-center gap-2.5 rounded-2xl border border-slate-200 bg-white px-2 py-1.5 text-start shadow-sm transition hover:border-cyan-300 hover:shadow-md dark:border-slate-700 dark:bg-slate-900 dark:hover:border-cyan-700"
       >
-        <UserIcon className="h-5 w-5" />
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 text-sm font-black text-white shadow-sm shadow-cyan-700/20">
+          {initial}
+        </span>
+        <span className="hidden min-w-0 sm:block">
+          <span className="block max-w-40 truncate text-xs font-extrabold text-slate-900 dark:text-slate-100">
+            {account.name}
+          </span>
+          <span dir="ltr" className="block max-w-40 truncate text-[10px] text-slate-500 dark:text-slate-400">
+            {account.email}
+          </span>
+        </span>
+        <ChevronDown className={`hidden h-4 w-4 shrink-0 text-slate-400 transition sm:block ${open ? "rotate-180" : ""}`} />
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full mt-2 w-52 rounded-2xl border border-zinc-200 bg-white p-2 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 z-50 overflow-hidden">
+          <div className="absolute left-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl shadow-slate-950/10 dark:border-slate-700 dark:bg-slate-900">
+            <div className="mb-2 flex items-center gap-3 rounded-xl bg-slate-50 p-3 dark:bg-slate-800/80">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-500 to-teal-600 text-sm font-black text-white">
+                {initial}
+              </span>
+              <span className="min-w-0">
+                <strong className="block truncate text-sm text-slate-900 dark:text-slate-100">{account.name}</strong>
+                <span dir="ltr" className="block truncate text-xs text-slate-500 dark:text-slate-400">{account.email}</span>
+              </span>
+            </div>
             <Link
               href="/dashboard/settings"
               onClick={() => setOpen(false)}
