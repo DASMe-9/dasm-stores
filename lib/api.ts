@@ -61,17 +61,63 @@ function attachAuthToken(config: InternalAxiosRequestConfig) {
   return config;
 }
 
-function attachStoreContext(config: InternalAxiosRequestConfig) {
+function attachStoreContext(config: StoreSelectionConfig) {
   attachAuthToken(config);
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && !config._retryWithoutStoreSelection) {
     const selectedStoreId = storeSelection.get();
     if (selectedStoreId) config.headers[STORE_HEADER] = selectedStoreId;
   }
   return config;
 }
 
+function requestStoreSelection(config: StoreSelectionConfig): string | null {
+  const headers = config.headers as InternalAxiosRequestConfig["headers"] & {
+    get?: (name: string) => unknown;
+  };
+  const fromGetter = typeof headers?.get === "function" ? headers.get(STORE_HEADER) : undefined;
+  const value =
+    fromGetter ??
+    headers?.[STORE_HEADER] ??
+    headers?.[STORE_HEADER.toLowerCase()] ??
+    headers?.["x-dasm-store-id"];
+
+  if (value == null || value === false) return null;
+  const normalized = String(Array.isArray(value) ? value[0] : value).trim();
+  return normalized || null;
+}
+
+function clearRequestStoreSelection(requestStoreId: string) {
+  if (storeSelection.get() === requestStoreId) storeSelection.clear();
+}
+
+function removeStoreSelectionHeader(config: StoreSelectionConfig) {
+  const headers = config.headers as InternalAxiosRequestConfig["headers"] & {
+    delete?: (name: string) => void;
+  };
+  if (typeof headers?.delete === "function") headers.delete(STORE_HEADER);
+  delete headers?.[STORE_HEADER];
+  delete headers?.[STORE_HEADER.toLowerCase()];
+  delete headers?.["x-dasm-store-id"];
+}
+
 function isSellerStoreEndpoint(url: string | undefined) {
   return !!url && (url.startsWith("/my-store") || url.startsWith("/my-stores"));
+}
+
+function isMyStoreRootEndpoint(url: string | undefined) {
+  return url === "/my-store" || !!url?.startsWith("/my-store?");
+}
+
+function isSafeMyStoreRootRead(config: StoreSelectionConfig) {
+  return config.method?.toLowerCase() === "get" && isMyStoreRootEndpoint(config.url);
+}
+
+function isSafeSelectedStoreRead(config: StoreSelectionConfig) {
+  if (config.method?.toLowerCase() !== "get") return false;
+
+  return ["/my-store", "/my-store/stats", "/my-store/products"].some(
+    (endpoint) => config.url === endpoint || config.url?.startsWith(`${endpoint}?`),
+  );
 }
 
 function syncSelectionFromSellerResponse(response: AxiosResponse) {
@@ -103,8 +149,12 @@ function syncSelectionFromSellerResponse(response: AxiosResponse) {
     return;
   }
 
-  if (response.config.url?.startsWith("/my-store") && data?.store === null) {
-    storeSelection.clear();
+  if (isMyStoreRootEndpoint(response.config.url) && data?.store === null) {
+    const requestStoreId = requestStoreSelection(response.config as StoreSelectionConfig);
+    const currentStoreId = storeSelection.get();
+    if ((requestStoreId && currentStoreId === requestStoreId) || (!requestStoreId && !currentStoreId)) {
+      storeSelection.clear();
+    }
   }
 }
 
@@ -114,24 +164,40 @@ localApi.interceptors.request.use(attachAuthToken);
 
 // لو 401 → وجّه لتسجيل الدخول
 api.interceptors.response.use(
-  (res) => {
+  async (res) => {
+    const config = res.config as StoreSelectionConfig;
+    const data = res.data as { store?: unknown };
+    const requestStoreId = requestStoreSelection(config);
+    if (
+      isSafeMyStoreRootRead(config) &&
+      data?.store === null &&
+      !config._retryWithoutStoreSelection &&
+      typeof window !== "undefined" &&
+      requestStoreId
+    ) {
+      clearRequestStoreSelection(requestStoreId);
+      config._retryWithoutStoreSelection = true;
+      removeStoreSelectionHeader(config);
+      return api(config);
+    }
+
     syncSelectionFromSellerResponse(res);
     return res;
   },
   async (err) => {
     const config = err.config as StoreSelectionConfig | undefined;
+    const requestStoreId = config ? requestStoreSelection(config) : null;
     if (
       err.response?.status === 404 &&
       config &&
       !config._retryWithoutStoreSelection &&
-      isSellerStoreEndpoint(config.url) &&
+      isSafeSelectedStoreRead(config) &&
       typeof window !== "undefined" &&
-      storeSelection.get()
+      requestStoreId
     ) {
-      storeSelection.clear();
+      clearRequestStoreSelection(requestStoreId);
       config._retryWithoutStoreSelection = true;
-      delete config.headers?.[STORE_HEADER];
-      delete config.headers?.["x-dasm-store-id"];
+      removeStoreSelectionHeader(config);
       return api(config);
     }
 

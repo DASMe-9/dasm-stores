@@ -10,6 +10,42 @@ import type { SocialAuthResult } from "@/lib/social-auth";
 
 const API_URL = platformApiOrigin();
 
+type LoginAccount = {
+  id?: string | number;
+  name?: string | null;
+  display_name?: string | null;
+  first_name?: string | null;
+  last_name?: string | null;
+  email?: string | null;
+  type?: string | null;
+  profile_completed?: boolean | null;
+};
+
+function accountFromPayload(payload: unknown): LoginAccount | null {
+  if (!payload || typeof payload !== "object") return null;
+
+  const body = payload as {
+    data?: { user?: LoginAccount };
+    user?: LoginAccount;
+    id?: string | number;
+  };
+  return body.data?.user ?? body.user ?? (body.id != null ? (body as LoginAccount) : null);
+}
+
+function saveLoginAccount(account: LoginAccount): void {
+  const fullName = [account.first_name, account.last_name].filter(Boolean).join(" ").trim();
+  localStorage.setItem(
+    "stores_user",
+    JSON.stringify({
+      id: account.id,
+      name: account.display_name?.trim() || account.name?.trim() || fullName || account.email,
+      email: account.email,
+      type: account.type,
+      profile_completed: account.profile_completed ?? true,
+    }),
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -43,6 +79,23 @@ export default function LoginPage() {
         res.data?.token;
       if (!token) throw new Error("لم يُرجع الخادم توكن");
       persistStoresToken(token);
+      localStorage.removeItem("stores_user");
+      let account = accountFromPayload(res.data);
+      if (!account) {
+        try {
+          const me = await axios.get(`${API_URL}/api/user`, {
+            headers: { Authorization: `Bearer ${token}`, Accept: "application/json" },
+          });
+          account = accountFromPayload(me.data);
+        } catch {
+          /* The authenticated session remains valid even if identity hydration is unavailable. */
+        }
+      }
+      if (account) {
+        saveLoginAccount(account);
+      } else {
+        saveLoginAccount({ name: "صاحب المتجر", email });
+      }
       router.replace(returnUrl);
     } catch (err: unknown) {
       const resp = (err as { response?: { status?: number; data?: { message?: string; error?: string } } })?.response;
