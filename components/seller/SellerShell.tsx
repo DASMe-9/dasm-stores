@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import {
   BarChart3,
   Boxes,
+  BrainCircuit,
   ChevronDown,
   CreditCard,
   Download,
@@ -169,6 +170,13 @@ const MAIN_NAV: NavItem[] = [
     label: "نتائج الإعلانات",
     icon: BarChart3,
     match: (p) => p.startsWith("/dashboard/ads"),
+    requiresStore: true,
+  },
+  {
+    href: "/dashboard/growth-assistant",
+    label: "مساعد نمو المتجر",
+    icon: BrainCircuit,
+    match: (p) => p.startsWith("/dashboard/growth-assistant"),
     requiresStore: true,
   },
   {
