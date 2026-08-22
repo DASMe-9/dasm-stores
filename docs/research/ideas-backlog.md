@@ -10,6 +10,10 @@
 | 2026-06-15 | competitors/2026-28 | **Cart Confirmation Popup:** Salla يعرض popup خفيف بعد إضافة منتج للسلة بدلاً من فتح drawer كامل. الفكرة تحتاج مراجعة تدفق التسوق حتى لا تكرر `CartDrawer.tsx`. | `components/cart/CartToast.tsx` + `store/cartStore.ts` | 🟡 متوسطة | مؤجلة |
 | 2026-06-16 | competitors/2026-29 | **معلومات شحن/استلام على صفحة تفصيل المنتج:** Salla أضافت مكوّن `salla-fulfillment-methods` يعرض خيارات توصيل/استلام قبل زر "أضف للسلة". dasm-stores لا يعرض أي معلومة شحن على صفحة المنتج. يتوقف على حقول API: يحتاج تحقق من بيانات متاحة في `getProducts()` response. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق API مطلوب |
 
+| 2026-06-29 | competitors/2026-30 | **Variant swatch → image carousel على بطاقة المنتج:** Salla Twilight 2.14.420 أضافت تغيير صورة المنتج عند النقر على swatch اللون مباشرة على البطاقة (بدون انتقال لصفحة المنتج). `ProductCard.tsx` لا يعرض variant swatches حالياً. يتوقف على: (أ) وجود حقل variants في API payload لـ `getProducts()`، (ب) أن يحمل كل variant صورته الخاصة. | `components/product/ProductCard.tsx` + `lib/api-server.ts` | 🟢 مرتفعة (مشروطة بالـ API) | مؤجلة — تحقق API مطلوب |
+| 2026-06-29 | competitors/2026-30 | **اتجاه استراتيجي — Guest checkout friction:** Salla أضافت Apple Pay quick buy للزوار بدون حساب. المتجر الفرعي في dasm-stores يتطلب تسجيل للشراء. تخفيف هذا الـ friction (guest checkout أو express payment) يمثّل فجوة تنافسية متنامية. يستدعي قرار product وبنية checkout. | `app/[slug]/checkout/page.tsx` + auth flow | 🔴 عالية (استراتيجية) | مؤجلة — قرار product مطلوب |
+| 2026-06-29 | guardian W30 | **تحديث baseline لصفحة متجر builder:** الـ `subdomain-store.png` يمثّل متجراً بدون visual builder. مع جعل builder المسار الافتراضي (`5f45ab2`)، يصبح الـ baseline قديماً للمتاجر الجديدة. يُوصى بأخذ screenshot جديد لمتجر builder بالقالب الافتراضي وتحديث `docs/design/baseline/subdomain-store.png`. | `docs/design/baseline/subdomain-store.png` | 🟡 متوسطة | مؤجلة — يتطلب screenshot يدوي |
+
 ---
 
 > يضاف هنا أي تحسين يكتشفه Design Guardian دون تنفيذ مباشر أو تعديل على كود الإنتاج.
