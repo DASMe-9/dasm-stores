@@ -10,6 +10,9 @@
 | 2026-06-15 | competitors/2026-28 | **Cart Confirmation Popup:** Salla يعرض popup خفيف بعد إضافة منتج للسلة بدلاً من فتح drawer كامل. الفكرة تحتاج مراجعة تدفق التسوق حتى لا تكرر `CartDrawer.tsx`. | `components/cart/CartToast.tsx` + `store/cartStore.ts` | 🟡 متوسطة | مؤجلة |
 | 2026-06-16 | competitors/2026-29 | **معلومات شحن/استلام على صفحة تفصيل المنتج:** Salla أضافت مكوّن `salla-fulfillment-methods` يعرض خيارات توصيل/استلام قبل زر "أضف للسلة". dasm-stores لا يعرض أي معلومة شحن على صفحة المنتج. يتوقف على حقول API: يحتاج تحقق من بيانات متاحة في `getProducts()` response. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق API مطلوب |
 
+| 2026-08-05 | competitors/2026-32 | **توصيات منتجات بالذكاء الاصطناعي:** Salla Twilight v2.14.490 أضافت AI-powered product recommendation APIs — شبكة "مقترحة لك" تتغير بحسب سلوك المستخدم. dasm-stores تعتمد حاليًا على `sort=featured` فقط. التطبيق يتطلب events tracking + recommendation API (بنية تحتية). | `app/page.tsx` + `lib/api-server.ts` | 🔴 طويل المدى | مؤجلة — يتوقف على قرار استراتيجي |
+| 2026-08-05 | competitors/2026-32 | **Announcement Bar (شريط إعلانات علوي):** Zid وShopify يوفران شريطاً علوياً رفيعاً قابلاً للتهيئة من لوحة التحكم. فرصة منخفضة التعقيد لإضافة رسائل عروض وحملات تسويقية دون تعديل Hero. | `components/store/StoreHeader.tsx` | 🟢 منخفضة | مؤجلة |
+
 ---
 
 > يضاف هنا أي تحسين يكتشفه Design Guardian دون تنفيذ مباشر أو تعديل على كود الإنتاج.
