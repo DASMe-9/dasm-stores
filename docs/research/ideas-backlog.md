@@ -10,6 +10,8 @@
 | 2026-06-15 | competitors/2026-28 | **Cart Confirmation Popup:** Salla يعرض popup خفيف بعد إضافة منتج للسلة بدلاً من فتح drawer كامل. الفكرة تحتاج مراجعة تدفق التسوق حتى لا تكرر `CartDrawer.tsx`. | `components/cart/CartToast.tsx` + `store/cartStore.ts` | 🟡 متوسطة | مؤجلة |
 | 2026-06-16 | competitors/2026-29 | **معلومات شحن/استلام على صفحة تفصيل المنتج:** Salla أضافت مكوّن `salla-fulfillment-methods` يعرض خيارات توصيل/استلام قبل زر "أضف للسلة". dasm-stores لا يعرض أي معلومة شحن على صفحة المنتج. يتوقف على حقول API: يحتاج تحقق من بيانات متاحة في `getProducts()` response. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق API مطلوب |
 
+| 2026-08-10 | baseline-drift-2026-08-10 | **spec متقادم — product-tile-cart-button:** الـ spec الموجود في `docs/specs/product-tile-cart-button-2026-06-14.md` يطلب تحويل `rounded-xl` → `rounded-full` لزر السلة في ProductTile. لكن كوميت `013f987` (2026-07-30) غيّر الزر كلياً من `ShoppingCart`→cart إلى `ArrowLeft`→product page. الـ spec أصبح غير متوافق مع الواقع الحالي؛ يحتاج إما إلغاءه أو إعادة كتابته بعد قرار المالك بشأن Hero drift. | `docs/specs/product-tile-cart-button-2026-06-14.md` | 🔴 عالية | تحتاج قرار مسبق |
+
 ---
 
 > يضاف هنا أي تحسين يكتشفه Design Guardian دون تنفيذ مباشر أو تعديل على كود الإنتاج.
