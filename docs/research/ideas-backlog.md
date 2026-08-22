@@ -10,6 +10,8 @@
 | 2026-06-15 | competitors/2026-28 | **Cart Confirmation Popup:** Salla يعرض popup خفيف بعد إضافة منتج للسلة بدلاً من فتح drawer كامل. الفكرة تحتاج مراجعة تدفق التسوق حتى لا تكرر `CartDrawer.tsx`. | `components/cart/CartToast.tsx` + `store/cartStore.ts` | 🟡 متوسطة | مؤجلة |
 | 2026-06-16 | competitors/2026-29 | **معلومات شحن/استلام على صفحة تفصيل المنتج:** Salla أضافت مكوّن `salla-fulfillment-methods` يعرض خيارات توصيل/استلام قبل زر "أضف للسلة". dasm-stores لا يعرض أي معلومة شحن على صفحة المنتج. يتوقف على حقول API: يحتاج تحقق من بيانات متاحة في `getProducts()` response. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق API مطلوب |
 
+| 2026-06-28 | competitors/2026-30 | **قسم إفصاحات المنتج (Product Disclosures):** Shopify Dawn 15.5 أضافت block جديد لعرض إفصاحات قانونية ومعلومات سلامة على صفحة تفاصيل المنتج. السوق السعودي يشترط إفصاحات للأغذية والأدوية. `app/[slug]/products/[productId]/page.tsx` لا يعرض أي قسم من هذا النوع. التنفيذ يتوقف على إضافة حقل `disclosure_text` أو ما يعادله في بيانات المنتج من الـ API. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق حقل API مطلوب |
+
 ---
 
 > يضاف هنا أي تحسين يكتشفه Design Guardian دون تنفيذ مباشر أو تعديل على كود الإنتاج.
