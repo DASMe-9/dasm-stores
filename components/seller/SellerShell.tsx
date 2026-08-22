@@ -509,7 +509,7 @@ export function SellerShell({
                 المتجر معلق
               </div>
             ) : null}
-            {!hasStore && (
+            {hasStore === false && (
               <Link
                 href="/stores/new"
                 onClick={() => setDrawerOpen(false)}
