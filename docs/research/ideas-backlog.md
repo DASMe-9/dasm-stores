@@ -10,6 +10,9 @@
 | 2026-06-15 | competitors/2026-28 | **Cart Confirmation Popup:** Salla يعرض popup خفيف بعد إضافة منتج للسلة بدلاً من فتح drawer كامل. الفكرة تحتاج مراجعة تدفق التسوق حتى لا تكرر `CartDrawer.tsx`. | `components/cart/CartToast.tsx` + `store/cartStore.ts` | 🟡 متوسطة | مؤجلة |
 | 2026-06-16 | competitors/2026-29 | **معلومات شحن/استلام على صفحة تفصيل المنتج:** Salla أضافت مكوّن `salla-fulfillment-methods` يعرض خيارات توصيل/استلام قبل زر "أضف للسلة". dasm-stores لا يعرض أي معلومة شحن على صفحة المنتج. يتوقف على حقول API: يحتاج تحقق من بيانات متاحة في `getProducts()` response. | `app/[slug]/products/[productId]/page.tsx` | 🟡 متوسطة | مؤجلة — تحقق API مطلوب |
 
+| 2026-07-19 | competitors/2026-30 | **Multi-coupon chips في السلة:** Salla v2.14.501 أضافت مكوّن `salla-cart-coupons` يعرض أكواد الخصم كـ chips متعددة في السلة. `components/cart/CartDrawer.tsx` يقبل كوبون واحد فقط. | `components/cart/CartDrawer.tsx` | 🟡 متوسطة | مؤجلة |
+| 2026-07-19 | competitors/2026-30 | **color_palette UX في محرر الثيم:** Shopify Spring '26 أضافت setting type جديد "قائمة ألوان مسطّحة" يُحرّرها التاجر مباشرة بدلاً من color schemes. `components/theme-editor/DesignPanel.tsx` يستحق مراجعة تجربة تحرير الألوان. | `components/theme-editor/DesignPanel.tsx` | 🟢 منخفضة | مؤجلة |
+
 ---
 
 > يضاف هنا أي تحسين يكتشفه Design Guardian دون تنفيذ مباشر أو تعديل على كود الإنتاج.
